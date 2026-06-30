@@ -7,6 +7,25 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-06-30 — Fase 0 Milestone 3: Skema Domain Lengkap GlowBook
+
+#### Ditambahkan
+- **`backend/prisma/schema.prisma`** — diperluas dari 2 model (User, Tenant) ke **15 model** + **9 enum** baru:
+  - Enum baru: `BookingStatus`, `PaymentStatus`, `SubscriptionStatus`, `InvoiceStatus`, `ReviewStatus`, `NotificationStatus`, `NotificationChannel`, `ServiceType`, `PlanInterval` — semua nilai UPPERCASE_ENGLISH sesuai `conventions.md`.
+  - Model baru (tenant-scoped, wajib `tenantId`): `Theme` (1:1 Tenant), `Service`, `CustomField`, `PaymentProfile` (1:1 Tenant), `Client` (unique `[tenantId, phone]`), `Booking` (anti-bentrok index `[tenantId, tanggalAcara]`, `kodeBooking @unique` format GB-YYYYMMDD-XXXX), `BookingItem` (snapshot harga/nama), `CustomFieldValue`, `Payment`, `Review` (`bookingId @unique` — 1 ulasan/booking), `Subscription` (1:1 Tenant), `Invoice`.
+  - Model baru (global, tanpa `tenantId`): `Plan` (`tierUrutan @unique`), `AuditLog`.
+  - Model baru (tenant-scoped): `Notification`.
+  - Semua field moneter (`harga`, `jumlah`, `amount`, `dpAmount`, `totalHarga`, `hargaSnapshot`) bertipe `Decimal(15,2)`.
+  - Cascade delete: hapus Tenant → hapus semua data tenant-scoped. Booking dihapus → BookingItem, CustomFieldValue, Payment, Review ikut terhapus. Notification.bookingId → `SET NULL`.
+  - Back-relation lengkap di Tenant (`payments[]`, `reviews[]`) dan Plan (`subscriptions[]`).
+- **`backend/prisma/migrations/20260630000001_domain_schema/migration.sql`** — SQL migrasi manual: `CREATE TYPE` (9 enum), `CREATE TABLE` (13 tabel baru), `CREATE UNIQUE INDEX`, `CREATE INDEX`, `ALTER TABLE ... ADD CONSTRAINT` (FK lengkap). Check constraint `Review.rating` 1–5.
+
+#### Verifikasi
+- `npx prisma validate` — lulus (schema valid, 0 error).
+- `npx prisma generate` — lulus (Prisma Client v7.8.0 di-generate ulang).
+
+---
+
 ### 2026-06-30 — Commit & Push: 3 Unit Logis Fase 0
 
 #### Diubah
