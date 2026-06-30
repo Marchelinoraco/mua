@@ -4,7 +4,18 @@ Peta jalan dari **dokumen** (BRD/PRD/docs) menuju **implementasi**. Selaras deng
 
 ## Status Sekarang
 - ✅ BRD, PRD, model bisnis, arsitektur, model data, 12 dokumen fitur — selesai.
-- ⏳ Implementasi belum dimulai.
+- ✅ **Fase 0 SELESAI** (2026-06-30) — `frontend/` shell GlowBook, `backend/` NestJS + Auth + tenant-scoping guard, skema Prisma domain lengkap (17 model, 10 enum). Semua di-push ke `main`.
+- ⏳ **Fase 1 — siap dimulai:** F01 Onboarding → F03 Katalog → F05 Kalender/Anti-bentrok → F02 Storefront → F04 Booking → F09 Order → F08 Notifikasi.
+
+### Handoff Fase 0 → Fase 1
+**Risiko teknis yang WAJIB ditangani di Fase 1 (belum blocker, tapi jangan terlewat):**
+1. **Anti-bentrok atomik (F05):** index `[tenantId, tanggalAcara]` sudah ada — `backend-engineer` wajib `SELECT … FOR UPDATE` di transaksi saat cek slot.
+2. **`kodeBooking` atomik (F04):** generate `GB-YYYYMMDD-XXXX` harus di dalam transaksi + retry jika collision.
+3. **`ordersUsedPeriod` atomik (F07):** increment via `UPDATE SET ordersUsedPeriod + 1`, bukan baca-tulis dua langkah — tanggung jawab `payments-midtrans`.
+4. **Auth FE nyata (F01):** `auth-store` template masih dummy — `frontend-engineer` sambung ke `/api/auth/login` dan `/api/auth/register`.
+5. **`routeTree.gen.ts` (FE):** file diedit manual di M1 — akan auto-overwrite saat `npm run dev` pertama; pastikan TanStack Router plugin berjalan normal.
+
+**Cara memulai Fase 1:** buka sesi baru → tech-lead otomatis aktif → bilang "mulai Fase 1" atau "implementasi F01".
 
 ## Stack Implementasi
 | Lapis | Teknologi |

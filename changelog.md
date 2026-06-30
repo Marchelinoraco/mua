@@ -7,6 +7,13 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-06-30 — Penutup Fase 0: Roadmap Diperbarui + Handoff Notes Fase 1
+
+#### Diubah
+- **`docs/roadmap.md`** — ditandai Fase 0 selesai per 2026-06-30 (frontend shell, backend NestJS + Auth + tenant-scoping guard, skema Prisma 17 model/10 enum); ditambahkan seksi "Handoff Fase 0 → Fase 1" berisi 5 risiko teknis yang wajib ditangani di Fase 1 (anti-bentrok atomik, `kodeBooking` atomik, `ordersUsedPeriod` atomik, auth FE nyata, `routeTree.gen.ts`).
+
+---
+
 ### 2026-06-30 — Fase 0 Milestone 3: Skema Domain Lengkap GlowBook
 
 #### Ditambahkan
