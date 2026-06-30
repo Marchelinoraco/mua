@@ -1,5 +1,13 @@
 // Fase 0 — skema awal; entitas lain (Theme, Service, Booking, Payment, Subscription, dst.)
 // ditambah database-architect di milestone berikutnya.
+//
+// Fase 0 Milestone 3 — Skema Domain Lengkap:
+// Semua entitas MVP GlowBook ditambahkan. Setiap tabel tenant-scoped wajib punya tenantId.
+// Plan dan AuditLog bersifat global (tidak ada tenantId).
+//
+// kodeBooking format: GB-YYYYMMDD-XXXX (mis. GB-20260630-A3F7)
+// Generate di layer aplikasi: `GB-${date}-${randomAlphanumeric(4).toUpperCase()}`
+// Pastikan uniqueness dengan @unique + retry loop jika collision.
 
 generator client {
   provider = "prisma-client-js"
@@ -21,6 +29,65 @@ enum TenantStatus {
   PAST_DUE
   RESTRICTED
   CANCELED
+}
+
+enum BookingStatus {
+  AWAITING_DP
+  CONFIRMED
+  PAID
+  COMPLETED
+  CANCELED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUBMITTED
+  CONFIRMED
+  REJECTED
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum InvoiceStatus {
+  PAID
+  PENDING
+  FAILED
+}
+
+enum ReviewStatus {
+  PUBLISHED
+  FLAGGED
+  HIDDEN
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  EMAIL
+}
+
+enum ServiceType {
+  MAKEUP
+  HAIR
+  NAIL
+  OTHER
+}
+
+enum PlanInterval {
+  MONTHLY
 }
 
 // ---------------------------------------------------------------------------
@@ -54,6 +121,337 @@ model Tenant {
   /// Relasi balik ke User
   owner User @relation(fields: [ownerUserId], references: [id])
 
+  /// Relasi ke entitas tenant-scoped (cascade delete: hapus Tenant → hapus semua data)
+  theme          Theme?
+  subscription   Subscription?
+  paymentProfile PaymentProfile?
+  services       Service[]
+  customFields   CustomField[]
+  clients        Client[]
+  bookings       Booking[]
+  payments       Payment[]
+  reviews        Review[]
+  invoices       Invoice[]
+  notifications  Notification[]
+
   @@index([ownerUserId])
   @@index([slug])
+}
+
+// ---------------------------------------------------------------------------
+// Storefront & Katalog
+// ---------------------------------------------------------------------------
+
+/// Tampilan storefront per tenant — 1:1 dengan Tenant.
+/// Dibuat saat onboarding (F01), dikustomisasi di dashboard (F02).
+model Theme {
+  id            String   @id @default(cuid())
+  tenantId      String   @unique // 1:1 ke Tenant
+  logoUrl       String?
+  bannerUrl     String?
+  warnaPrimer   String   @default("#6C63FF")
+  warnaSekunder String   @default("#F3F4F6")
+  font          String   @default("Inter")
+  template      String   @default("classic") // nama layout: classic | elegant | bold
+  customCss     String?
+  updatedAt     DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+/// Layanan MUA per tenant — dari katalog (F03).
+/// Harga bisa berubah; snapshot tersimpan di BookingItem.hargaSnapshot.
+model Service {
+  id            String      @id @default(cuid())
+  tenantId      String
+  nama          String
+  deskripsi     String?
+  harga         Decimal     @db.Decimal(15, 2)
+  durasi        Int         // durasi layanan dalam menit
+  tipe          ServiceType @default(MAKEUP)
+  aktif         Boolean     @default(true)
+  urutanTampil  Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bookingItems BookingItem[]
+
+  @@index([tenantId])
+}
+
+/// Custom field per tenant — untuk form booking (F04).
+/// tipe: "text" | "select" | "checkbox" | "date" | "file"
+model CustomField {
+  id       String  @id @default(cuid())
+  tenantId String
+  label    String
+  tipe     String  // text | select | checkbox | date | file
+  opsi     Json?   // array opsi untuk tipe "select"
+  wajib    Boolean @default(false)
+  urutan   Int     @default(0)
+
+  tenant Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  values CustomFieldValue[]
+
+  @@index([tenantId])
+}
+
+/// Info rekening MUA untuk instruksi pembayaran klien (F06, RULE-1 non-kustodi).
+/// 1:1 dengan Tenant — satu profil rekening per tenant.
+model PaymentProfile {
+  id                   String   @id @default(cuid())
+  tenantId             String   @unique
+  namaBank             String
+  nomorRekening        String
+  namaPemilik          String
+  instruksiTambahan    String?
+  updatedAt            DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Klien & Booking
+// ---------------------------------------------------------------------------
+
+/// Profil klien per tenant — terbentuk otomatis dari booking (F04).
+/// Unique per nomor WA per tenant (satu klien tidak bisa booking dua kali dengan WA berbeda).
+model Client {
+  id           String   @id @default(cuid())
+  tenantId     String
+  nama         String
+  phone        String   // nomor WA klien
+  email        String?
+  catatan      String?
+  totalBooking Int      @default(0) // counter denormalized; diperbarui saat booking CONFIRMED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@unique([tenantId, phone]) // satu klien per nomor WA per tenant
+  @@index([tenantId])
+}
+
+/// Booking per tenant (F04, F05, F06).
+/// Anti-bentrok: index @@index([tenantId, tanggalAcara]) untuk query slot.
+/// Slot hold 120 menit via holdUntil; kunci permanen setelah DP CONFIRMED.
+/// kodeBooking format: GB-YYYYMMDD-XXXX (generate di aplikasi, @unique di DB).
+model Booking {
+  id             String        @id @default(cuid())
+  tenantId       String
+  clientId       String
+  kodeBooking    String        @unique // GB-YYYYMMDD-XXXX; human-readable, unik global
+  tanggalAcara   DateTime
+  lokasiAcara    String?
+  statusBooking  BookingStatus @default(AWAITING_DP)
+  catatan        String?
+  totalHarga     Decimal       @db.Decimal(15, 2)
+  dpAmount       Decimal       @db.Decimal(15, 2)
+  holdUntil      DateTime?     // slot hold sampai waktu ini (120 menit dari submit); null = slot dikunci permanen
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client      Client             @relation(fields: [clientId], references: [id])
+  items       BookingItem[]
+  payments    Payment[]
+  review      Review?
+  customValues CustomFieldValue[]
+  notifications Notification[]
+
+  @@index([tenantId])
+  @@index([tanggalAcara])
+  @@index([statusBooking])
+  @@index([tenantId, tanggalAcara]) // composite — query anti-bentrok & slot availability
+}
+
+/// Line item layanan dalam satu booking.
+/// hargaSnapshot & namaSnapshot di-capture saat booking dibuat — harga live bisa berubah.
+model BookingItem {
+  id            String  @id @default(cuid())
+  bookingId     String
+  serviceId     String
+  namaSnapshot  String  // snapshot nama layanan saat booking dibuat
+  hargaSnapshot Decimal @db.Decimal(15, 2) // snapshot harga saat booking; JANGAN refer ke Service.harga
+  durasi        Int     // durasi dalam menit (snapshot dari Service.durasi)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id])
+
+  @@index([bookingId])
+}
+
+/// Nilai custom field per booking (F04).
+model CustomFieldValue {
+  id            String @id @default(cuid())
+  bookingId     String
+  customFieldId String
+  nilai         String
+
+  booking     Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  customField CustomField @relation(fields: [customFieldId], references: [id])
+
+  @@index([bookingId])
+}
+
+// ---------------------------------------------------------------------------
+// Pembayaran Klien (manual, non-kustodi)
+// ---------------------------------------------------------------------------
+
+/// Rekaman DP/pelunasan klien → MUA (F06, RULE-1).
+/// Platform hanya menerima bukti & mencatat status; dana mengalir langsung ke MUA.
+/// tipe: "DP" | "PELUNASAN"
+model Payment {
+  id             String        @id @default(cuid())
+  tenantId       String        // denormalized untuk scoping & index
+  bookingId      String
+  tipe           String        // "DP" | "PELUNASAN"
+  jumlah         Decimal       @db.Decimal(15, 2)
+  status         PaymentStatus @default(PENDING)
+  buktiFotoUrl   String?       // URL bukti transfer yang diunggah klien
+  catatanKlien   String?
+  catatanMua     String?
+  confirmedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([tenantId])
+}
+
+// ---------------------------------------------------------------------------
+// Ulasan
+// ---------------------------------------------------------------------------
+
+/// Ulasan klien setelah booking COMPLETED (F11).
+/// Satu ulasan per booking (@unique bookingId). Anti-ulasan palsu via booking FK.
+model Review {
+  id        String       @id @default(cuid())
+  tenantId  String       // denormalized untuk scoping
+  bookingId String       @unique // satu review per booking
+  rating    Int          // 1–5; validasi di aplikasi: CHECK (rating >= 1 AND rating <= 5)
+  komentar  String?
+  status    ReviewStatus @default(PUBLISHED)
+  createdAt DateTime     @default(now())
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([bookingId])
+}
+
+// ---------------------------------------------------------------------------
+// Langganan & Billing
+// ---------------------------------------------------------------------------
+
+/// Paket langganan platform [global] — tidak ada tenantId (dikelola admin, F12).
+/// tierUrutan @unique menjamin urutan tier tidak duplikat.
+model Plan {
+  id          String       @id @default(cuid())
+  nama        String       // mis. "Basic", "Pro", "Bisnis"
+  harga       Decimal      @db.Decimal(15, 2)
+  interval    PlanInterval @default(MONTHLY)
+  orderQuota  Int?         // null = unlimited (tier Bisnis)
+  tierUrutan  Int          @unique // urutan tampil & upgrade path
+  fitur       Json         // daftar fitur per tier
+  aktif       Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+
+  subscriptions Subscription[]
+}
+
+/// Langganan aktif per tenant (F07) — 1:1 dengan Tenant.
+/// ordersUsedPeriod diincrement saat booking → CONFIRMED; reset tiap awal siklus.
+model Subscription {
+  id                     String             @id @default(cuid())
+  tenantId               String             @unique // 1:1 ke Tenant
+  planId                 String
+  status                 SubscriptionStatus @default(TRIALING)
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  ordersUsedPeriod       Int                @default(0) // penghitung order CONFIRMED periode berjalan
+  midtransCustomerId     String?
+  midtransSubscriptionId String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id])
+  invoices Invoice[]
+
+  @@index([tenantId])
+}
+
+/// Tagihan langganan per siklus (F07).
+/// midtransOrderId @unique menjamin idempoten webhook.
+model Invoice {
+  id               String        @id @default(cuid())
+  subscriptionId   String
+  tenantId         String        // denormalized untuk scoping & query per tenant
+  amount           Decimal       @db.Decimal(15, 2)
+  status           InvoiceStatus @default(PENDING)
+  midtransOrderId  String?       @unique // idempoten webhook Midtrans
+  paidAt           DateTime?
+  dueAt            DateTime
+  createdAt        DateTime      @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([tenantId])
+  @@index([midtransOrderId])
+}
+
+// ---------------------------------------------------------------------------
+// Notifikasi
+// ---------------------------------------------------------------------------
+
+/// Log notifikasi WA/email per tenant (F08).
+/// bookingId nullable — notifikasi bisa terkait billing, bukan hanya booking.
+model Notification {
+  id        String              @id @default(cuid())
+  tenantId  String
+  bookingId String?             // nullable: notif billing tidak terkait booking
+  channel   NotificationChannel
+  tujuan    String              // nomor WA atau alamat email tujuan
+  judul     String
+  pesan     String
+  status    NotificationStatus  @default(QUEUED)
+  sentAt    DateTime?
+  createdAt DateTime            @default(now())
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([bookingId])
+}
+
+// ---------------------------------------------------------------------------
+// Audit (Global)
+// ---------------------------------------------------------------------------
+
+/// Log tindakan admin lintas tenant [global] (F12).
+/// Tidak ada tenantId — ini log platform-wide yang bisa span beberapa tenant.
+model AuditLog {
+  id         String   @id @default(cuid())
+  adminEmail String
+  aksi       String   // mis. "SUSPEND_TENANT", "HIDE_REVIEW", "UPDATE_PLAN"
+  targetTipe String   // mis. "Tenant", "Review", "Plan"
+  targetId   String
+  metadata   Json?    // sebelum/sesudah, alasan, dsb.
+  createdAt  DateTime @default(now())
+
+  @@index([adminEmail])
+  @@index([targetId])
 }
