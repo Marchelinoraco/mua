@@ -7,6 +7,59 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-06-30 — Commit & Push: 3 Unit Logis Fase 0
+
+#### Diubah
+- **`backend/.gitignore`** — tambah entri `dist` agar folder build NestJS tidak ikut ter-commit.
+
+---
+
+### 2026-06-30 — Fase 0 Milestone 2: Scaffold Fondasi Backend GlowBook
+
+#### Ditambahkan
+- **`backend/`** — app NestJS (TypeScript strict) hasil `npx @nestjs/cli new`, dependensi: `@nestjs/config`, `@nestjs/jwt`, `@nestjs/passport`, `passport-jwt`, `class-validator`, `class-transformer`, `bcrypt`, `@prisma/client`, Prisma CLI, `dotenv`.
+- **`backend/prisma/schema.prisma`** — skema awal Prisma 7 (provider postgresql): enum `TenantStatus { ACTIVE TRIAL PAST_DUE RESTRICTED CANCELED }`, model `User` (id, email unique, phone?, passwordHash?, timezone?, createdAt), model `Tenant` (id, ownerUserId @unique 1:1, slug @unique, namaBisnis, kota?, status default TRIAL, createdAt) + index `ownerUserId` & `slug`.
+- **`backend/prisma.config.ts`** — konfigurasi datasource Prisma 7 (`DATABASE_URL` dari env, path migrasi).
+- **`backend/prisma/migrations/20260630000000_init/migration.sql`** — SQL migrasi awal (dibuat manual; terapkan setelah Postgres hidup dengan `npx prisma migrate dev`).
+- **`backend/prisma/migrations/migration_lock.toml`** — lock file migrasi Prisma.
+- **`backend/.env.example`** — template env: `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `NODE_ENV`.
+- **`backend/docker-compose.yml`** — service `postgres:16-alpine` untuk dev lokal (user/pass/db: glowbook, port 5432).
+- **`backend/src/prisma/`** — `PrismaModule` (@Global) + `PrismaService` (extends PrismaClient, lifecycle connect/disconnect).
+- **`backend/src/auth/`** — `AuthModule`: register (User + Tenant 1:1 dalam transaksi atomik, bcrypt 12 rounds), login (JWT), DTO `RegisterDto`/`LoginDto`/`AuthResponseDto` (class-validator), `JwtStrategy` (passport-jwt), response tidak bocorkan `passwordHash`.
+- **`backend/src/tenant/`** — `TenantModule`: `GET /tenant/me`, `PATCH /tenant/me` (namaBisnis, kota) — semua query difilter `tenantId`, `ownerUserId` tidak disertakan di response.
+- **`backend/src/health/`** — `HealthController`: `GET /health` → `{ status, timestamp }`.
+- **`backend/src/common/guards/jwt-auth.guard.ts`** — `JwtAuthGuard` (extends AuthGuard('jwt')).
+- **`backend/src/common/decorators/current-tenant.decorator.ts`** — `@CurrentTenant()`: resolusi `tenantId` dari `request.user` (JWT payload, Paket A 1:1).
+- **`backend/src/common/decorators/current-user.decorator.ts`** — `@CurrentUser()` + interface `JwtPayload { sub, email, tenantId }`.
+- **`backend/src/app.module.ts`** — root module: `ConfigModule` (global), `PrismaModule`, `AuthModule`, `TenantModule`, `HealthModule`, `ValidationPipe` global (whitelist, forbidNonWhitelisted, transform).
+- **`backend/src/main.ts`** — bootstrap: global prefix `/api`, CORS (`CORS_ORIGIN` dari env), log port.
+- **`backend/README.md`** — dokumentasi setup (docker compose + migrasi + dev), tabel endpoint, pola tenant-scoping lengkap dengan contoh kode dan aturan keras.
+
+#### Verifikasi
+- `npx prisma validate` — lulus (schema valid).
+- `npx prisma generate` — lulus (Prisma Client v7.8.0 ter-generate).
+- `npm run build` — lulus (0 error TypeScript strict).
+- `prisma migrate dev --create-only` — tidak dapat dijalankan tanpa Postgres; SQL migrasi ditulis manual di `prisma/migrations/20260630000000_init/migration.sql`.
+
+### 2026-06-30 — Fase 0 Milestone 1: Adopsi Shell Frontend GlowBook
+
+#### Ditambahkan
+- **`frontend/`** — direktori app frontend hasil `git mv shadcn-admin-main/ frontend/` (history terjaga, tidak ada `.git` bersarang).
+- **6 route stub** di `frontend/src/routes/_authenticated/`: `storefront/index.tsx`, `bookings/index.tsx`, `clients/index.tsx`, `services/index.tsx`, `reports/index.tsx`, `subscription/index.tsx` — masing-masing menampilkan judul + teks "Segera hadir." agar navigasi sidebar tidak 404.
+- **`routeTree.gen.ts`** diperbarui dengan 6 route GlowBook baru terdaftar penuh (import, konstanta route, interface type, children map).
+
+#### Diubah
+- **`frontend/src/lib/i18n.ts`** — `fallbackLng` diubah `'en'` → `'id'`; urutan `supportedLngs` diubah menjadi `['id', 'en']` agar locale Indonesia menjadi default.
+- **`frontend/src/components/layout/data/sidebar-data.ts`** — menu diganti penuh ke GlowBook: Dashboard, Storefront, Booking & Order, Klien, Layanan (grup Utama); Laporan, Langganan (grup Bisnis); Pengaturan dengan sub-item tetap (grup Lainnya). Branding team diubah ke "GlowBook / Pro". Semua ikon dari lucide-react.
+- **`frontend/src/components/layout/app-title.tsx`** — teks "Shadcn-Admin / Vite + ShadcnUI" diganti "GlowBook / Platform MUA".
+- **`frontend/index.html`** — `<title>` dan semua meta tag (title, description, OG, Twitter) diganti ke branding GlowBook; URL referensi diubah ke `glowbook.id`.
+
+#### Verifikasi
+- `npm install --legacy-peer-deps` lulus (1 vulnerability minor bawaan template, tidak kritis untuk fase shell).
+- `npm run build` lulus: `tsc -b` 0 error, Vite membangun 3942 modul, output `dist/` lengkap.
+- `npm run dev` boot di `http://localhost:5173/` dan merespons HTTP 200.
+- Catatan peer-deps: `i18next@24` membutuhkan TypeScript `^5` sedangkan proyek memakai TypeScript `~6.0.3`; diselesaikan dengan `--legacy-peer-deps`. Ini bawaan template dan tidak mempengaruhi build/runtime.
+
 ### 2026-06-30
 
 #### Diubah (terbaru)
