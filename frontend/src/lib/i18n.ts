@@ -51,8 +51,8 @@ i18n
   .init({
     resources,
     defaultNS,
-    fallbackLng: 'en',
-    supportedLngs: ['en', 'id'],
+    fallbackLng: 'id',
+    supportedLngs: ['id', 'en'],
     interpolation: {
       escapeValue: false, // React already handles XSS
     },

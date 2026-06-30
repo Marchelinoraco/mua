@@ -1,92 +1,109 @@
 import {
-  LayoutDashboard,
   Monitor,
-  ListTodo,
   Bell,
   Palette,
   Settings,
   Wrench,
   UserCog,
+  LayoutDashboard,
+  Store,
+  CalendarCheck,
   Users,
-  AudioWaveform,
-  Command,
-  GalleryVerticalEnd,
+  Scissors,
+  BarChart3,
+  CreditCard,
+  Sparkles,
 } from 'lucide-react'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
   user: {
-    name: 'John Doe',
-    email: 'johndoe@gmail.com',
+    name: 'MUA',
+    email: 'mua@glowbook.id',
     avatar: '/avatars/shadcn.jpg',
   },
   teams: [
     {
-      name: 'Shadcn Admin',
-      logo: Command,
-      plan: 'Vite + ShadcnUI',
-    },
-    {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
+      name: 'GlowBook',
+      logo: Sparkles,
+      plan: 'Pro',
     },
   ],
   navGroups: [
     {
-      title: 'general',
+      title: 'Utama',
       items: [
         {
-          title: 'dashboard',
+          title: 'Dashboard',
           url: '/',
           icon: LayoutDashboard,
         },
         {
-          title: 'tasks',
-          url: '/tasks',
-          icon: ListTodo,
+          title: 'Storefront',
+          url: '/storefront',
+          icon: Store,
         },
         {
-          title: 'users',
-          url: '/users',
+          title: 'Booking & Order',
+          url: '/bookings',
+          icon: CalendarCheck,
+        },
+        {
+          title: 'Klien',
+          url: '/clients',
           icon: Users,
+        },
+        {
+          title: 'Layanan',
+          url: '/services',
+          icon: Scissors,
         },
       ],
     },
     {
-      title: 'other',
+      title: 'Bisnis',
       items: [
         {
-          title: 'settings',
+          title: 'Laporan',
+          url: '/reports',
+          icon: BarChart3,
+        },
+        {
+          title: 'Langganan',
+          url: '/subscription',
+          icon: CreditCard,
+        },
+      ],
+    },
+    {
+      title: 'Lainnya',
+      items: [
+        {
+          title: 'Pengaturan',
           icon: Settings,
           items: [
             {
-              title: 'profile',
+              title: 'Profil',
               url: '/settings',
               icon: UserCog,
             },
             {
-              title: 'account',
+              title: 'Akun',
               url: '/settings/account',
               icon: Wrench,
             },
             {
-              title: 'appearance',
+              title: 'Tampilan',
               url: '/settings/appearance',
               icon: Palette,
             },
             {
-              title: 'notifications',
+              title: 'Notifikasi',
               url: '/settings/notifications',
               icon: Bell,
             },
             {
-              title: 'display',
+              title: 'Layar',
               url: '/settings/display',
               icon: Monitor,
             },
