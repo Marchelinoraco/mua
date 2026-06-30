@@ -1,425 +1,418 @@
-# PRD — Vertical SaaS untuk MUA
-### Working name: **GlowBook** *(placeholder, silakan ganti)*
-**Versi:** 0.2 (revisi arah: SaaS/storefront-first) · **Tanggal:** 30 Juni 2026 · **Stack:** TanStack Start (React, full-stack)
+# PRD — SaaS Booking & Manajemen Bisnis untuk MUA
+### Working name: **GlowBook** *(mengikuti BRD; silakan ganti)*
+**Jenis dokumen:** Product Requirements Document (PRD) · **Versi:** 1.0 · **Tanggal:** 30 Juni 2026 · **Status:** Draft
+**Turunan dari:** [BRD-MUA-SaaS.md](BRD-MUA-SaaS.md) v1.0
 
-> **Perubahan dari v0.1:** Arah bergeser dari *marketplace dua sisi* menjadi **vertical SaaS untuk MUA** (pola StyleSeat / Booksy / Serein MUA). Keputusan terkunci: **monetisasi = subscription MUA**, **pembayaran = full payment via platform (escrow)**, **listing = auto-publish + moderasi**. Discovery/marketplace ditunda ke pasca-MVP.
-
----
-
-## 1. Ringkasan Eksekutif
-
-GlowBook adalah **SaaS untuk Make-Up Artist**: satu tempat untuk mengelola booking, jadwal, pembayaran, invoice, dan data klien — plus **storefront** (halaman publik berisi layanan, harga, portofolio, dan tombol booking) yang bisa dibagikan di bio Instagram/WhatsApp.
-
-Pelanggan utama = **MUA** (mereka yang membayar). Klien MUA adalah pengguna sekunder yang booking lewat storefront. Marketplace discovery (klien menemukan MUA baru) adalah **lapisan yang ditambahkan belakangan** di atas kumpulan storefront.
-
-**Loop inti produk (MVP):**
-
-```
-MUA daftar → setup storefront (layanan, harga, portofolio, jadwal) → bagikan link (bio IG)
-→ klien lama buka link → booking + bayar penuh (via platform, dana di-escrow)
-→ MUA kelola di "Studio" (konfirmasi / jadwal ulang / selesai)
-→ dana rilis ke wallet saat selesai → payout ke rekening (gerbang KYC) → klien beri ulasan
-   ⮑ MUA membayar subscription bulanan untuk semua tool ini
-```
-
-**Mengapa model ini menang untuk cold-start:** karena nilainya berguna sejak hari pertama untuk klien IG yang sudah dimiliki MUA, kamu tidak perlu menunggu likuiditas marketplace. Kamu kumpulkan supply + transaksi dulu, lalu nyalakan discovery. *"Come for the tool, stay for the network."*
+> PRD ini menerjemahkan kebutuhan bisnis pada BRD menjadi spesifikasi produk: persona, fitur, user story, model data, alur, state machine, dan kriteria penerimaan. **Fokus mendalam** dokumen ini ada pada **mekanisme pembayaran**:
+> - **Pembayaran klien → MUA:** **manual transfer + bukti** (tanpa kustodi platform).
+> - **Langganan MUA → Platform:** **otomatis via Midtrans** (auto-charge, settle ke rekening platform).
 
 ---
 
-## 2. Strategi Build (kritikal)
+## 1. Pendahuluan
+
+### 1.1 Tujuan Dokumen
+Mendefinisikan apa yang harus dibangun pada **MVP** GlowBook dan bagaimana perilakunya, cukup detail untuk desain UX, implementasi engineering, dan QA.
+
+### 1.2 Keputusan yang Sudah Difinalkan (resolusi BRD §16)
+| # | Keputusan Terbuka (BRD) | Keputusan PRD |
+|---|--------------------------|----------------|
+| 1 | Mekanisme pembayaran tanpa kustodi | **Klien→MUA = manual transfer + bukti (Opsi B).** Langganan MUA→Platform = **Midtrans otomatis**. |
+| 2 | Cakupan plan langganan | **Satu plan berbayar** untuk MVP; arsitektur disiapkan untuk multi-plan (Plus) kelak. |
+| 3 | Kebijakan free trial | **14 hari, akses penuh, tanpa kartu di muka.** Prompt berlangganan mulai H-3 sebelum trial habis. |
+| 4 | Transport/lokasi & multi-service | MVP **mendukung**: multi-layanan per booking (line items), biaya transport (flat / per-zona), dan custom field (lokasi, adat, dll.). |
+| 5 | Kebijakan past-due (RULE-6) | **Grace 7 hari** → mode terbatas (storefront unpublish, notifikasi nonaktif, dashboard read-only). Data ditahan 90 hari. |
+
+### 1.3 Prinsip Produk (warisan BRD)
+1. **Nol kustodi dana klien** — dana DP/pelunasan klien tidak pernah melewati platform.
+2. **Berguna sejak hari pertama** (single-player value) sebelum jaringan.
+3. **Mobile-first, Bahasa Indonesia, WhatsApp-first**.
+4. **Operasi ringan** — otomasi & moderasi reaktif, bukan verifikasi manual berat.
+5. **Multi-tenant dengan isolasi data ketat**.
+
+---
+
+## 2. Persona & Peran
+
+| Peran | Deskripsi | Akses |
+|-------|-----------|-------|
+| **MUA (Tenant/Owner)** | Pelanggan berbayar; mengelola storefront, layanan, jadwal, order, klien, langganan. | Dashboard penuh untuk tenant-nya. |
+| **Staf MUA** *(opsional, fase lanjutan)* | Asisten yang dibantu mengelola jadwal/order. | Terbatas, di luar MVP. |
+| **Klien** | Pemesan via form publik; tidak perlu akun berat. | Akses form publik + halaman status booking via tautan/OTP. |
+| **Admin Platform** | Tim internal; moderasi reaktif, dukungan, kelola plan. | Konsol admin lintas-tenant (read-mostly + tindakan moderasi). |
+
+---
+
+## 3. Ruang Lingkup MVP
+
+### 3.1 Termasuk
+- Pendaftaran & onboarding tenant + **free trial 14 hari**.
+- **Langganan otomatis via Midtrans** (auto-charge) + penanganan past-due.
+- Storefront/form publik per tenant (layanan, harga, durasi, portofolio, transport, custom field).
+- Booking mandiri 24/7 oleh klien.
+- Kalender & penjadwalan **anti-bentrok** (termasuk hold sementara).
+- **Pembayaran klien→MUA manual** (DP/pelunasan) + unggah bukti + konfirmasi MUA.
+- Notifikasi otomatis WhatsApp & email (konfirmasi, reminder, status pembayaran).
+- Manajemen order, data & riwayat klien, ringkasan pendapatan/laporan.
+- Ulasan/rating dasar.
+- Konsol admin: moderasi reaktif, kelola plan/langganan, dukungan.
+
+### 3.2 Tidak Termasuk (Fase Lanjutan)
+Marketplace/discovery lintas tenant, chat in-app real-time, PWA/push native, multi-tier plan kompleks + voucher/referral engine, kategori non-MUA, multi-bahasa/mata uang, fitur AI, **pembayaran klien→MUA otomatis via gateway** (dipertimbangkan saat skala).
+
+---
+
+## 4. Arsitektur Tingkat Tinggi & Multi-Tenancy
+
+- **Model tenancy:** shared database, **tenant_id pada setiap row** + row-level enforcement di seluruh query/layanan. Setiap permintaan terikat ke `tenant_id` dari sesi/host.
+- **Routing storefront:** subdomain atau path unik per tenant (mis. `glowbook.id/@namamua` atau `namamua.glowbook.id`).
+- **Isolasi data:** tidak ada endpoint yang mengembalikan data lintas tenant kecuali konsol admin (di-audit).
+- **Pemisahan dana:**
+  - **Dana klien (DP/pelunasan):** TIDAK pernah masuk sistem/rekening platform. Platform hanya **menampilkan instruksi pembayaran MUA** dan **mencatat status** berbasis bukti + konfirmasi MUA.
+  - **Dana langganan (MUA→Platform):** melalui **akun Midtrans milik Platform**, settle ke rekening Platform. Inilah satu-satunya aliran uang yang disentuh platform.
 
 ```mermaid
 flowchart LR
-    F0[Fase 0 — Fondasi<br/>Auth MUA, DB, deploy] --> F1
-    F1[Fase 1 — Tools single-player<br/>Storefront, layanan, portofolio,<br/>kalender, order, klien, invoice] --> F2
-    F2[Fase 2 — Uang<br/>Full payment + escrow + wallet<br/>+ payout/KYC + subscription billing] --> F3
-    F3[Fase 3 — Trust & Launch<br/>Ulasan, notif WA/email,<br/>moderasi, polish] --> F4
-    F4[Fase 4 — Discovery layer<br/>Search/direktori di atas<br/>storefront yang terkumpul]
+  subgraph KLIEN[Aliran Dana Klien -> MUA  - NON kustodi]
+    K[Klien] -- transfer/QRIS langsung --> RM[(Rekening / QRIS MUA)]
+    K -- unggah bukti --> GB1[GlowBook: hanya catat status]
+    MUA -- konfirmasi bukti --> GB1
+  end
+  subgraph LANGGANAN[Aliran Langganan MUA -> Platform - via Midtrans]
+    MUA2[MUA] -- auto-charge --> MT[Midtrans]
+    MT -- settle --> RP[(Rekening Platform)]
+    MT -- webhook --> GB2[GlowBook: update status langganan]
+  end
 ```
 
-Prinsip: **tool dulu, uang, lalu network.** Fase 1 sudah harus berguna (MUA pakai untuk klien sendiri) bahkan sebelum pembayaran online aktif. Subscription baru ditegakkan setelah value + pembayaran ada (gunakan free trial / early access gratis di awal).
+---
+
+## 5. Model Data (Inti)
+
+> Notasi ringkas; tipe & index final di desain teknis. Semua entitas tenant-scoped kecuali ditandai **[global]**.
+
+- **Tenant** `id, slug, nama_bisnis, kota, status(active/trial/past_due/restricted/canceled), created_at`
+- **User** `id, tenant_id, role(owner/staff/admin), email, phone, auth_*`
+- **PaymentProfile** (instruksi bayar MUA, *no-custody*) `id, tenant_id, jenis(bank/qris/ewallet), bank_nama, no_rekening, atas_nama, qris_image_url, instruksi_tambahan, is_active`
+- **Service** `id, tenant_id, nama, deskripsi, harga, durasi_menit, dp_tipe(persen/nominal), dp_nilai, butuh_transport(bool), aktif`
+- **TransportRule** `id, tenant_id, mode(flat/zona), flat_nominal | zona[{nama, nominal}]`
+- **CustomField** `id, tenant_id, label, tipe(text/select/date/file), wajib(bool), opsi[]`
+- **Portfolio** `id, tenant_id, image_url, caption, urutan`
+- **Availability** `id, tenant_id, hari, jam_mulai, jam_selesai, slot_durasi, kapasitas`
+- **BlockedDate** `id, tenant_id, tanggal/range, alasan`
+- **Booking** `id, tenant_id, kode, client_id, tanggal, jam_mulai, jam_selesai, status, subtotal, transport_fee, total, dp_amount, sisa_amount, lokasi, custom_values{}, created_at`
+- **BookingItem** `id, booking_id, service_id, qty, harga_snapshot`
+- **Client** `id, tenant_id, nama, phone, email, catatan, total_booking, created_at`
+- **Payment** (catatan pembayaran klien, *manual*) `id, tenant_id, booking_id, jenis(dp/pelunasan), metode, amount, proof_url, status(menunggu/diajukan/dikonfirmasi/ditolak), submitted_at, confirmed_at, confirmed_by`
+- **Subscription** `id, tenant_id, plan_id, status(trialing/active/past_due/canceled/expired), trial_end, current_period_start, current_period_end, midtrans_subscription_id, saved_token_id, payment_method, retry_count`
+- **Invoice** `id, tenant_id, subscription_id, periode, amount, status(paid/pending/failed), midtrans_order_id, paid_at, pdf_url`
+- **Plan** **[global]** `id, nama, harga, interval(monthly), fitur{}, aktif`
+- **Review** `id, tenant_id, booking_id, rating(1-5), komentar, status(published/flagged/hidden), created_at`
+- **Notification** `id, tenant_id, kanal(wa/email), template, target, payload, status, sent_at`
+- **AuditLog** **[global]** `id, actor, tenant_id, aksi, entity, before, after, at`
 
 ---
 
-## 3. Persona
+## 6. Spesifikasi Fitur & User Stories
 
-**Primer — MUA Freelance (Mela, 25).** Punya 5–15 klien/bulan dari IG. Capek admin manual (DM, tanya tanggal, kejar DP, catat di notes). Mau order rapi, jadwal anti-bentrok, terlihat profesional, dan dibayar tanpa ribet. Onboarding harus cepat; tool harus langsung berguna untuk klien yang sudah ada.
+> Traceability: setiap modul memetakan ke BR-x pada BRD.
 
-**Sekunder — Klien MUA (Sari/Dina).** Diberi link storefront oleh MUA pilihannya. Mau cek layanan & harga, lihat tanggal kosong, booking, dan bayar dengan aman dalam beberapa tap. Tidak harus mencari di direktori (itu fase berikutnya).
+### 6.1 Onboarding Tenant & Langganan — *(BR-7)*
+- **US-ON-1:** Sebagai MUA, saya daftar dengan email/nomor WA + verifikasi OTP, lalu mengisi profil bisnis (nama, kota, slug storefront).
+- **US-ON-2:** Sebagai MUA, saya langsung mendapat **free trial 14 hari akses penuh tanpa kartu**.
+- **US-ON-3:** Sebagai MUA, saya dipandu setup minimum siap-tayang: ≥1 layanan, jam tersedia, dan **PaymentProfile** (rekening/QRIS untuk DP).
+- **Kriteria penerimaan:** storefront otomatis ter-generate & dapat dibagikan begitu setup minimum selesai (BR-1, BR-10).
 
-**Internal — Admin.** Moderasi reaktif (tangani report/flag), spot-check, kelola plan & payout, tangani sengketa.
+### 6.2 Storefront / Form Publik — *(BR-1, BR-2, BR-10)*
+- Menampilkan: nama/branding, portofolio, daftar layanan (harga, durasi), aturan transport, FAQ, rating.
+- **Auto-publish** saat setup minimum lengkap; moderasi reaktif (report/flag).
+- Mobile-first, dapat dibuka tanpa login.
+- **US-SF-1:** Sebagai klien, saya membuka link di bio IG dan melihat layanan + harga transparan tanpa harus DM.
 
-*(Persona "klien pencari MUA baru" baru relevan saat Fase 4 / discovery.)*
+### 6.3 Katalog Layanan, Transport & Custom Field
+- CRUD layanan dengan **DP per layanan** (persen atau nominal).
+- **Multi-layanan per booking** (line item) untuk kasus wisuda grup / pengantin + family.
+- Transport: **flat** atau **per-zona**; ditambahkan ke total.
+- Custom field (lokasi, adat, jumlah orang) — text/select/date/file, wajib/opsional.
 
----
+### 6.4 Booking Mandiri oleh Klien — *(BR-2, BR-3)*
+Alur: pilih layanan → pilih tanggal & slot **kosong** → isi data + custom field → ringkasan biaya (subtotal + transport, DP yang harus dibayar) → submit → instruksi pembayaran DP.
+- Klien tidak perlu akun; identifikasi via nomor WA + kode booking + OTP untuk halaman status.
+- **US-BK-1:** Sebagai klien, saat memilih slot, saya hanya melihat waktu yang benar-benar tersedia (anti-bentrok).
 
-## 4. Keputusan Terkunci
+### 6.5 Kalender & Anti-Bentrok — *(BR-3, RULE-3)*
+- Slot dihitung dari `Availability` − `BlockedDate` − booking `confirmed` − **hold sementara**.
+- **Hold sementara:** saat klien submit booking, slot di-*hold* (default **120 menit**) menunggu bukti DP; jika lewat tanpa bukti/konfirmasi → hold dilepas otomatis.
+- Booking **confirmed** mengunci kalender permanen.
+- **US-CAL-1:** Sebagai MUA, dua klien tidak bisa mengunci slot yang sama; yang kedua melihat slot tak tersedia begitu yang pertama di-hold/confirmed.
 
-| # | Keputusan | Pilihan | Konsekuensi utama |
-|---|-----------|---------|-------------------|
-| 1 | **Monetisasi** | **Subscription bulanan MUA** | Butuh billing berulang; nilai harus ada sejak hari-1 (tools), bukan sekadar listing. Free trial untuk atasi ayam-telur. |
-| 2 | **Pembayaran** | **Full payment via platform, escrow** | Butuh wallet/ledger + payout + refund. Dana ditahan sampai layanan selesai. |
-| 3 | **Listing** | **Auto-publish + moderasi** | Supply cepat. Anti-fraud dipindah ke gerbang payout (KYC) + escrow + report. |
-| 4 | Pasar | Indonesia, mobile-first, Bahasa Indonesia | Gateway lokal + WhatsApp |
-| 5 | Platform | Web (mobile-first), native menyusul | — |
+### 6.6 Pembayaran Klien → MUA (MANUAL, NON-KUSTODI) — *(BR-4, RULE-1)* → **lihat Bab 7**
 
-**Dua design move yang membuat keputusan 2 & 3 aman:**
-1. **Escrow:** dana ditahan hingga layanan dikonfirmasi selesai, baru masuk wallet MUA.
-2. **KYC di pencairan, bukan pendaftaran:** siapa pun boleh publish & terima booking, tapi untuk menarik uang wajib verifikasi identitas + rekening. Penipu tak bisa kabur membawa uang.
+### 6.7 Langganan MUA → Platform (MIDTRANS OTOMATIS) — *(BR-7, RULE-2, RULE-6)* → **lihat Bab 8**
 
----
+### 6.8 Notifikasi Otomatis — *(BR-5)*
+- Kanal: **WhatsApp (utama)** + **email (fallback)**.
+- Pemicu: booking masuk, instruksi DP, bukti diterima, booking dikonfirmasi/ditolak, reminder H-1 acara, reminder pelunasan, status langganan (gagal bayar, masuk grace, restricted).
+- Template berbahasa Indonesia, variabel ter-isi (nama, tanggal, jumlah, link).
 
-## 5. Lingkup MVP
+### 6.9 Manajemen Order & Klien — *(BR-6)*
+- Daftar order dengan filter status/tanggal; detail booking; ubah status (konfirmasi, selesai, batal, reschedule).
+- Profil klien otomatis terbentuk dari booking; riwayat & catatan.
 
-### ✅ Masuk MVP
-- Auth + onboarding MUA; pilih plan + free trial
-- **Storefront builder:** profil, layanan & harga, add-on, portofolio, area & biaya transport, kebijakan
-- **Halaman storefront publik** (link unik per MUA, mis. `glowbook.app/@mela`) dengan tombol booking
-- **Kalender ketersediaan** (anti-bentrok otomatis saat ada booking)
-- **Booking dari storefront** oleh klien (pilih layanan → tanggal/jam → lokasi → detail look → bayar penuh)
-- **Pembayaran penuh + escrow** (gateway lokal: QRIS/VA/e-wallet)
-- **Studio (dashboard MUA):** kelola order (konfirmasi/tolak/jadwal ulang/selesai), data klien, invoice (PDF), wallet & ringkasan pendapatan
-- **Wallet + payout** ke rekening (gerbang KYC pada payout pertama)
-- **Subscription billing** (berulang) + status langganan
-- **Ulasan & rating** (setelah "selesai") → kredibilitas storefront
-- **Notifikasi WhatsApp + email** (konfirmasi, reminder H-1, status payout)
-- **Admin:** moderasi reaktif (report/flag), kelola user/plan/payout, sengketa dasar
+### 6.10 Laporan & Pendapatan — *(BR-6)*
+- Ringkasan: pendapatan tercatat (berbasis pembayaran terkonfirmasi), jumlah booking, layanan terlaris, DP vs pelunasan.
+- Catatan: angka berbasis **konfirmasi MUA**, bukan rekonsiliasi bank (karena no-custody).
 
-### ❌ Ditunda (pasca-MVP)
-- **Discovery/search marketplace terpusat** (Fase 4) — direktori, filter global, ranking
-- Chat real-time in-app (MVP: arahkan ke WA / template pesan)
-- Native app, PWA push
-- Tiered plans (mulai 1 plan dulu), promo/voucher, referral
-- Konten edukasi, komunitas, job board, pelatihan
-- Multi-layanan (hair/nail/hijab), multi-bahasa/currency, AI/virtual try-on
+### 6.11 Ulasan/Rating Dasar
+- Diminta otomatis setelah booking `selesai`; tayang di storefront; dapat di-flag.
 
----
-
-## 6. Fitur MVP (Detail)
-
-### 6.1 Studio — MUA (inti, mayoritas effort dev di sini)
-
-| ID | Fitur | Prioritas |
-|----|-------|-----------|
-| M1 | Onboarding + pilih plan + free trial | P0 |
-| M2 | Storefront builder: layanan, harga, add-on, durasi | P0 |
-| M3 | Portofolio (upload, urutkan, kategori) | P0 |
-| M4 | Kalender ketersediaan (anti-bentrok) | P0 |
-| M5 | Kelola order (konfirmasi/tolak/reschedule/selesai) | P0 |
-| M6 | Wallet + ringkasan pendapatan | P0 |
-| M7 | Payout ke rekening (KYC) | P0 |
-| M8 | Invoice PDF | P1 |
-| M9 | Data & riwayat klien | P1 |
-| M10 | Pengaturan billing/langganan | P0 |
-| M11 | Kebijakan transport & pembatalan | P1 |
-
-### 6.2 Storefront publik + Booking — Klien
-
-| ID | Fitur | Prioritas |
-|----|-------|-----------|
-| K1 | Halaman storefront (link unik per MUA) | P0 |
-| K2 | Lihat layanan, harga, portofolio, ulasan, tanggal kosong | P0 |
-| K3 | Alur booking (layanan → tanggal/jam → lokasi → detail look → ringkasan) | P0 |
-| K4 | Pembayaran penuh + escrow | P0 |
-| K5 | Halaman status booking + tanpa akun berat (booking via link/OTP) | P0 |
-| K6 | Ulasan & rating setelah selesai | P1 |
-| K7 | Notifikasi WA/email | P1 |
-
-### 6.3 Admin
-
-| ID | Fitur | Prioritas |
-|----|-------|-----------|
-| A1 | Moderasi reaktif (report/flag) + spot-check | P0 |
-| A2 | Kelola payout & sengketa/refund | P0 |
-| A3 | Kelola plan & subscription | P1 |
-| A4 | Kelola user (suspend) | P1 |
-| A5 | Analytics (MRR, GMV, MUA aktif, churn) | P2 |
+### 6.12 Konsol Admin & Moderasi — *(RULE-4, BR-10)*
+- Lihat tenant, status langganan, dan invoice.
+- Tangani report/flag storefront & review; suspend tenant yang melanggar.
+- Kelola Plan (harga, fitur) **[global]**.
 
 ---
 
-## 7. Alur Pembayaran (full payment + escrow + payout)
+## 7. BAB MENDALAM A — Pembayaran Klien → MUA (Manual, Non-Kustodi)
 
+### 7.1 Prinsip
+Platform **tidak menerima, menahan, atau menyalurkan** dana klien. Dana ditransfer **langsung** ke rekening/QRIS MUA. GlowBook hanya:
+1. **Menampilkan instruksi pembayaran** MUA (dari `PaymentProfile`).
+2. **Menerima unggahan bukti** dari klien.
+3. **Mencatat status** berdasarkan **konfirmasi manual MUA**.
+
+### 7.2 Komponen Pembayaran
+- **DP (Down Payment):** dihitung dari setting layanan (persen/nominal), dibayar untuk mengunci slot.
+- **Pelunasan (Sisa):** `total − dp_amount`, jatuh tempo sebelum/pada hari acara (kebijakan MUA), boleh ditandai "cash on the day".
+
+### 7.3 Alur DP (mengunci slot)
 ```mermaid
-flowchart TD
-    A[Klien booking di storefront] --> B[Bayar penuh]
-    B --> G[(Payment Gateway<br/>Midtrans/Xendit)]
-    G -- sukses --> C[Dana DITAHAN / escrow<br/>Status: menunggu konfirmasi MUA]
-    C --> D{MUA konfirmasi?}
-    D -- tolak/expired --> R[Refund penuh ke klien]
-    D -- konfirmasi --> E[Status: dikonfirmasi, slot terblok]
-    E --> F[Reminder H-1 via WA]
-    F --> H[Hari-H: layanan selesai → MUA tandai Selesai]
-    H --> I[Dana rilis ke WALLET MUA]
-    I --> J{MUA sudah KYC?}
-    J -- belum --> K[Wajib verifikasi identitas + rekening]
-    J -- sudah --> L[Payout terjadwal ke rekening]
-    K --> L
-    H --> M[Klien diundang beri ulasan]
+stateDiagram-v2
+  [*] --> MENUNGGU_DP: Klien submit booking (slot di-HOLD 120 mnt)
+  MENUNGGU_DP --> DIAJUKAN: Klien unggah bukti transfer
+  MENUNGGU_DP --> KEDALUWARSA: Lewat batas / hold lepas
+  DIAJUKAN --> DIKONFIRMASI: MUA verifikasi bukti -> booking CONFIRMED
+  DIAJUKAN --> DITOLAK: Bukti tidak valid
+  DITOLAK --> DIAJUKAN: Klien unggah ulang (selama hold/diperpanjang)
+  KEDALUWARSA --> [*]
+  DIKONFIRMASI --> [*]
 ```
+- Saat **DIKONFIRMASI**, booking → `confirmed`, slot terkunci permanen, notifikasi WA terkirim ke klien.
+- Saat **KEDALUWARSA**, slot dilepas agar klien lain bisa memesan.
+
+### 7.4 Alur Pelunasan
+- Reminder otomatis (H-3 / H-1) via WA/email berisi instruksi & nominal sisa.
+- Klien unggah bukti → MUA konfirmasi → booking ditandai **Lunas**.
+- Opsi MUA menandai **"dibayar tunai di lokasi"** tanpa bukti.
+
+### 7.5 Aturan & Edge Case
+| Kasus | Penanganan |
+|------|------------|
+| Nominal bukti tidak sesuai | MUA tolak dengan alasan; klien diminta unggah ulang / transfer selisih. |
+| Bukti palsu/duplikat | Tanggung jawab verifikasi pada MUA; platform sediakan jejak (timestamp, gambar) untuk sengketa. |
+| Klien tidak bayar dalam hold | Hold lepas otomatis; booking `expired`; slot kembali tersedia. |
+| Pembatalan & refund DP | Diatur **di luar platform** (kebijakan refund MUA); platform mencatat status `dibatalkan` + catatan refund. |
+| Reschedule | MUA pindahkan ke slot kosong baru; cek anti-bentrok; DP tetap mengikat. |
+| Sengketa | Platform **tidak menengahi dana** (no-custody); hanya menyediakan log bukti & komunikasi. |
+
+### 7.6 Kebijakan Anti-Penyalahgunaan
+- Platform menampilkan disclaimer: "Pembayaran langsung ke MUA; GlowBook tidak menyimpan dana Anda."
+- Rate-limit unggahan bukti & deteksi spam booking.
+
+### 7.7 Kriteria Penerimaan (Bab A)
+1. Tidak ada endpoint/flow di mana saldo dana klien tersimpan di platform.
+2. Slot hanya terkunci permanen setelah MUA mengonfirmasi DP.
+3. Setiap perubahan status pembayaran ter-audit (siapa, kapan).
 
 ---
 
-## 8. Model Data (ERD)
+## 8. BAB MENDALAM B — Langganan MUA → Platform (Midtrans, Otomatis)
 
+### 8.1 Tujuan & Cakupan
+Memungut **langganan bulanan per tenant secara otomatis** dengan Midtrans, settle langsung ke **rekening Platform**. Ini pendapatan platform (RULE-2) dan **tidak melanggar RULE-1** (RULE-1 hanya melarang menahan **dana klien**).
+
+### 8.2 Plan (MVP)
+| Field | Nilai MVP |
+|-------|-----------|
+| Nama | **GlowBook Pro** *(placeholder)* |
+| Harga | **Rp99.000 / bulan** *(placeholder — finalkan)* |
+| Interval | Bulanan |
+| Trial | 14 hari, tanpa kartu di muka |
+| Fitur | Semua fitur MVP aktif |
+
+> Arsitektur `Plan` **[global]** disiapkan untuk multi-plan (Plus) tanpa refactor besar.
+
+### 8.3 Metode Pembayaran & Strategi Auto-Charge
+Midtrans tidak semua metode mendukung auto-charge. Strategi dua jalur:
+
+| Jalur | Metode | Mekanisme | Pengalaman |
+|------|--------|-----------|------------|
+| **Auto-charge (utama)** | Kartu kredit/debit, **GoPay** (tokenization) | **Midtrans Subscription API** dengan `saved_token_id` → Midtrans menagih otomatis tiap periode | Sepenuhnya otomatis |
+| **Invoice + Snap (fallback)** | QRIS, VA bank, e-wallet non-tokenizable | Sistem buat **Invoice** + kirim **Snap payment link** sebelum jatuh tempo; MUA bayar manual tiap bulan | Semi-otomatis (notifikasi + 1 klik bayar) |
+
+- Saat onboarding/aktivasi langganan, MUA memilih metode. Jika memilih kartu/GoPay → token disimpan → masuk jalur auto-charge. Jika lainnya → jalur invoice.
+- Pembayaran pertama (akhir trial) memakai **Snap** untuk sekaligus melakukan tokenisasi (mengaktifkan auto-charge berikutnya).
+
+### 8.4 Integrasi Teknis Midtrans
+- **Akun:** Midtrans **milik Platform** (production server key disimpan di secret manager, **tidak pernah** di klien).
+- **Snap (front-end):** untuk pembayaran pertama & fallback invoice; client key publik untuk render Snap.
+- **Subscription API:** `POST /v1/subscriptions` dengan `name, amount, currency=IDR, payment_type, token (saved_token_id), schedule{interval:1, interval_unit:month, start_time}, retry_schedule`.
+- **Core API (opsional):** charge manual menggunakan `saved_token_id` bila tidak memakai Subscription API native.
+- **HTTP Notification (Webhook):** endpoint `POST /webhooks/midtrans` untuk menerima status transaksi & subscription.
+
+### 8.5 Verifikasi & Keamanan Webhook
+- **Verifikasi signature wajib** sebelum memproses:
+  `signature_key == SHA512(order_id + status_code + gross_amount + ServerKey)`.
+- **Idempotensi:** proses berdasarkan `order_id`/`transaction_id`; abaikan duplikat.
+- **Sumber kebenaran:** status final diambil/dikonfirmasi via **Get Status API** Midtrans, bukan hanya payload webhook.
+- **Anti-replay & TLS:** hanya HTTPS; tolak payload tanpa signature valid.
+- **PCI:** GlowBook **tidak menyimpan PAN**; hanya `saved_token_id` dari Midtrans (tokenization di sisi Midtrans/Snap).
+
+### 8.6 Pemetaan Status Transaksi Midtrans → Internal
+| Midtrans `transaction_status` | `fraud_status` | Tindakan Internal |
+|---|---|---|
+| `capture` | `accept` | Invoice **paid**, perpanjang periode |
+| `settlement` | — | Invoice **paid**, perpanjang periode |
+| `pending` | — | Invoice **pending** (tunggu) |
+| `deny` / `cancel` / `expire` | — | Invoice **failed** → masuk alur retry/dunning |
+| `refund` / `partial_refund` | — | Catat refund (lihat §8.9) |
+| `capture` | `challenge` | Tahan, tinjau manual |
+
+### 8.7 State Machine Langganan
 ```mermaid
-erDiagram
-    USER ||--o| MUA_PROFILE : "punya (role=mua)"
-    MUA_PROFILE ||--|| STOREFRONT : memiliki
-    MUA_PROFILE ||--o{ SERVICE : menawarkan
-    MUA_PROFILE ||--o{ PORTFOLIO_ITEM : memiliki
-    MUA_PROFILE ||--o{ AVAILABILITY : menetapkan
-    MUA_PROFILE ||--|| SUBSCRIPTION : berlangganan
-    MUA_PROFILE ||--|| WALLET : memiliki
-    PLAN ||--o{ SUBSCRIPTION : mendasari
-    WALLET ||--o{ LEDGER_ENTRY : mencatat
-    WALLET ||--o{ PAYOUT : menarik
-    MUA_PROFILE ||--o| KYC_RECORD : memverifikasi
-    SERVICE ||--o{ BOOKING : dipesan
-    MUA_PROFILE ||--o{ BOOKING : menerima
-    BOOKING ||--|| PAYMENT : memiliki
-    BOOKING ||--o| REVIEW : menghasilkan
-
-    USER {
-        uuid id PK
-        string name
-        string email
-        string phone
-        enum role "mua|client|admin"
-    }
-    MUA_PROFILE {
-        uuid id PK
-        uuid user_id FK
-        string slug "untuk URL storefront"
-        string bio
-        json service_areas
-        decimal transport_fee
-        decimal rating_avg
-        int rating_count
-        enum moderation "ok|flagged|suspended"
-    }
-    STOREFRONT {
-        uuid id PK
-        uuid mua_id FK
-        string theme
-        json layout
-        bool published
-    }
-    PLAN {
-        uuid id PK
-        string name
-        decimal price_monthly
-        json features
-    }
-    SUBSCRIPTION {
-        uuid id PK
-        uuid mua_id FK
-        uuid plan_id FK
-        enum status "trialing|active|past_due|canceled"
-        date current_period_end
-    }
-    WALLET {
-        uuid id PK
-        uuid mua_id FK
-        decimal balance_available
-        decimal balance_pending
-    }
-    LEDGER_ENTRY {
-        uuid id PK
-        uuid wallet_id FK
-        uuid booking_id FK
-        decimal amount
-        enum type "hold|release|payout|refund|adjust"
-    }
-    PAYOUT {
-        uuid id PK
-        uuid wallet_id FK
-        decimal amount
-        string bank_ref
-        enum status "requested|processing|paid|failed"
-    }
-    KYC_RECORD {
-        uuid id PK
-        uuid mua_id FK
-        enum status "pending|verified|rejected"
-    }
-    BOOKING {
-        uuid id PK
-        uuid client_id FK
-        uuid mua_id FK
-        uuid service_id FK
-        datetime event_date
-        string event_location
-        json details
-        decimal total_amount
-        enum status "pending|confirmed|completed|cancelled|refunded"
-    }
-    PAYMENT {
-        uuid id PK
-        uuid booking_id FK
-        decimal amount
-        string gateway_ref
-        enum status "pending|held|released|refunded|failed"
-    }
-    REVIEW {
-        uuid id PK
-        uuid booking_id FK
-        int rating
-        string comment
-    }
+stateDiagram-v2
+  [*] --> TRIALING: Daftar (trial 14 hari)
+  TRIALING --> ACTIVE: Pembayaran pertama sukses
+  TRIALING --> EXPIRED: Trial habis, tidak bayar
+  ACTIVE --> ACTIVE: Auto-charge sukses (perpanjang periode)
+  ACTIVE --> PAST_DUE: Auto-charge gagal
+  PAST_DUE --> ACTIVE: Pembayaran berhasil (retry/manual)
+  PAST_DUE --> RESTRICTED: Grace 7 hari terlewati
+  RESTRICTED --> ACTIVE: Pembayaran berhasil
+  RESTRICTED --> CANCELED: 90 hari tanpa pembayaran / dibatalkan
+  ACTIVE --> CANCELED: MUA batalkan (berlaku akhir periode)
+  EXPIRED --> [*]
+  CANCELED --> [*]
 ```
 
----
+### 8.8 Dunning (Penagihan Gagal) & Past-Due — *(RULE-6)*
+- **Retry schedule** (Midtrans + internal): H+0, H+1, H+3, H+7 setelah gagal.
+- Notifikasi WA/email tiap percobaan: "pembayaran gagal, mohon perbarui metode".
+- **Grace period 7 hari** di status `PAST_DUE`: fitur tetap aktif.
+- Setelah grace habis → `RESTRICTED`:
+  - **Storefront publik di-unpublish** (tautan menampilkan "sementara tidak aktif").
+  - **Notifikasi otomatis dinonaktifkan**.
+  - **Dashboard read-only** (lihat data, tidak bisa terima booking baru).
+  - Data ditahan **90 hari** sebelum diarsipkan/dihapus (sesuai PDP).
+- Begitu pembayaran berhasil → kembali `ACTIVE`, storefront tayang lagi otomatis.
 
-## 9. Arsitektur & Tech Stack
+### 8.9 Refund, Proration & Pembatalan
+- **MVP: tanpa proration.** Pembatalan oleh MUA berlaku **di akhir periode berjalan** (akses tetap sampai `current_period_end`).
+- **Tanpa refund** untuk periode berjalan kecuali kasus khusus yang disetujui admin (refund manual via Midtrans, dicatat di `Invoice`).
+- Auto-charge dihentikan saat status `canceled`.
 
-### 9.1 Stack
+### 8.10 Invoice & Bukti
+- Setiap siklus menghasilkan `Invoice` (nomor, periode, jumlah, status, `midtrans_order_id`).
+- Invoice/kuitansi PDF dapat diunduh MUA; riwayat tampil di menu Billing.
 
-| Lapisan | Pilihan | Catatan |
-|---------|---------|---------|
-| Framework | **TanStack Start** (v1) | SSR + streaming + server functions |
-| Routing | **TanStack Router** | File-based, type-safe; search params tervalidasi |
-| Server state | **TanStack Query** | Caching, prefetch + hydrate |
-| Form | **TanStack Form** + **Zod** | Booking, onboarding, storefront builder |
-| Tabel | **TanStack Table** | Order, klien, payout, admin |
-| UI | **Tailwind** + **shadcn/ui** | Mobile-first |
-| DB | **PostgreSQL** (Neon/Supabase) | Relasional, transaksi |
-| ORM | **Drizzle** | Type-safe, ringan |
-| Auth | better-auth / Clerk / Supabase Auth | Role-based |
-| Storage | Cloudflare R2 / Cloudinary | Portofolio + dokumen KYC |
-| **Pembayaran** | **Midtrans / Xendit** | **Gunakan fitur escrow/hold + disbursement (payout) bawaan provider** — jangan bangun penampung dana sendiri |
-| **Billing langganan** | Xendit Recurring / provider billing | Subscription berulang |
-| Notifikasi | WhatsApp (Fonnte/WA Business API) + Resend | WA = channel utama ID |
-| Job queue | Inngest / Trigger.dev | Reminder, auto-refund, expire, payout terjadwal |
-| Deploy | Netlify (partner resmi Start) / Vercel / Cloudflare | Universal, no lock-in |
-
-### 9.2 Diagram
-
+### 8.11 Alur Lengkap Aktivasi (akhir trial)
 ```mermaid
-flowchart LR
-    subgraph Pub[Publik]
-      SF[Storefront /@slug]
-      BK[Booking + bayar]
-    end
-    subgraph App[TanStack Start]
-      ST[Studio MUA]
-      AD[Admin]
-      SRV[Server Functions]
-      WH[Webhooks]
-    end
-    DB[(PostgreSQL + Drizzle)]
-    OBJ[(R2/Cloudinary)]
-    PAY[Midtrans/Xendit<br/>pay + escrow + payout]
-    NOTIF[WhatsApp + Email]
-    JOB[Job Queue]
-
-    SF --> SRV
-    BK --> SRV
-    ST --> SRV
-    AD --> SRV
-    SRV --> DB
-    SRV --> OBJ
-    SRV --> PAY
-    PAY -- webhook --> WH
-    WH --> DB
-    SRV --> NOTIF
-    JOB --> DB
-    JOB --> NOTIF
-    JOB --> PAY
+sequenceDiagram
+  participant M as MUA
+  participant GB as GlowBook
+  participant SN as Midtrans Snap
+  participant MT as Midtrans Core/Sub API
+  GB->>M: Reminder H-3 trial habis (WA/email)
+  M->>GB: Klik "Berlangganan"
+  GB->>SN: Buat transaksi (Snap, simpan token)
+  M->>SN: Bayar (kartu/GoPay/QRIS)
+  SN-->>MT: Proses + tokenisasi
+  MT-->>GB: Webhook (settlement + saved_token_id)
+  GB->>GB: Verifikasi signature, Invoice=paid, status=ACTIVE
+  GB->>MT: Buat Subscription (auto-charge bulan berikut)
+  GB-->>M: Konfirmasi langganan aktif
 ```
 
-### 9.3 Peta Route (TanStack Start)
-
-```
-src/routes/
-├── __root.tsx
-├── index.tsx                      # Landing (marketing untuk MUA)
-├── pricing.tsx                    # Halaman plan
-├── $slug.tsx                      # ⭐ Storefront publik MUA (link yang dibagikan)
-├── auth/
-│   ├── login.tsx
-│   └── register.tsx               # daftar sbg MUA
-├── book/
-│   ├── $muaSlug.tsx               # Alur booking dari storefront
-│   └── status.$bookingId.tsx      # Status booking (klien, akses via link/OTP)
-├── studio/                        # ⭐ App utama MUA (guard: auth + role=mua)
-│   ├── route.tsx                  # layout + guard + cek status langganan
-│   ├── index.tsx                  # ringkasan + wallet
-│   ├── orders.tsx
-│   ├── calendar.tsx
-│   ├── clients.tsx
-│   ├── services.tsx
-│   ├── portfolio.tsx
-│   ├── storefront.tsx             # editor storefront
-│   ├── payouts.tsx                # + KYC
-│   └── billing.tsx                # langganan
-└── admin/                         # guard: role=admin
-    ├── route.tsx
-    ├── moderation.tsx
-    ├── payouts.tsx
-    ├── plans.tsx
-    └── users.tsx
-```
-
-> `search.tsx` (direktori discovery) sengaja **belum ada** — masuk di Fase 4.
+### 8.12 Kriteria Penerimaan (Bab B)
+1. Tidak ada server key Midtrans yang terekspos ke klien/browser.
+2. Setiap webhook diverifikasi signature & idempoten; status final dikonfirmasi via Get Status API.
+3. Auto-charge sukses memperpanjang periode tanpa intervensi manual.
+4. Kegagalan bayar memicu dunning, lalu pembatasan fitur sesuai §8.8 setelah grace.
+5. Trial habis tanpa bayar → fitur dibatasi, data ditahan 90 hari.
 
 ---
 
-## 10. Non-Fungsional
+## 9. Notifikasi — Spesifikasi
 
-- **Performa:** storefront SSR < 2.5s LCP (4G); SEO storefront penting (sumber trafik dari bio IG).
-- **Akurasi uang:** ledger **idempotent** (idempotency key di webhook), pertimbangkan pencatatan double-entry; rekonsiliasi rutin dengan laporan gateway.
-- **Keamanan:** RBAC, validasi server-side (Zod), verifikasi signature webhook, enkripsi data KYC, akses dokumen terbatas.
-- **Privasi/Hukum:** patuh **UU PDP**. **Penting:** menahan/menyalurkan dana pihak lain dapat menyentuh regulasi sistem pembayaran (Bank Indonesia/OJK). Mitigasi: **andalkan provider berlisensi (Midtrans/Xendit) untuk hold + disbursement**, jangan jadi penampung dana mandiri. Konsultasikan ke ahli hukum — ini bukan nasihat hukum.
+| Pemicu | Kanal | Penerima | Isi |
+|--------|-------|----------|-----|
+| Booking baru masuk | WA/email | MUA | Detail booking + link konfirmasi |
+| Instruksi DP | WA/email | Klien | Nominal DP, rekening/QRIS MUA, batas waktu |
+| Bukti diterima | WA | MUA | Minta verifikasi |
+| Booking dikonfirmasi/ditolak | WA/email | Klien | Status + langkah berikutnya |
+| Reminder acara H-1 | WA | Klien & MUA | Tanggal, jam, lokasi |
+| Reminder pelunasan | WA/email | Klien | Sisa & instruksi |
+| Langganan: gagal bayar / grace / restricted | WA/email | MUA | Status + CTA bayar |
 
----
-
-## 11. Metrik Keberhasilan
-
-**North Star:** **MUA aktif berbayar** (subscriber yang memproses ≥1 booking/bulan).
-
-| Kategori | Metrik |
-|----------|--------|
-| Aktivasi | % MUA yang setup storefront lengkap & dapat booking pertama |
-| Retensi | Churn langganan bulanan, % MUA aktif |
-| Bisnis | MRR, ARPU, trial→paid conversion |
-| Transaksi | GMV, jumlah booking selesai, nilai payout |
-| Trust | rating rata-rata, % sengketa/refund, fraud rate |
+- **Fallback:** jika WA gagal/limit → kirim email.
+- **Mitigasi ketergantungan WA** (BRD risiko): gunakan penyedia WA Business API yang patuh; rancang template agar lolos kebijakan.
 
 ---
 
-## 12. Risiko & Mitigasi
+## 10. Kebutuhan Non-Fungsional
 
-| Risiko | Mitigasi |
-|--------|----------|
-| **Ayam-telur subscription** (MUA enggan bayar sebelum lihat value) | Tool berguna hari-1 untuk klien IG mereka; free trial; gratis di early access, tegakkan billing setelah value terbukti |
-| **Kompleksitas ledger/payout** (paling berat) | Pakai escrow + disbursement bawaan gateway; idempotency; rekonsiliasi; mulai dengan jadwal payout sederhana |
-| **Fraud** (auto-publish + uang) | Escrow sampai selesai; KYC di payout; report/flag; sinyal rating |
-| **Regulasi pembayaran** | Provider berlisensi sbg pemroses dana; konsultasi hukum |
-| **Kebocoran tetap ada** | Karena monetisasi = subscription (bukan komisi), kebocoran kurang merugikan; value tool yang menahan |
-| TanStack Start v1.x, ekosistem lebih kecil | Pin versi paket (ada insiden supply-chain npm Mei 2026), andalkan dok resmi |
-
----
-
-## 13. Saran untuk Kedepannya (Pasca-MVP)
-
-1. **Fase 4 — Discovery marketplace:** nyalakan search/direktori di atas storefront yang terkumpul → buka kanal akuisisi klien baru untuk MUA (nilai tambah subscription yang kuat).
-2. **Tiered plans** (Basic/Pro) + add-on (lebih banyak portofolio, domain custom, prioritas listing).
-3. **Marketing tools untuk MUA:** broadcast WA, reminder rebooking, halaman promo, kode diskon.
-4. **No-show protection / DP fleksibel** sebagai pilihan kebijakan per MUA.
-5. **Chat in-app** dengan lampiran referensi look (kurangi pindah ke WA).
-6. **Gift card & paket** (mis. paket wedding multi-sesi).
-7. **PWA + push**, lalu native app.
-8. **Multi-layanan** (hair, hijab, nail) → MUA jadi "beauty pro" lengkap, naikkan GMV.
-9. **Konten, komunitas, job board, pelatihan** (mengikuti pola Muamobile) → retensi & akuisisi supply.
-10. **Rekomendasi/ranking cerdas** di discovery; **AI look preview / virtual try-on** sebagai diferensiasi.
-11. **Ekspansi kota & multi-bahasa/currency.**
-12. **B2B / EO & studio:** booking massal, multi-artist agency.
+| Kategori | Kebutuhan |
+|----------|-----------|
+| **Keamanan** | Enkripsi at-rest untuk PII & kredensial; secret di secret manager; RBAC; audit log tindakan sensitif. |
+| **Isolasi tenant** | Setiap query difilter `tenant_id`; uji kebocoran lintas-tenant. |
+| **Kepatuhan PDP** | Persetujuan data, hak hapus/akses, retensi (data restricted 90 hari), data minimization. |
+| **Privasi pembayaran** | Tidak menyimpan PAN; hanya token Midtrans. |
+| **Kinerja** | Halaman storefront & pemilihan slot < 2 dtk (mobile, 4G). |
+| **Ketersediaan** | Target uptime 99.5%; webhook endpoint idempoten & tahan retry. |
+| **Observability** | Log transaksi langganan, status webhook, kegagalan notifikasi. |
+| **Skalabilitas** | Arsitektur siap marketplace (BR-9) tanpa perombakan besar. |
 
 ---
 
-## 14. Langkah Selanjutnya
+## 11. Analytics & KPI (selaras BRD §11)
+- **North Star:** MUA aktif berbayar.
+- Lacak: trial→paid conversion, churn bulanan, jumlah booking publik terproses, % booking via form vs chat, rating tenant, storefront aktif.
+- Event kunci: `signup`, `storefront_published`, `booking_created`, `dp_confirmed`, `subscription_activated`, `payment_failed`, `restricted`.
 
-Pilih titik mulai implementasi:
-- **Skema database** (Drizzle schema + migrasi) — termasuk subscription, wallet/ledger, payout, KYC.
-- **Wireframe/desain UI** halaman kunci (storefront publik, alur booking, Studio: orders/calendar/wallet).
-- **Setup starter TanStack Start** (struktur folder, route guard berbasis role + status langganan, contoh server function booking+escrow).
+---
+
+## 12. Rencana Rilis (selaras Roadmap BRD §15)
+| Rilis | Isi |
+|-------|-----|
+| **R1 — Alat Inti** | Onboarding, storefront/form, layanan, kalender anti-bentrok, booking, order & klien, notifikasi dasar. |
+| **R2 — Pembayaran & Billing** | Pembayaran klien→MUA manual + bukti (Bab 7); **langganan Midtrans otomatis + dunning** (Bab 8). |
+| **R3 — Kepercayaan & Skala** | Ulasan/rating, laporan, moderasi, polish, observability. |
+| **R4 — Marketplace** | Direktori & pencarian lintas tenant (di luar MVP). |
+
+---
+
+## 13. Keputusan Terbuka untuk Iterasi Berikut
+1. **Finalisasi harga plan** & apakah ada tier Plus sejak R3.
+2. **Penyedia WhatsApp** (Business API) & batas template.
+3. **Metode auto-charge** yang didukung di awal (kartu+GoPay vs invoice-only) berdasarkan profil MUA target.
+4. Apakah **transport per-km/maps** diperlukan di MVP atau cukup flat/zona.
+5. Kebijakan **arsip/hapus data** detail setelah 90 hari restricted (PDP).
+
+---
+
+## 14. Lampiran — Ringkasan Traceability
+| BRD | Dipenuhi oleh PRD |
+|-----|-------------------|
+| BR-1 Storefront mandiri | §6.1, §6.2 |
+| BR-2 Booking mandiri 24/7 | §6.4 |
+| BR-3 Anti-bentrok | §6.5 |
+| BR-4 Pembayaran tanpa kustodi | **Bab 7** |
+| BR-5 Notifikasi otomatis | §6.8, §9 |
+| BR-6 Order/klien/pendapatan | §6.9, §6.10 |
+| BR-7 Langganan berulang + trial | §6.1, **Bab 8** |
+| BR-8 Isolasi data & PDP | §4, §10 |
+| BR-9 Siap marketplace | §4, §10 |
+| BR-10 Auto-publish + moderasi | §6.2, §6.12 |
+| RULE-1 Nol kustodi dana klien | **Bab 7**, §4 |
+| RULE-2 Monetisasi = langganan | **Bab 8** |
+| RULE-6 Past-due membatasi fitur | §8.8 |
