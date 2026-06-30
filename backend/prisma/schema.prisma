@@ -1,0 +1,59 @@
+// Fase 0 — skema awal; entitas lain (Theme, Service, Booking, Payment, Subscription, dst.)
+// ditambah database-architect di milestone berikutnya.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Prisma 7: DATABASE_URL dikonfigurasi di prisma.config.ts (bukan di sini).
+// Lihat prisma.config.ts — url: process.env["DATABASE_URL"]
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum TenantStatus {
+  ACTIVE
+  TRIAL
+  PAST_DUE
+  RESTRICTED
+  CANCELED
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+/// Akun login MUA — identitas platform (Paket A: 1 User : 1 Tenant).
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  phone        String?
+  passwordHash String?
+  timezone     String?  // opsional; mis. "Asia/Makassar"
+  createdAt    DateTime @default(now())
+
+  /// Relasi 1:1 — user memiliki tepat satu tenant (Paket A).
+  tenant Tenant?
+}
+
+/// Profil bisnis MUA — selalu terikat ke satu User (Paket A 1:1).
+/// SETIAP query domain ke tabel lain WAJIB difilter oleh `id` (tenant_id).
+model Tenant {
+  id          String       @id @default(cuid())
+  ownerUserId String       @unique // FK 1:1 ke User; @unique menegakkan Paket A
+  slug        String       @unique // URL-friendly identifier, mis. "sari-mua"
+  namaBisnis  String
+  kota        String?
+  status      TenantStatus @default(TRIAL)
+  createdAt   DateTime     @default(now())
+
+  /// Relasi balik ke User
+  owner User @relation(fields: [ownerUserId], references: [id])
+
+  @@index([ownerUserId])
+  @@index([slug])
+}
