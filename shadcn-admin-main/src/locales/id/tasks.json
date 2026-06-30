@@ -1,0 +1,109 @@
+{
+  "title": "Tugas",
+  "description": "Berikut daftar tugas Anda untuk bulan ini!",
+  "import": "Impor",
+  "create": "Buat",
+  "searchPlaceholder": "Filter judul atau ID...",
+  "noResults": "Tidak ada hasil.",
+  "filters": {
+    "status": "Status",
+    "priority": "Prioritas",
+    "statusOptions": {
+      "backlog": "Backlog",
+      "todo": "Akan Dikerjakan",
+      "inProgress": "Sedang Dikerjakan",
+      "done": "Selesai",
+      "canceled": "Dibatalkan"
+    },
+    "priorityOptions": {
+      "low": "Rendah",
+      "medium": "Sedang",
+      "high": "Tinggi",
+      "critical": "Kritis"
+    }
+  },
+  "columns": {
+    "task": "Tugas",
+    "title": "Judul",
+    "status": "Status",
+    "priority": "Prioritas",
+    "dueDate": "Tenggat",
+    "created": "Dibuat"
+  },
+  "action": {
+    "edit": "Ubah",
+    "copy": "Salin",
+    "favorite": "Favorit",
+    "labels": "Label",
+    "delete": "Hapus",
+    "openMenu": "Buka menu"
+  },
+  "mutateDrawer": {
+    "titleCreate": "Buat Tugas",
+    "titleUpdate": "Perbarui Tugas",
+    "descCreate": "Tambahkan tugas baru dengan mengisi info yang diperlukan. Klik simpan setelah selesai.",
+    "descUpdate": "Perbarui tugas dengan mengisi info yang diperlukan. Klik simpan setelah selesai.",
+    "titleField": "Judul",
+    "titlePlaceholder": "Masukkan judul",
+    "status": "Status",
+    "statusPlaceholder": "Pilih status",
+    "label": "Label",
+    "priority": "Prioritas",
+    "statusOptions": {
+      "inProgress": "Sedang Dikerjakan",
+      "backlog": "Backlog",
+      "todo": "Akan Dikerjakan",
+      "canceled": "Dibatalkan",
+      "done": "Selesai"
+    },
+    "labelOptions": {
+      "documentation": "Dokumentasi",
+      "feature": "Fitur",
+      "bug": "Bug"
+    },
+    "priorityOptions": {
+      "high": "Tinggi",
+      "medium": "Sedang",
+      "low": "Rendah"
+    },
+    "validation": {
+      "titleRequired": "Judul wajib diisi.",
+      "statusRequired": "Harap pilih status.",
+      "labelRequired": "Harap pilih label.",
+      "priorityRequired": "Harap pilih prioritas."
+    }
+  },
+  "importDialog": {
+    "title": "Impor Tugas",
+    "desc": "Impor tugas dengan cepat dari file CSV.",
+    "fileLabel": "File",
+    "close": "Tutup",
+    "import": "Impor",
+    "validation": {
+      "fileRequired": "Harap unggah file.",
+      "csvOnly": "Harap unggah file berformat CSV."
+    }
+  },
+  "deleteDialog": {
+    "title": "Hapus {{count}} {{entity}}",
+    "desc": "Yakin ingin menghapus tugas yang dipilih?",
+    "desc2": "Tindakan ini tidak dapat dibatalkan.",
+    "delete": "Hapus",
+    "toastLoading": "Menghapus tugas...",
+    "toastError": "Terjadi kesalahan",
+    "toastSuccess": "Berhasil menghapus {{count}} tugas"
+  },
+  "bulk": {
+    "updateStatus": "Perbarui status",
+    "updatePriority": "Perbarui prioritas",
+    "export": "Ekspor tugas",
+    "delete": "Hapus tugas terpilih",
+    "toastStatusLoading": "Memperbarui status...",
+    "toastPriorityLoading": "Memperbarui prioritas...",
+    "toastExportLoading": "Mengekspor tugas...",
+    "toastError": "Terjadi kesalahan",
+    "toastStatusSuccess": "Status diperbarui ke \"{{status}}\" untuk {{count}} tugas.",
+    "toastPrioritySuccess": "Prioritas diperbarui ke \"{{priority}}\" untuk {{count}} tugas.",
+    "toastExportSuccess": "Berhasil mengekspor {{count}} tugas ke CSV."
+  }
+}

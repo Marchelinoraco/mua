@@ -18,10 +18,11 @@ Mendefinisikan apa yang harus dibangun pada **MVP** GlowBook dan bagaimana peril
 | # | Keputusan Terbuka (BRD) | Keputusan PRD |
 |---|--------------------------|----------------|
 | 1 | Mekanisme pembayaran tanpa kustodi | **Klien→MUA = manual transfer + bukti (Opsi B).** Langganan MUA→Platform = **Midtrans otomatis**. |
-| 2 | Cakupan plan langganan | **Satu plan berbayar** untuk MVP; arsitektur disiapkan untuk multi-plan (Plus) kelak. |
-| 3 | Kebijakan free trial | **14 hari, akses penuh, tanpa kartu di muka.** Prompt berlangganan mulai H-3 sebelum trial habis. |
+| 2 | Cakupan plan langganan | **Tier kuota berbasis volume order** (Basic/Pro/Bisnis), **ditagih per tenant** — revisi RULE-2 (tetap langganan, bukan komisi). Lihat [docs/business-model.md](docs/business-model.md). |
+| 3 | Kebijakan free trial | **14 hari per tenant, akses & kuota penuh, tanpa kartu di muka.** Prompt berlangganan mulai H-3 sebelum trial habis. |
 | 4 | Transport/lokasi & multi-service | MVP **mendukung**: multi-layanan per booking (line items), biaya transport (flat / per-zona), dan custom field (lokasi, adat, dll.). |
 | 5 | Kebijakan past-due (RULE-6) | **Grace 7 hari** → mode terbatas (storefront unpublish, notifikasi nonaktif, dashboard read-only). Data ditahan 90 hari. |
+| 6 | Struktur kepemilikan | **Paket A: 1 user : 1 tenant** (User & Tenant tabel terpisah, relasi 1:1). Daftar trial → buat akun → onboarding tenant. Multi-tenant per user = paket masa depan. Lihat [docs/business-model.md](docs/business-model.md). |
 
 ### 1.3 Prinsip Produk (warisan BRD)
 1. **Nol kustodi dana klien** — dana DP/pelunasan klien tidak pernah melewati platform.
@@ -36,18 +37,18 @@ Mendefinisikan apa yang harus dibangun pada **MVP** GlowBook dan bagaimana peril
 
 | Peran | Deskripsi | Akses |
 |-------|-----------|-------|
-| **MUA (Tenant/Owner)** | Pelanggan berbayar; mengelola storefront, layanan, jadwal, order, klien, langganan. | Dashboard penuh untuk tenant-nya. |
+| **User (MUA)** | Identitas login = MUA; pelanggan berbayar. **Paket A: 1 user : 1 tenant.** Mengelola storefront, layanan, jadwal, order, klien, langganan. | Dashboard penuh untuk tenant-nya. |
+| **Klien** | Pemesan via form publik; **bukan user SaaS**, tidak perlu akun berat. | Akses form publik + halaman status booking via tautan/OTP. |
+| **Admin Platform (Sistem)** | Tim internal; moderasi reaktif, dukungan, kelola plan. | Konsol admin lintas-tenant (read-mostly + tindakan moderasi). |
 | **Staf MUA** *(opsional, fase lanjutan)* | Asisten yang dibantu mengelola jadwal/order. | Terbatas, di luar MVP. |
-| **Klien** | Pemesan via form publik; tidak perlu akun berat. | Akses form publik + halaman status booking via tautan/OTP. |
-| **Admin Platform** | Tim internal; moderasi reaktif, dukungan, kelola plan. | Konsol admin lintas-tenant (read-mostly + tindakan moderasi). |
 
 ---
 
 ## 3. Ruang Lingkup MVP
 
 ### 3.1 Termasuk
-- Pendaftaran & onboarding tenant + **free trial 14 hari**.
-- **Langganan otomatis via Midtrans** (auto-charge) + penanganan past-due.
+- Pendaftaran trial → **buat akun + onboarding tenant** (Paket A: 1 user : 1 tenant) + **free trial 14 hari**.
+- **Langganan otomatis via Midtrans** (**tier kuota per volume order**, auto-charge) + penanganan past-due & kuota.
 - Storefront/form publik per tenant (layanan, harga, durasi, portofolio, transport, custom field).
 - Booking mandiri 24/7 oleh klien.
 - Kalender & penjadwalan **anti-bentrok** (termasuk hold sementara).
@@ -58,13 +59,14 @@ Mendefinisikan apa yang harus dibangun pada **MVP** GlowBook dan bagaimana peril
 - Konsol admin: moderasi reaktif, kelola plan/langganan, dukungan.
 
 ### 3.2 Tidak Termasuk (Fase Lanjutan)
-Marketplace/discovery lintas tenant, chat in-app real-time, PWA/push native, multi-tier plan kompleks + voucher/referral engine, kategori non-MUA, multi-bahasa/mata uang, fitur AI, **pembayaran klien→MUA otomatis via gateway** (dipertimbangkan saat skala).
+Marketplace/discovery lintas tenant, chat in-app real-time, PWA/push native, voucher/referral engine & add-on plan kompleks (di luar tier kuota), kategori non-MUA, multi-bahasa/mata uang, fitur AI, **pembayaran klien→MUA otomatis via gateway** (dipertimbangkan saat skala).
 
 ---
 
 ## 4. Arsitektur Tingkat Tinggi & Multi-Tenancy
 
-- **Model tenancy:** shared database, **tenant_id pada setiap row** + row-level enforcement di seluruh query/layanan. Setiap permintaan terikat ke `tenant_id` dari sesi/host.
+- **Model tenancy:** shared database, **tenant_id pada setiap row** + row-level enforcement di seluruh query/layanan. Setiap permintaan terikat ke `tenant_id` dari **tenant aktif** (sesi) atau host/slug (publik).
+- **Kepemilikan (Paket A):** **1 user : 1 tenant** (User & Tenant terpisah, relasi 1:1 via `owner_user_id`). Multi-tenant per user = paket masa depan. Billing & kuota per tenant. Lihat [docs/business-model.md](docs/business-model.md).
 - **Routing storefront:** subdomain atau path unik per tenant (mis. `glowbook.id/@namamua` atau `namamua.glowbook.id`).
 - **Isolasi data:** tidak ada endpoint yang mengembalikan data lintas tenant kecuali konsol admin (di-audit).
 - **Pemisahan dana:**
@@ -91,8 +93,9 @@ flowchart LR
 
 > Notasi ringkas; tipe & index final di desain teknis. Semua entitas tenant-scoped kecuali ditandai **[global]**.
 
-- **Tenant** `id, slug, nama_bisnis, kota, status(active/trial/past_due/restricted/canceled), created_at`
-- **User** `id, tenant_id, role(owner/staff/admin), email, phone, auth_*`
+- **User** `id, email, phone, auth_*, timezone?, created_at` — identitas akun (aktor = MUA); `timezone` **opsional/nullable** untuk sekarang (mis. `Asia/Makassar`)
+- **Tenant** `id, owner_user_id, slug, nama_bisnis, kota, status(ACTIVE/TRIAL/PAST_DUE/RESTRICTED/CANCELED), created_at` — **Paket A: 1:1 dengan User**
+- **Theme** `id, tenant_id, logo_url, banner_url, warna_primer, warna_sekunder, font, template, custom_css?, updated_at` — tampilan storefront, **1 per tenant**
 - **PaymentProfile** (instruksi bayar MUA, *no-custody*) `id, tenant_id, jenis(bank/qris/ewallet), bank_nama, no_rekening, atas_nama, qris_image_url, instruksi_tambahan, is_active`
 - **Service** `id, tenant_id, nama, deskripsi, harga, durasi_menit, dp_tipe(persen/nominal), dp_nilai, butuh_transport(bool), aktif`
 - **TransportRule** `id, tenant_id, mode(flat/zona), flat_nominal | zona[{nama, nominal}]`
@@ -100,16 +103,18 @@ flowchart LR
 - **Portfolio** `id, tenant_id, image_url, caption, urutan`
 - **Availability** `id, tenant_id, hari, jam_mulai, jam_selesai, slot_durasi, kapasitas`
 - **BlockedDate** `id, tenant_id, tanggal/range, alasan`
-- **Booking** `id, tenant_id, kode, client_id, tanggal, jam_mulai, jam_selesai, status, subtotal, transport_fee, total, dp_amount, sisa_amount, lokasi, custom_values{}, created_at`
+- **Booking** `id, tenant_id, kode, client_id, tanggal, jam_mulai, jam_selesai, status(AWAITING_DP/CONFIRMED/PAID/COMPLETED/CANCELED/EXPIRED), subtotal, transport_fee, total, dp_amount, sisa_amount, lokasi, custom_values{}, created_at`
 - **BookingItem** `id, booking_id, service_id, qty, harga_snapshot`
 - **Client** `id, tenant_id, nama, phone, email, catatan, total_booking, created_at`
-- **Payment** (catatan pembayaran klien, *manual*) `id, tenant_id, booking_id, jenis(dp/pelunasan), metode, amount, proof_url, status(menunggu/diajukan/dikonfirmasi/ditolak), submitted_at, confirmed_at, confirmed_by`
-- **Subscription** `id, tenant_id, plan_id, status(trialing/active/past_due/canceled/expired), trial_end, current_period_start, current_period_end, midtrans_subscription_id, saved_token_id, payment_method, retry_count`
-- **Invoice** `id, tenant_id, subscription_id, periode, amount, status(paid/pending/failed), midtrans_order_id, paid_at, pdf_url`
-- **Plan** **[global]** `id, nama, harga, interval(monthly), fitur{}, aktif`
-- **Review** `id, tenant_id, booking_id, rating(1-5), komentar, status(published/flagged/hidden), created_at`
-- **Notification** `id, tenant_id, kanal(wa/email), template, target, payload, status, sent_at`
+- **Payment** (catatan pembayaran klien, *manual*) `id, tenant_id, booking_id, jenis(dp/pelunasan), metode, amount, proof_url, status(PENDING/SUBMITTED/CONFIRMED/REJECTED), submitted_at, confirmed_at, confirmed_by`
+- **Subscription** `id, tenant_id, plan_id, status(TRIALING/ACTIVE/PAST_DUE/CANCELED/EXPIRED), trial_end, current_period_start, current_period_end, orders_used_period, midtrans_subscription_id, saved_token_id, payment_method, retry_count`
+- **Invoice** `id, tenant_id, subscription_id, periode, amount, status(PAID/PENDING/FAILED), midtrans_order_id, paid_at, pdf_url`
+- **Plan** **[global]** `id, nama(tier), harga, interval(monthly), order_quota(null=unlimited), tier_urutan, fitur{}, aktif`
+- **Review** `id, tenant_id, booking_id, rating(1-5), komentar, status(PUBLISHED/FLAGGED/HIDDEN), created_at`
+- **Notification** `id, tenant_id, kanal(wa/email), template, target, payload, status(QUEUED/SENT/DELIVERED/FAILED), sent_at`
 - **AuditLog** **[global]** `id, actor, tenant_id, aksi, entity, before, after, at`
+
+> **Ekstensi masa depan (di luar MVP):** **Membership** `id, user_id, tenant_id, role` untuk paket multi-tenant (1 user banyak tenant) & staf per tenant.
 
 ---
 
@@ -141,7 +146,7 @@ Alur: pilih layanan → pilih tanggal & slot **kosong** → isi data + custom fi
 - **US-BK-1:** Sebagai klien, saat memilih slot, saya hanya melihat waktu yang benar-benar tersedia (anti-bentrok).
 
 ### 6.5 Kalender & Anti-Bentrok — *(BR-3, RULE-3)*
-- Slot dihitung dari `Availability` − `BlockedDate` − booking `confirmed` − **hold sementara**.
+- Slot dihitung dari `Availability` − `BlockedDate` − booking `CONFIRMED` − **hold sementara**.
 - **Hold sementara:** saat klien submit booking, slot di-*hold* (default **120 menit**) menunggu bukti DP; jika lewat tanpa bukti/konfirmasi → hold dilepas otomatis.
 - Booking **confirmed** mengunci kalender permanen.
 - **US-CAL-1:** Sebagai MUA, dua klien tidak bisa mengunci slot yang sama; yang kedua melihat slot tak tersedia begitu yang pertama di-hold/confirmed.
@@ -164,7 +169,7 @@ Alur: pilih layanan → pilih tanggal & slot **kosong** → isi data + custom fi
 - Catatan: angka berbasis **konfirmasi MUA**, bukan rekonsiliasi bank (karena no-custody).
 
 ### 6.11 Ulasan/Rating Dasar
-- Diminta otomatis setelah booking `selesai`; tayang di storefront; dapat di-flag.
+- Diminta otomatis setelah booking `COMPLETED`; tayang di storefront; dapat di-flag.
 
 ### 6.12 Konsol Admin & Moderasi — *(RULE-4, BR-10)*
 - Lihat tenant, status langganan, dan invoice.
@@ -188,17 +193,17 @@ Platform **tidak menerima, menahan, atau menyalurkan** dana klien. Dana ditransf
 ### 7.3 Alur DP (mengunci slot)
 ```mermaid
 stateDiagram-v2
-  [*] --> MENUNGGU_DP: Klien submit booking (slot di-HOLD 120 mnt)
-  MENUNGGU_DP --> DIAJUKAN: Klien unggah bukti transfer
-  MENUNGGU_DP --> KEDALUWARSA: Lewat batas / hold lepas
-  DIAJUKAN --> DIKONFIRMASI: MUA verifikasi bukti -> booking CONFIRMED
-  DIAJUKAN --> DITOLAK: Bukti tidak valid
-  DITOLAK --> DIAJUKAN: Klien unggah ulang (selama hold/diperpanjang)
-  KEDALUWARSA --> [*]
-  DIKONFIRMASI --> [*]
+  [*] --> AWAITING_DP: Klien submit booking (slot di-HOLD 120 mnt)
+  AWAITING_DP --> SUBMITTED: Klien unggah bukti transfer
+  AWAITING_DP --> EXPIRED: Lewat batas / hold lepas
+  SUBMITTED --> CONFIRMED: MUA verifikasi bukti -> booking CONFIRMED
+  SUBMITTED --> REJECTED: Bukti tidak valid
+  REJECTED --> SUBMITTED: Klien unggah ulang (selama hold/diperpanjang)
+  EXPIRED --> [*]
+  CONFIRMED --> [*]
 ```
-- Saat **DIKONFIRMASI**, booking → `confirmed`, slot terkunci permanen, notifikasi WA terkirim ke klien.
-- Saat **KEDALUWARSA**, slot dilepas agar klien lain bisa memesan.
+- Saat **CONFIRMED**, booking → `CONFIRMED`, slot terkunci permanen, notifikasi WA terkirim ke klien.
+- Saat **EXPIRED**, slot dilepas agar klien lain bisa memesan.
 
 ### 7.4 Alur Pelunasan
 - Reminder otomatis (H-3 / H-1) via WA/email berisi instruksi & nominal sisa.
@@ -210,8 +215,8 @@ stateDiagram-v2
 |------|------------|
 | Nominal bukti tidak sesuai | MUA tolak dengan alasan; klien diminta unggah ulang / transfer selisih. |
 | Bukti palsu/duplikat | Tanggung jawab verifikasi pada MUA; platform sediakan jejak (timestamp, gambar) untuk sengketa. |
-| Klien tidak bayar dalam hold | Hold lepas otomatis; booking `expired`; slot kembali tersedia. |
-| Pembatalan & refund DP | Diatur **di luar platform** (kebijakan refund MUA); platform mencatat status `dibatalkan` + catatan refund. |
+| Klien tidak bayar dalam hold | Hold lepas otomatis; booking `EXPIRED`; slot kembali tersedia. |
+| Pembatalan & refund DP | Diatur **di luar platform** (kebijakan refund MUA); platform mencatat status `CANCELED` + catatan refund. |
 | Reschedule | MUA pindahkan ke slot kosong baru; cek anti-bentrok; DP tetap mengikat. |
 | Sengketa | Platform **tidak menengahi dana** (no-custody); hanya menyediakan log bukti & komunikasi. |
 
@@ -229,18 +234,22 @@ stateDiagram-v2
 ## 8. BAB MENDALAM B — Langganan MUA → Platform (Midtrans, Otomatis)
 
 ### 8.1 Tujuan & Cakupan
-Memungut **langganan bulanan per tenant secara otomatis** dengan Midtrans, settle langsung ke **rekening Platform**. Ini pendapatan platform (RULE-2) dan **tidak melanggar RULE-1** (RULE-1 hanya melarang menahan **dana klien**).
+Memungut **langganan bulanan per tenant secara otomatis** dengan Midtrans (settle ke **rekening Platform**), dengan **tier harga berbasis kuota volume order** (Basic/Pro/Bisnis). Ini pendapatan platform — **revisi RULE-2** (tetap langganan berjenjang, bukan komisi per transaksi) dan **tidak melanggar RULE-1** (yang hanya melarang menahan **dana klien**). Billing **per tenant** (Paket A: 1 user : 1 tenant). Lihat [docs/business-model.md](docs/business-model.md).
 
-### 8.2 Plan (MVP)
-| Field | Nilai MVP |
-|-------|-----------|
-| Nama | **GlowBook Pro** *(placeholder)* |
-| Harga | **Rp99.000 / bulan** *(placeholder — finalkan)* |
-| Interval | Bulanan |
-| Trial | 14 hari, tanpa kartu di muka |
-| Fitur | Semua fitur MVP aktif |
+### 8.2 Tier & Kuota *(placeholder — finalkan)*
+Harga berjenjang berdasarkan **kuota jumlah order/bulan** per tenant. **Order dihitung = booking `CONFIRMED`** (1 booking = 1 order); reset tiap siklus.
 
-> Arsitektur `Plan` **[global]** disiapkan untuk multi-plan (Plus) tanpa refactor besar.
+| Tier | Kuota order/bln | Harga/bln |
+|------|-----------------|-----------|
+| Trial | penuh (14 hari) | gratis |
+| Basic | ≤ 30 | Rp 20.000 |
+| Pro | 31 – 100 | Rp 50.000 |
+| Bisnis | > 100 / unlimited | Rp 150.000 |
+
+- **Overage (default):** 80% → notif; 100% → minta upgrade; **soft-block** konfirmasi order di atas kuota sampai upgrade.
+- **Upgrade** efektif segera; **downgrade** akhir periode (tanpa proration).
+
+> Arsitektur `Plan` **[global]** menyimpan `order_quota` per tier sehingga tier/harga dapat diubah tanpa refactor.
 
 ### 8.3 Metode Pembayaran & Strategi Auto-Charge
 Midtrans tidak semua metode mendukung auto-charge. Strategi dua jalur:
@@ -271,10 +280,10 @@ Midtrans tidak semua metode mendukung auto-charge. Strategi dua jalur:
 ### 8.6 Pemetaan Status Transaksi Midtrans → Internal
 | Midtrans `transaction_status` | `fraud_status` | Tindakan Internal |
 |---|---|---|
-| `capture` | `accept` | Invoice **paid**, perpanjang periode |
-| `settlement` | — | Invoice **paid**, perpanjang periode |
-| `pending` | — | Invoice **pending** (tunggu) |
-| `deny` / `cancel` / `expire` | — | Invoice **failed** → masuk alur retry/dunning |
+| `capture` | `accept` | Invoice **PAID**, perpanjang periode |
+| `settlement` | — | Invoice **PAID**, perpanjang periode |
+| `pending` | — | Invoice **PENDING** (tunggu) |
+| `deny` / `cancel` / `expire` | — | Invoice **FAILED** → masuk alur retry/dunning |
 | `refund` / `partial_refund` | — | Catat refund (lihat §8.9) |
 | `capture` | `challenge` | Tahan, tinjau manual |
 
@@ -309,7 +318,7 @@ stateDiagram-v2
 ### 8.9 Refund, Proration & Pembatalan
 - **MVP: tanpa proration.** Pembatalan oleh MUA berlaku **di akhir periode berjalan** (akses tetap sampai `current_period_end`).
 - **Tanpa refund** untuk periode berjalan kecuali kasus khusus yang disetujui admin (refund manual via Midtrans, dicatat di `Invoice`).
-- Auto-charge dihentikan saat status `canceled`.
+- Auto-charge dihentikan saat status `CANCELED`.
 
 ### 8.10 Invoice & Bukti
 - Setiap siklus menghasilkan `Invoice` (nomor, periode, jumlah, status, `midtrans_order_id`).
@@ -328,7 +337,7 @@ sequenceDiagram
   M->>SN: Bayar (kartu/GoPay/QRIS)
   SN-->>MT: Proses + tokenisasi
   MT-->>GB: Webhook (settlement + saved_token_id)
-  GB->>GB: Verifikasi signature, Invoice=paid, status=ACTIVE
+  GB->>GB: Verifikasi signature, Invoice=PAID, status=ACTIVE
   GB->>MT: Buat Subscription (auto-charge bulan berikut)
   GB-->>M: Konfirmasi langganan aktif
 ```
@@ -377,7 +386,7 @@ sequenceDiagram
 ## 11. Analytics & KPI (selaras BRD §11)
 - **North Star:** MUA aktif berbayar.
 - Lacak: trial→paid conversion, churn bulanan, jumlah booking publik terproses, % booking via form vs chat, rating tenant, storefront aktif.
-- Event kunci: `signup`, `storefront_published`, `booking_created`, `dp_confirmed`, `subscription_activated`, `payment_failed`, `restricted`.
+- Event kunci: `signup`, `storefront_published`, `booking_created`, `dp_confirmed`, `subscription_activated`, `payment_failed`, `RESTRICTED`.
 
 ---
 

@@ -4,9 +4,11 @@ Ringkasan arsitektur GlowBook untuk MVP. Detail teknis final di desain engineeri
 
 ## 1. Multi-Tenancy
 - **Model:** shared database, `tenant_id` pada setiap row + penegakan row-level di seluruh layer query.
-- **Pengikatan tenant:** setiap request terikat `tenant_id` dari sesi (dashboard) atau dari host/slug storefront (publik).
-- **Isolasi:** tidak ada endpoint yang mengembalikan data lintas tenant, kecuali konsol admin (di-audit).
+- **Kepemilikan (Paket A, MVP):** **1 user : 1 tenant** via `Tenant.owner_user_id`. Multi-tenant per user = paket masa depan (tabel `Membership` + tenant switcher). Lihat [business-model.md](business-model.md).
+- **Pengikatan tenant:** setiap request terikat `tenant_id` dari tenant milik user (dashboard) atau dari host/slug storefront (publik).
+- **Isolasi:** user hanya mengakses tenant miliknya; tidak ada endpoint lintas tenant kecuali konsol admin (di-audit).
 - **Routing storefront:** path/subdomain unik per tenant, mis. `glowbook.id/@namamua` atau `namamua.glowbook.id`.
+- **Billing per tenant:** langganan, kuota order, & status `RESTRICTED` dihitung **per tenant** (lihat [F07](features/F07-langganan-midtrans.md)).
 
 ## 2. Pemisahan Dana (prinsip inti)
 GlowBook memisahkan dua aliran uang secara tegas:

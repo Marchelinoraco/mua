@@ -1,0 +1,39 @@
+{
+  "title": "Dasbor",
+  "tabs": {
+    "overview": "Ikhtisar",
+    "analytics": "Analitik",
+    "reports": "Laporan",
+    "notifications": "Notifikasi"
+  },
+  "nav": {
+    "overview": "Ikhtisar",
+    "customers": "Pelanggan",
+    "products": "Produk",
+    "settings": "Pengaturan"
+  },
+  "stats": {
+    "totalRevenue": "Total Pendapatan",
+    "subscriptions": "Langganan",
+    "sales": "Penjualan",
+    "activeNow": "Aktif Sekarang",
+    "fromLastMonth": "+{{value}}% dari bulan lalu",
+    "sinceLastHour": "+{{value}} sejak satu jam lalu"
+  },
+  "overview": "Ikhtisar",
+  "recentSales": "Penjualan Terbaru",
+  "recentSalesDescription": "Anda melakukan {{count}} penjualan bulan ini.",
+  "analytics": {
+    "title": "Ikhtisar Lalu Lintas",
+    "weeklyDesc": "Klik dan pengunjung unik mingguan",
+    "totalClicks": "Total Klik",
+    "uniqueVisitors": "Pengunjung Unik",
+    "bounceRate": "Tingkat Bouncing",
+    "avgSession": "Rata-rata Sesi",
+    "referrers": "Perujuk",
+    "referrersDesc": "Sumber teratas yang mendatangkan lalu lintas",
+    "devices": "Perangkat",
+    "devicesDesc": "Cara pengguna mengakses aplikasi Anda",
+    "vsLastWeek": "vs minggu lalu"
+  }
+}

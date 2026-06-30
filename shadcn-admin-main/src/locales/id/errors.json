@@ -1,0 +1,23 @@
+{
+  "401": {
+    "title": "Akses Tidak Diizinkan",
+    "desc": "Silakan masuk dengan kredensial yang sesuai untuk mengakses sumber daya ini."
+  },
+  "403": {
+    "title": "Akses Dilarang",
+    "desc": "Anda tidak memiliki izin yang diperlukan untuk melihat sumber daya ini."
+  },
+  "404": {
+    "title": "Oops! Halaman Tidak Ditemukan!",
+    "desc": "Sepertinya halaman yang Anda cari tidak ada atau telah dihapus."
+  },
+  "500": {
+    "title": "Oops! Terjadi kesalahan :')",
+    "desc": "Kami mohon maaf atas ketidaknyamanan ini. Silakan coba lagi nanti."
+  },
+  "503": {
+    "title": "Website sedang dalam pemeliharaan!",
+    "desc": "Situs tidak tersedia saat ini. Kami akan kembali online segera.",
+    "learnMore": "Pelajari lebih lanjut"
+  }
+}

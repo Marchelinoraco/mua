@@ -1,0 +1,114 @@
+{
+  "title": "Daftar Pengguna",
+  "description": "Kelola pengguna dan peran mereka di sini.",
+  "addUser": "Tambah Pengguna",
+  "inviteUser": "Undang Pengguna",
+  "searchPlaceholder": "Cari pengguna...",
+  "noResults": "Tidak ada hasil.",
+  "filters": {
+    "status": "Status",
+    "role": "Peran",
+    "statusOptions": {
+      "active": "Aktif",
+      "inactive": "Nonaktif",
+      "invited": "Diundang",
+      "suspended": "Ditangguhkan"
+    }
+  },
+  "columns": {
+    "username": "Nama Pengguna",
+    "name": "Nama",
+    "email": "Email",
+    "phoneNumber": "Nomor Telepon",
+    "status": "Status",
+    "role": "Peran",
+    "joined": "Bergabung"
+  },
+  "action": {
+    "edit": "Ubah",
+    "delete": "Hapus",
+    "openMenu": "Buka menu"
+  },
+  "addDialog": {
+    "titleAdd": "Tambah Pengguna Baru",
+    "titleEdit": "Ubah Pengguna",
+    "descAdd": "Buat pengguna baru di sini. Klik simpan setelah selesai.",
+    "descEdit": "Perbarui pengguna di sini. Klik simpan setelah selesai.",
+    "firstName": "Nama Depan",
+    "firstNamePlaceholder": "John",
+    "lastName": "Nama Belakang",
+    "lastNamePlaceholder": "Doe",
+    "username": "Nama Pengguna",
+    "usernamePlaceholder": "john_doe",
+    "email": "Email",
+    "emailPlaceholder": "john.doe@gmail.com",
+    "phoneNumber": "Nomor Telepon",
+    "phoneNumberPlaceholder": "+123456789",
+    "role": "Peran",
+    "password": "Kata Sandi",
+    "passwordPlaceholder": "cth., S3cur3P@ssw0rd",
+    "confirmPassword": "Konfirmasi Kata Sandi",
+    "selectRole": "Pilih peran",
+    "validation": {
+      "firstNameRequired": "Nama Depan wajib diisi.",
+      "lastNameRequired": "Nama Belakang wajib diisi.",
+      "usernameRequired": "Nama Pengguna wajib diisi.",
+      "phoneRequired": "Nomor telepon wajib diisi.",
+      "emailRequired": "Email wajib diisi.",
+      "roleRequired": "Peran wajib dipilih.",
+      "passwordRequired": "Kata sandi wajib diisi.",
+      "passwordMinLength": "Kata sandi minimal 8 karakter.",
+      "passwordLowercase": "Kata sandi harus mengandung minimal satu huruf kecil.",
+      "passwordNumber": "Kata sandi harus mengandung minimal satu angka.",
+      "passwordsMismatch": "Kata sandi tidak cocok."
+    }
+  },
+  "inviteDialog": {
+    "title": "Undang Pengguna",
+    "desc": "Undang pengguna baru untuk bergabung ke tim Anda dengan mengirim undangan email. Tetapkan peran untuk menentukan level akses mereka.",
+    "email": "Email",
+    "role": "Peran",
+    "description": "Deskripsi (opsional)",
+    "emailPlaceholder": "cth: john.doe@gmail.com",
+    "selectRole": "Pilih peran",
+    "descPlaceholder": "Tambahkan catatan pribadi pada undangan Anda (opsional)",
+    "invite": "Undang",
+    "cancel": "Batal",
+    "validation": {
+      "emailRequired": "Harap masukkan email yang akan diundang.",
+      "roleRequired": "Peran wajib dipilih."
+    }
+  },
+  "deleteDialog": {
+    "title": "Hapus Pengguna",
+    "desc": "Yakin ingin menghapus {{username}}?",
+    "desc2": "Tindakan ini akan menghapus permanen pengguna dengan peran {{role}} dari sistem. Tidak dapat dibatalkan.",
+    "usernameLabel": "Nama Pengguna:",
+    "usernamePlaceholder": "Masukkan nama pengguna untuk konfirmasi penghapusan.",
+    "delete": "Hapus"
+  },
+  "multiDeleteDialog": {
+    "title": "Hapus {{count}} {{entity}}",
+    "desc": "Yakin ingin menghapus pengguna yang dipilih?",
+    "desc2": "Tindakan ini tidak dapat dibatalkan.",
+    "delete": "Hapus",
+    "toastLoading": "Menghapus pengguna...",
+    "toastError": "Terjadi kesalahan",
+    "toastSuccess": "Berhasil menghapus {{count}} pengguna"
+  },
+  "bulk": {
+    "invite": "Undang pengguna terpilih",
+    "activate": "Aktifkan pengguna terpilih",
+    "deactivate": "Nonaktifkan pengguna terpilih",
+    "delete": "Hapus pengguna terpilih",
+    "toastActivating": "Mengaktifkan pengguna...",
+    "toastDeactivating": "Menonaktifkan pengguna...",
+    "toastInviting": "Mengundang pengguna...",
+    "toastActivated": "Berhasil mengaktifkan {{count}} pengguna",
+    "toastDeactivated": "Berhasil menonaktifkan {{count}} pengguna",
+    "toastInvited": "Berhasil mengundang {{count}} pengguna",
+    "toastErrorActivate": "Gagal mengaktifkan pengguna",
+    "toastErrorDeactivate": "Gagal menonaktifkan pengguna",
+    "toastErrorInvite": "Gagal mengundang pengguna"
+  }
+}

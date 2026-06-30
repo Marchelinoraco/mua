@@ -1,0 +1,109 @@
+{
+  "title": "Tasks",
+  "description": "Here's a list of your tasks for this month!",
+  "import": "Import",
+  "create": "Create",
+  "searchPlaceholder": "Filter by title or ID...",
+  "noResults": "No results.",
+  "filters": {
+    "status": "Status",
+    "priority": "Priority",
+    "statusOptions": {
+      "backlog": "Backlog",
+      "todo": "Todo",
+      "inProgress": "In Progress",
+      "done": "Done",
+      "canceled": "Canceled"
+    },
+    "priorityOptions": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    }
+  },
+  "columns": {
+    "task": "Task",
+    "title": "Title",
+    "status": "Status",
+    "priority": "Priority",
+    "dueDate": "Due Date",
+    "created": "Created"
+  },
+  "action": {
+    "edit": "Edit",
+    "copy": "Make a copy",
+    "favorite": "Favorite",
+    "labels": "Labels",
+    "delete": "Delete",
+    "openMenu": "Open menu"
+  },
+  "mutateDrawer": {
+    "titleCreate": "Create Task",
+    "titleUpdate": "Update Task",
+    "descCreate": "Add a new task by providing necessary info. Click save when you're done.",
+    "descUpdate": "Update the task by providing necessary info. Click save when you're done.",
+    "titleField": "Title",
+    "titlePlaceholder": "Enter a title",
+    "status": "Status",
+    "statusPlaceholder": "Select status",
+    "label": "Label",
+    "priority": "Priority",
+    "statusOptions": {
+      "inProgress": "In Progress",
+      "backlog": "Backlog",
+      "todo": "Todo",
+      "canceled": "Canceled",
+      "done": "Done"
+    },
+    "labelOptions": {
+      "documentation": "Documentation",
+      "feature": "Feature",
+      "bug": "Bug"
+    },
+    "priorityOptions": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "validation": {
+      "titleRequired": "Title is required.",
+      "statusRequired": "Please select a status.",
+      "labelRequired": "Please select a label.",
+      "priorityRequired": "Please choose a priority."
+    }
+  },
+  "importDialog": {
+    "title": "Import Tasks",
+    "desc": "Import tasks quickly from a CSV file.",
+    "fileLabel": "File",
+    "close": "Close",
+    "import": "Import",
+    "validation": {
+      "fileRequired": "Please upload a file.",
+      "csvOnly": "Please upload csv format."
+    }
+  },
+  "deleteDialog": {
+    "title": "Delete {{count}} {{entity}}",
+    "desc": "Are you sure you want to delete the selected tasks?",
+    "desc2": "This action cannot be undone.",
+    "delete": "Delete",
+    "toastLoading": "Deleting tasks...",
+    "toastError": "Error",
+    "toastSuccess": "Deleted {{count}} task(s)"
+  },
+  "bulk": {
+    "updateStatus": "Update status",
+    "updatePriority": "Update priority",
+    "export": "Export tasks",
+    "delete": "Delete selected tasks",
+    "toastStatusLoading": "Updating status...",
+    "toastPriorityLoading": "Updating priority...",
+    "toastExportLoading": "Exporting tasks...",
+    "toastError": "Error",
+    "toastStatusSuccess": "Status updated to \"{{status}}\" for {{count}} task(s).",
+    "toastPrioritySuccess": "Priority updated to \"{{priority}}\" for {{count}} task(s).",
+    "toastExportSuccess": "Exported {{count}} task(s) to CSV."
+  }
+}

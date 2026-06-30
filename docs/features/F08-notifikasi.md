@@ -25,7 +25,7 @@ Mengirim notifikasi otomatis untuk konfirmasi, pengingat, dan status pembayaran/
 - **FR-F08-3:** Pemicu event: booking masuk, instruksi DP, bukti diterima, dikonfirmasi/ditolak, reminder acara H-1, reminder pelunasan, status langganan.
 - **FR-F08-4:** **Fallback otomatis ke email** bila WA gagal/limit.
 - **FR-F08-5:** Catat tiap pengiriman di `Notification` (status terkirim/gagal).
-- **FR-F08-6:** **Nonaktif saat tenant `restricted`** (lihat [F07](F07-langganan-midtrans.md)).
+- **FR-F08-6:** **Nonaktif saat tenant `RESTRICTED`** (lihat [F07](F07-langganan-midtrans.md)).
 - **FR-F08-7:** Hindari spam: dedup & rate-limit per penerima.
 
 ## 4. Matriks Notifikasi
@@ -42,7 +42,7 @@ Mengirim notifikasi otomatis untuk konfirmasi, pengingat, dan status pembayaran/
 ## 5. Aturan & Logika Bisnis
 - WA utama; email fallback bila WA gagal atau nomor tidak valid.
 - Reminder dijadwalkan oleh worker (H-3/H-1 sesuai jenis).
-- Saat `restricted`, hanya notifikasi terkait billing yang boleh terkirim ke MUA.
+- Saat `RESTRICTED`, hanya notifikasi terkait billing yang boleh terkirim ke MUA.
 
 ## 6. Data Terkait
 `Notification`, `Booking` (F04), `Payment` (F06), `Subscription` (F07), `Client`.
@@ -53,7 +53,7 @@ Mengirim notifikasi otomatis untuk konfirmasi, pengingat, dan status pembayaran/
 - Webhook status pengiriman dari penyedia WA/email.
 
 ## 8. Status / State Machine
-`Notification.status`: `queued → sent → delivered | failed → fallback_email`.
+`Notification.status`: `QUEUED → SENT → DELIVERED | FAILED → FALLBACK_EMAIL`.
 
 ## 9. Edge Case
 - WA limit/template ditolak kebijakan → fallback email + alert internal.
@@ -63,7 +63,7 @@ Mengirim notifikasi otomatis untuk konfirmasi, pengingat, dan status pembayaran/
 ## 10. Kriteria Penerimaan (AC)
 - **AC-F08-1:** Setiap event pemicu menghasilkan notifikasi sesuai matriks.
 - **AC-F08-2:** Kegagalan WA otomatis jatuh ke email.
-- **AC-F08-3:** Notifikasi non-billing tidak terkirim saat tenant `restricted`.
+- **AC-F08-3:** Notifikasi non-billing tidak terkirim saat tenant `RESTRICTED`.
 
 ## 11. Di Luar Lingkup Fitur
 - Chat in-app real-time.

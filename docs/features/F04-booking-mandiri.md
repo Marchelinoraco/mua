@@ -24,7 +24,7 @@ Memungkinkan klien memesan sendiri 24/7 lewat form publik: pilih layanan, lihat 
 - **FR-F04-2:** Hitung biaya real-time: subtotal + transport (F03) + DP.
 - **FR-F04-3:** Pemilih tanggal/slot menampilkan hanya slot tersedia dari [F05](F05-kalender-anti-bentrok.md).
 - **FR-F04-4:** Form data klien (nama, WA, email opsional) + custom field wajib/opsional.
-- **FR-F04-5:** Saat submit: buat `Booking(status=menunggu_dp)`, buat/tautkan `Client`, **hold slot** (`hold_expires_at = now + 120 menit`).
+- **FR-F04-5:** Saat submit: buat `Booking(status=AWAITING_DP)`, buat/tautkan `Client`, **hold slot** (`hold_expires_at = now + 120 menit`).
 - **FR-F04-6:** Tampilkan instruksi pembayaran DP dari `PaymentProfile` (lihat [F06](F06-pembayaran-klien-manual.md)).
 - **FR-F04-7:** Halaman status booking publik via kode booking + verifikasi OTP WA.
 - **FR-F04-8:** Identifikasi klien ringan (tanpa password) — verifikasi berbasis nomor WA.
@@ -35,14 +35,14 @@ flowchart TD
   A[Pilih layanan] --> B[Pilih tanggal & slot kosong]
   B --> C[Isi data + custom field]
   C --> D[Ringkasan biaya: subtotal+transport, DP]
-  D --> E[Submit -> Booking menunggu_dp + HOLD slot 120m]
+  D --> E[Submit -> Booking AWAITING_DP + HOLD slot 120m]
   E --> F[Instruksi pembayaran DP -> F06]
   F --> G[Notifikasi WA ke klien & MUA -> F08]
 ```
 
 ## 5. Aturan & Logika Bisnis
 - Slot di-hold saat submit; **belum** mengunci permanen sampai DP dikonfirmasi MUA (lihat [F06](F06-pembayaran-klien-manual.md)).
-- Hold kedaluwarsa → booking `expired`, slot dilepas (worker, lihat [F05](F05-kalender-anti-bentrok.md)).
+- Hold kedaluwarsa → booking `EXPIRED`, slot dilepas (worker, lihat [F05](F05-kalender-anti-bentrok.md)).
 - Harga di-snapshot saat submit (F03).
 
 ## 6. Data Terkait
@@ -55,11 +55,11 @@ flowchart TD
 - `POST /bookings/{kode}/verify-otp`
 
 ## 8. Status / State Machine
-Booking awal: `menunggu_dp`. Transisi penuh dibahas di [F05](F05-kalender-anti-bentrok.md) (hold/expired) dan [F06](F06-pembayaran-klien-manual.md) (confirmed/lunas).
+Booking awal: `AWAITING_DP`. Transisi penuh dibahas di [F05](F05-kalender-anti-bentrok.md) (hold/expired) dan [F06](F06-pembayaran-klien-manual.md) (confirmed/lunas).
 
 ## 9. Edge Case
 - Dua klien memilih slot sama bersamaan → yang pertama submit mendapat hold; yang kedua melihat slot tak tersedia (lihat [F05](F05-kalender-anti-bentrok.md)).
-- Klien menutup halaman sebelum bayar → booking tetap `menunggu_dp` sampai hold habis.
+- Klien menutup halaman sebelum bayar → booking tetap `AWAITING_DP` sampai hold habis.
 - Custom field wajib kosong → validasi blokir submit.
 - Spam booking → rate-limit per nomor WA/IP.
 

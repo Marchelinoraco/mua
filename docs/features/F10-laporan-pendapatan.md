@@ -19,16 +19,16 @@ Memberi MUA ringkasan keuangan & operasional sederhana: pendapatan tercatat, jum
 - **US-F10-4:** Sebagai MUA, saya melihat DP terkumpul vs pelunasan tertunda.
 
 ## 3. Kebutuhan Fungsional (FR)
-- **FR-F10-1:** Ringkasan pendapatan = Σ `Payment` ber-status `dikonfirmasi` (DP + pelunasan) pada rentang waktu.
+- **FR-F10-1:** Ringkasan pendapatan = Σ `Payment` ber-status `CONFIRMED` (DP + pelunasan) pada rentang waktu.
 - **FR-F10-2:** Filter rentang (minggu/bulan/kustom).
 - **FR-F10-3:** Metrik: jumlah booking per status, layanan terlaris (dari `BookingItem`), DP vs sisa.
 - **FR-F10-4:** Catatan jelas: angka berbasis konfirmasi MUA, **bukan** saldo bank.
 - **FR-F10-5:** Ekspor sederhana (CSV) opsional.
 
 ## 4. Aturan & Logika Bisnis
-- Hanya pembayaran `dikonfirmasi`/`tunai ditandai` yang dihitung sebagai pendapatan.
-- Booking `expired`/`dibatalkan` tidak dihitung.
-- Pelunasan tertunda = booking `confirmed` belum `lunas`.
+- Hanya pembayaran `CONFIRMED`/`tunai ditandai` yang dihitung sebagai pendapatan.
+- Booking `EXPIRED`/`CANCELED` tidak dihitung.
+- Pelunasan tertunda = booking `CONFIRMED` belum `PAID`.
 
 ## 5. Data Terkait
 `Payment` (F06), `Booking`, `BookingItem` (F03/F09).

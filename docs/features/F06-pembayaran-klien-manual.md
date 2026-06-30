@@ -25,10 +25,10 @@ Memfasilitasi DP & pelunasan **langsung dari klien ke MUA** tanpa platform menah
 ## 3. Kebutuhan Fungsional (FR)
 - **FR-F06-1:** CRUD `PaymentProfile` (bank/QRIS/e-wallet, atas nama, instruksi tambahan, qris_image).
 - **FR-F06-2:** Tampilkan instruksi DP pada halaman pasca-submit booking (lihat [F04](F04-booking-mandiri.md)).
-- **FR-F06-3:** Unggah bukti → buat `Payment(jenis=dp, status=diajukan, proof_url)`.
-- **FR-F06-4:** MUA **konfirmasi** → `Payment.status=dikonfirmasi`, `Booking.status=confirmed`, kunci slot (lihat [F05](F05-kalender-anti-bentrok.md)).
-- **FR-F06-5:** MUA **tolak** → `Payment.status=ditolak` + alasan; klien dapat unggah ulang selama hold.
-- **FR-F06-6:** Alur **pelunasan**: reminder (H-3/H-1), unggah bukti, konfirmasi → booking `lunas`.
+- **FR-F06-3:** Unggah bukti → buat `Payment(jenis=dp, status=SUBMITTED, proof_url)`.
+- **FR-F06-4:** MUA **konfirmasi** → `Payment.status=CONFIRMED`, `Booking.status=CONFIRMED`, kunci slot (lihat [F05](F05-kalender-anti-bentrok.md)).
+- **FR-F06-5:** MUA **tolak** → `Payment.status=REJECTED` + alasan; klien dapat unggah ulang selama hold.
+- **FR-F06-6:** Alur **pelunasan**: reminder (H-3/H-1), unggah bukti, konfirmasi → booking `PAID`.
 - **FR-F06-7:** Opsi MUA tandai pelunasan **tunai** tanpa bukti.
 - **FR-F06-8:** Audit setiap perubahan status pembayaran (siapa, kapan, gambar).
 - **FR-F06-9:** Disclaimer non-kustodi tampil di halaman pembayaran klien.
@@ -36,19 +36,19 @@ Memfasilitasi DP & pelunasan **langsung dari klien ke MUA** tanpa platform menah
 ## 4. Alur DP (mengunci slot)
 ```mermaid
 stateDiagram-v2
-  [*] --> MENUNGGU_DP: Booking dibuat (slot HOLD 120m)
-  MENUNGGU_DP --> DIAJUKAN: Klien unggah bukti
-  MENUNGGU_DP --> KEDALUWARSA: Hold lepas / tak bayar
-  DIAJUKAN --> DIKONFIRMASI: MUA verifikasi -> Booking CONFIRMED
-  DIAJUKAN --> DITOLAK: Bukti tidak valid
-  DITOLAK --> DIAJUKAN: Unggah ulang (selama hold)
-  KEDALUWARSA --> [*]
-  DIKONFIRMASI --> [*]
+  [*] --> AWAITING_DP: Booking dibuat (slot HOLD 120m)
+  AWAITING_DP --> SUBMITTED: Klien unggah bukti
+  AWAITING_DP --> EXPIRED: Hold lepas / tak bayar
+  SUBMITTED --> CONFIRMED: MUA verifikasi -> Booking CONFIRMED
+  SUBMITTED --> REJECTED: Bukti tidak valid
+  REJECTED --> SUBMITTED: Unggah ulang (selama hold)
+  EXPIRED --> [*]
+  CONFIRMED --> [*]
 ```
 
 ## 5. Aturan & Logika Bisnis
-- Slot terkunci **permanen** hanya saat DP `dikonfirmasi`.
-- Pembatalan & refund DP diatur **di luar platform** (kebijakan MUA); platform mencatat status `dibatalkan` + catatan refund.
+- Slot terkunci **permanen** hanya saat DP `CONFIRMED`.
+- Pembatalan & refund DP diatur **di luar platform** (kebijakan MUA); platform mencatat status `CANCELED` + catatan refund.
 - Reschedule: DP tetap mengikat; cek anti-bentrok pada slot baru.
 - Platform **tidak menengahi sengketa dana** — hanya menyediakan jejak bukti & komunikasi.
 
@@ -63,16 +63,16 @@ stateDiagram-v2
 - `POST /bookings/{id}/mark-cash`
 
 ## 8. Status / State Machine
-`Payment.status`: `menunggu → diajukan → dikonfirmasi | ditolak`. Pelunasan mengikuti pola sama dengan `jenis=pelunasan`.
+`Payment.status`: `PENDING → SUBMITTED → CONFIRMED | REJECTED`. Pelunasan mengikuti pola sama dengan `jenis=pelunasan`.
 
 ## 9. Edge Case
 | Kasus | Penanganan |
 |------|------------|
 | Nominal bukti tidak sesuai | MUA tolak + alasan; klien transfer selisih / unggah ulang. |
 | Bukti palsu/duplikat | Verifikasi pada MUA; platform sediakan timestamp + gambar untuk sengketa. |
-| Klien tak bayar dalam hold | Hold lepas → booking `expired` (lihat [F05](F05-kalender-anti-bentrok.md)). |
+| Klien tak bayar dalam hold | Hold lepas → booking `EXPIRED` (lihat [F05](F05-kalender-anti-bentrok.md)). |
 | PaymentProfile belum diisi | Booking tetap bisa dibuat? → blokir publish jika tak ada PaymentProfile aktif (lihat [F01](F01-onboarding-tenant.md)). |
-| Refund | Di luar platform; status `dibatalkan` + catatan. |
+| Refund | Di luar platform; status `CANCELED` + catatan. |
 
 ## 10. Kriteria Penerimaan (AC)
 - **AC-F06-1:** Tidak ada saldo dana klien yang tersimpan/diproses platform (audit alur).

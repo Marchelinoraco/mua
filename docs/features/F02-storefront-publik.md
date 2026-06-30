@@ -17,14 +17,16 @@ Halaman publik per tenant yang bisa dibagikan di bio IG/WA, menampilkan profil M
 - **US-F02-2:** Sebagai klien, saya melihat portofolio & rating untuk menilai kredibilitas MUA.
 - **US-F02-3:** Sebagai MUA, storefront saya tayang otomatis dan tampil profesional di HP klien.
 - **US-F02-4:** Sebagai pengguna, saya bisa melaporkan (flag) storefront yang melanggar.
+- **US-F02-5:** Sebagai MUA, saya mengkustomisasi tampilan storefront (logo, banner, warna, font) lewat **Theme**.
 
 ## 3. Kebutuhan Fungsional (FR)
 - **FR-F02-1:** Render publik berbasis slug/subdomain; dapat diakses tanpa autentikasi.
 - **FR-F02-2:** Tampilkan: branding (nama, logo, kota), portofolio, daftar layanan (harga, durasi), aturan transport, FAQ, rating ringkas.
 - **FR-F02-3:** CTA "Booking" menuju alur [F04](F04-booking-mandiri.md).
-- **FR-F02-4:** **Auto-publish** (BR-10) saat setup minimum lengkap; status publish dapat dimatikan otomatis saat langganan `restricted` (lihat [F07](F07-langganan-midtrans.md)).
+- **FR-F02-4:** **Auto-publish** (BR-10) saat setup minimum lengkap; status publish dapat dimatikan otomatis saat langganan `RESTRICTED` (lihat [F07](F07-langganan-midtrans.md)).
 - **FR-F02-5:** Tombol **report/flag** untuk moderasi reaktif (lihat [F12](F12-admin-moderasi.md)).
 - **FR-F02-6:** Mobile-first, muat < 2 detik di 4G; meta/Open Graph untuk preview saat link dibagikan.
+- **FR-F02-7:** Tampilan storefront dirender dari **`Theme` per tenant** (logo, banner, warna primer/sekunder, font, template/layout); MUA dapat mengkustomisasi tema di dashboard. Tenant baru mendapat **Theme default** (lihat [F01](F01-onboarding-tenant.md)).
 
 ## 4. Alur Pengguna (UX Flow)
 ```mermaid
@@ -37,11 +39,11 @@ flowchart TD
 ```
 
 ## 5. Aturan & Logika Bisnis
-- Storefront `restricted`/langganan past-due melewati grace → tampilkan halaman "sementara tidak aktif" (lihat [F07](F07-langganan-midtrans.md)).
+- Storefront `RESTRICTED`/langganan past-due melewati grace → tampilkan halaman "sementara tidak aktif" (lihat [F07](F07-langganan-midtrans.md)).
 - Data yang ditampilkan selalu real-time dari katalog & ketersediaan tenant.
 
 ## 6. Data Terkait
-`Tenant`, `Service` (F03), `Portfolio`, `TransportRule`, `Review` (F11), `Subscription.status` (F07).
+`Tenant`, `Theme`, `Service` (F03), `Portfolio`, `TransportRule`, `Review` (F11), `Subscription.status` (F07).
 
 ## 7. API / Endpoint (indikatif)
 - `GET /s/{slug}` (render storefront publik)

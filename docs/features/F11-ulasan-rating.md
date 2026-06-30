@@ -19,16 +19,16 @@ Membangun kredibilitas storefront melalui ulasan & rating dari klien yang bookin
 - **US-F11-4:** Sebagai pengguna/MUA, saya bisa melaporkan ulasan tidak pantas.
 
 ## 3. Kebutuhan Fungsional (FR)
-- **FR-F11-1:** Permintaan ulasan otomatis saat booking `selesai` (via [F08](F08-notifikasi.md)).
+- **FR-F11-1:** Permintaan ulasan otomatis saat booking `COMPLETED` (via [F08](F08-notifikasi.md)).
 - **FR-F11-2:** Ulasan tertaut booking nyata (`Review.booking_id`) untuk keaslian.
 - **FR-F11-3:** Rating 1–5 + komentar opsional.
 - **FR-F11-4:** Tayang otomatis di storefront ([F02](F02-storefront-publik.md)); dapat di-`flag` → moderasi ([F12](F12-admin-moderasi.md)).
 - **FR-F11-5:** Agregasi rating rata-rata per tenant.
 
 ## 4. Aturan & Logika Bisnis
-- Hanya klien dari booking `selesai` yang dapat memberi ulasan (anti-ulasan palsu).
+- Hanya klien dari booking `COMPLETED` yang dapat memberi ulasan (anti-ulasan palsu).
 - Satu ulasan per booking.
-- Ulasan `flagged` disembunyikan sambil menunggu tinjauan admin.
+- Ulasan `FLAGGED` disembunyikan sambil menunggu tinjauan admin.
 
 ## 5. Data Terkait
 `Review`, `Booking` (F09), `Tenant` (agregat rating).

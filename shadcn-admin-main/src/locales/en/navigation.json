@@ -1,0 +1,18 @@
+{
+  "general": "General",
+  "other": "Other",
+  "dashboard": "Dashboard",
+  "tasks": "Tasks",
+  "users": "Users",
+  "settings": "Settings",
+  "profile": "Profile",
+  "account": "Account",
+  "appearance": "Appearance",
+  "notifications": "Notifications",
+  "display": "Display",
+  "signOut": "Sign out",
+  "billing": "Billing",
+  "newTeam": "New Team",
+  "language": "Language",
+  "upgradeToPro": "Upgrade to Pro"
+}

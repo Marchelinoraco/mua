@@ -30,7 +30,7 @@ Memberi tim platform alat ringan untuk **moderasi reaktif** (report/flag), dukun
 ## 4. Aturan & Logika Bisnis
 - Moderasi bersifat **reaktif** (berbasis flag/report) + spot-check, bukan pra-moderasi.
 - Admin **tidak** dapat mengubah/menyentuh dana klien (konsisten RULE-1).
-- Suspend tenant → storefront nonaktif + notifikasi (mirip mekanisme `restricted`, lihat [F07](F07-langganan-midtrans.md)).
+- Suspend tenant → storefront nonaktif + notifikasi (mirip mekanisme `RESTRICTED`, lihat [F07](F07-langganan-midtrans.md)).
 
 ## 5. Data Terkait
 `Tenant`, `Subscription`/`Invoice` (F07), `Review` (F11), report storefront (F02), `Plan` [global], `AuditLog` [global].

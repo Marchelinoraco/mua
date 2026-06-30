@@ -1,0 +1,23 @@
+{
+  "401": {
+    "title": "Unauthorized Access",
+    "desc": "Please log in with the appropriate credentials to access this resource."
+  },
+  "403": {
+    "title": "Access Forbidden",
+    "desc": "You don't have necessary permission to view this resource."
+  },
+  "404": {
+    "title": "Oops! Page Not Found!",
+    "desc": "It seems like the page you're looking for does not exist or might have been removed."
+  },
+  "500": {
+    "title": "Oops! Something went wrong :')",
+    "desc": "We apologize for the inconvenience. Please try again later."
+  },
+  "503": {
+    "title": "Website is under maintenance!",
+    "desc": "The site is not available at the moment. We'll be back online shortly.",
+    "learnMore": "Learn more"
+  }
+}

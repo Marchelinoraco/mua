@@ -14,6 +14,21 @@
 | `In Progress` | Sedang dibangun |
 | `Done` | Selesai & diterima |
 
+## Konvensi Enum Status (Kanonik)
+Nilai enum **status** ditulis **UPPERCASE_ENGLISH** (snake_case bila multi-kata) di seluruh dokumen, model data, dan kode. Ini sumber kebenaran:
+
+| Entitas | Field | Nilai |
+|---------|-------|-------|
+| Tenant | `status` | `ACTIVE` `TRIAL` `PAST_DUE` `RESTRICTED` `CANCELED` |
+| Subscription | `status` | `TRIALING` `ACTIVE` `PAST_DUE` `CANCELED` `EXPIRED` |
+| Invoice | `status` | `PAID` `PENDING` `FAILED` |
+| Booking | `status` | `AWAITING_DP` `CONFIRMED` `PAID` `COMPLETED` `CANCELED` `EXPIRED` |
+| Payment | `status` | `PENDING` `SUBMITTED` `CONFIRMED` `REJECTED` |
+| Review | `status` | `PUBLISHED` `FLAGGED` `HIDDEN` |
+| Notification | `status` | `QUEUED` `SENT` `DELIVERED` `FAILED` `FALLBACK_EMAIL` |
+
+> **Catatan:** nilai eksternal pihak ketiga (mis. `transaction_status` Midtrans: `capture`, `settlement`, `pending`, `deny`, `expire`, `refund`) **ditulis apa adanya** sesuai API, tidak di-uppercase. Field non-status (`jenis`, `tipe`, `mode`, `kanal`, `interval`) tetap memakai nilai domainnya saat ini.
+
 ## Legenda Rilis (selaras PRD §12)
 - **R1 — Alat Inti:** onboarding, storefront, layanan, kalender, booking, order/klien, notifikasi dasar.
 - **R2 — Pembayaran & Billing:** pembayaran klien manual + langganan Midtrans.

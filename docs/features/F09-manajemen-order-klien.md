@@ -20,7 +20,7 @@ Memberi MUA satu tempat untuk melihat & mengelola semua order (booking) dan riwa
 - **US-F09-5:** Sebagai MUA, saya menambah catatan pada klien (preferensi, alergi, dll.).
 
 ## 3. Kebutuhan Fungsional (FR)
-- **FR-F09-1:** Daftar order: filter status (`menunggu_dp`, `confirmed`, `lunas`, `selesai`, `dibatalkan`, `expired`), rentang tanggal, pencarian nama.
+- **FR-F09-1:** Daftar order: filter status (`AWAITING_DP`, `CONFIRMED`, `PAID`, `COMPLETED`, `CANCELED`, `EXPIRED`), rentang tanggal, pencarian nama.
 - **FR-F09-2:** Detail order: line item, biaya, status pembayaran (lihat [F06](F06-pembayaran-klien-manual.md)), custom values, lokasi.
 - **FR-F09-3:** Aksi status: konfirmasi (via konfirmasi DP), tandai selesai, batalkan, **reschedule** (cek anti-bentrok [F05](F05-kalender-anti-bentrok.md)).
 - **FR-F09-4:** Profil `Client` otomatis dari booking; agregasi `total_booking`.
@@ -42,7 +42,7 @@ flowchart TD
 
 ## 5. Aturan & Logika Bisnis
 - Reschedule harus lolos cek anti-bentrok pada slot tujuan; DP tetap mengikat.
-- Order `selesai` memicu permintaan ulasan (lihat [F11](F11-ulasan-rating.md)).
+- Order `COMPLETED` memicu permintaan ulasan (lihat [F11](F11-ulasan-rating.md)).
 - Pembatalan menyimpan alasan + catatan refund (refund di luar platform, lihat [F06](F06-pembayaran-klien-manual.md)).
 
 ## 6. Data Terkait

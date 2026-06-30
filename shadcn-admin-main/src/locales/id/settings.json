@@ -1,0 +1,99 @@
+{
+  "title": "Pengaturan",
+  "pageDescription": "Kelola pengaturan akun Anda dan atur preferensi email.",
+  "profile": {
+    "title": "Profil",
+    "description": "Begini tampilan Anda di situs.",
+    "username": "Nama Pengguna",
+    "usernamePlaceholder": "johndoe",
+    "usernameDescription": "Ini adalah nama tampilan publik Anda. Bisa nama asli atau nama samaran.",
+    "usernameChangePeriod": "Anda hanya dapat mengubah ini sekali setiap 30 hari.",
+    "email": "Email",
+    "emailSelectPlaceholder": "Pilih email terverifikasi untuk ditampilkan",
+    "emailDescription": "Anda dapat mengelola alamat email terverifikasi di pengaturan email Anda.",
+    "bio": "Bio",
+    "bioPlaceholder": "Ceritakan sedikit tentang diri Anda",
+    "bioDescription": "Anda dapat menyebut pengguna dan organisasi lain untuk menautkannya.",
+    "urls": "URL",
+    "urlsDescription": "Tambahkan tautan ke situs web, blog, atau profil media sosial Anda.",
+    "addUrl": "Tambah URL",
+    "update": "Perbarui profil",
+    "validation": {
+      "usernameRequired": "Harap masukkan nama pengguna Anda.",
+      "usernameMin": "Nama pengguna minimal 2 karakter.",
+      "usernameMax": "Nama pengguna maksimal 30 karakter.",
+      "emailRequired": "Harap pilih email yang akan ditampilkan.",
+      "urlInvalid": "Harap masukkan URL yang valid."
+    }
+  },
+  "account": {
+    "title": "Akun",
+    "description": "Perbarui pengaturan akun Anda. Atur bahasa dan zona waktu yang Anda inginkan.",
+    "name": "Nama",
+    "namePlaceholder": "Nama Anda",
+    "nameDescription": "Ini adalah nama yang akan ditampilkan di profil dan email Anda.",
+    "dob": "Tanggal lahir",
+    "dobPlaceholder": "Pilih tanggal",
+    "dobDescription": "Tanggal lahir Anda digunakan untuk menghitung umur.",
+    "language": "Bahasa",
+    "languagePlaceholder": "Pilih bahasa",
+    "languageSearch": "Cari bahasa...",
+    "languageNotFound": "Bahasa tidak ditemukan.",
+    "languageDescription": "Ini adalah bahasa yang akan digunakan di dasbor.",
+    "update": "Perbarui akun",
+    "validation": {
+      "nameRequired": "Harap masukkan nama Anda.",
+      "nameMin": "Nama minimal 2 karakter.",
+      "nameMax": "Nama maksimal 30 karakter.",
+      "dobRequired": "Harap pilih tanggal lahir Anda.",
+      "languageRequired": "Harap pilih bahasa."
+    }
+  },
+  "appearance": {
+    "title": "Tampilan",
+    "description": "Sesuaikan tampilan aplikasi. Otomatis beralih antara tema siang dan malam.",
+    "font": "Font",
+    "fontDescription": "Atur font yang ingin Anda gunakan di dasbor.",
+    "theme": "Tema",
+    "themeDescription": "Pilih tema untuk dasbor.",
+    "light": "Terang",
+    "dark": "Gelap",
+    "system": "Sistem",
+    "update": "Perbarui preferensi"
+  },
+  "notifications": {
+    "title": "Notifikasi",
+    "description": "Konfigurasi cara Anda menerima notifikasi.",
+    "notifyAbout": "Beritahu saya tentang...",
+    "allMessages": "Semua pesan baru",
+    "directMentions": "Pesan langsung dan sebutan",
+    "nothing": "Tidak ada",
+    "emailSection": "Notifikasi Email",
+    "communicationEmails": "Email komunikasi",
+    "communicationEmailsDesc": "Terima email tentang aktivitas akun Anda.",
+    "marketingEmails": "Email pemasaran",
+    "marketingEmailsDesc": "Terima email tentang produk, fitur baru, dan lainnya.",
+    "socialEmails": "Email sosial",
+    "socialEmailsDesc": "Terima email untuk permintaan pertemanan, ikuti, dan lainnya.",
+    "securityEmails": "Email keamanan",
+    "securityEmailsDesc": "Terima email tentang aktivitas dan keamanan akun Anda.",
+    "mobileSettings": "Gunakan pengaturan berbeda untuk perangkat mobile saya",
+    "mobileSettingsDesc": "Anda dapat mengelola notifikasi mobile di halaman pengaturan mobile.",
+    "update": "Perbarui notifikasi"
+  },
+  "display": {
+    "title": "Layar",
+    "description": "Aktifkan atau nonaktifkan item untuk mengontrol apa yang ditampilkan di aplikasi.",
+    "sidebar": "Sidebar",
+    "sidebarDesc": "Pilih item yang ingin ditampilkan di sidebar.",
+    "items": {
+      "recents": "Terbaru",
+      "home": "Beranda",
+      "applications": "Aplikasi",
+      "desktop": "Desktop",
+      "downloads": "Unduhan",
+      "documents": "Dokumen"
+    },
+    "update": "Perbarui tampilan"
+  }
+}

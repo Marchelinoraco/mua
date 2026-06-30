@@ -1,0 +1,114 @@
+{
+  "title": "User List",
+  "description": "Manage your users and their roles here.",
+  "addUser": "Add User",
+  "inviteUser": "Invite User",
+  "searchPlaceholder": "Filter users...",
+  "noResults": "No results.",
+  "filters": {
+    "status": "Status",
+    "role": "Role",
+    "statusOptions": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "invited": "Invited",
+      "suspended": "Suspended"
+    }
+  },
+  "columns": {
+    "username": "Username",
+    "name": "Name",
+    "email": "Email",
+    "phoneNumber": "Phone Number",
+    "status": "Status",
+    "role": "Role",
+    "joined": "Joined"
+  },
+  "action": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "openMenu": "Open menu"
+  },
+  "addDialog": {
+    "titleAdd": "Add New User",
+    "titleEdit": "Edit User",
+    "descAdd": "Create new user here. Click save when you're done.",
+    "descEdit": "Update the user here. Click save when you're done.",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "John",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Doe",
+    "username": "Username",
+    "usernamePlaceholder": "john_doe",
+    "email": "Email",
+    "emailPlaceholder": "john.doe@gmail.com",
+    "phoneNumber": "Phone Number",
+    "phoneNumberPlaceholder": "+123456789",
+    "role": "Role",
+    "password": "Password",
+    "passwordPlaceholder": "e.g., S3cur3P@ssw0rd",
+    "confirmPassword": "Confirm Password",
+    "selectRole": "Select a role",
+    "validation": {
+      "firstNameRequired": "First Name is required.",
+      "lastNameRequired": "Last Name is required.",
+      "usernameRequired": "Username is required.",
+      "phoneRequired": "Phone number is required.",
+      "emailRequired": "Email is required.",
+      "roleRequired": "Role is required.",
+      "passwordRequired": "Password is required.",
+      "passwordMinLength": "Password must be at least 8 characters long.",
+      "passwordLowercase": "Password must contain at least one lowercase letter.",
+      "passwordNumber": "Password must contain at least one number.",
+      "passwordsMismatch": "Passwords don't match."
+    }
+  },
+  "inviteDialog": {
+    "title": "Invite User",
+    "desc": "Invite new user to join your team by sending them an email invitation. Assign a role to define their access level.",
+    "email": "Email",
+    "role": "Role",
+    "description": "Description (optional)",
+    "emailPlaceholder": "eg: john.doe@gmail.com",
+    "selectRole": "Select a role",
+    "descPlaceholder": "Add a personal note to your invitation (optional)",
+    "invite": "Invite",
+    "cancel": "Cancel",
+    "validation": {
+      "emailRequired": "Please enter an email to invite.",
+      "roleRequired": "Role is required."
+    }
+  },
+  "deleteDialog": {
+    "title": "Delete User",
+    "desc": "Are you sure you want to delete {{username}}?",
+    "desc2": "This action will permanently remove the user with the role of {{role}} from the system. This cannot be undone.",
+    "usernameLabel": "Username:",
+    "usernamePlaceholder": "Enter username to confirm deletion.",
+    "delete": "Delete"
+  },
+  "multiDeleteDialog": {
+    "title": "Delete {{count}} {{entity}}",
+    "desc": "Are you sure you want to delete the selected users?",
+    "desc2": "This action cannot be undone.",
+    "delete": "Delete",
+    "toastLoading": "Deleting users...",
+    "toastError": "Error",
+    "toastSuccess": "Deleted {{count}} user(s)"
+  },
+  "bulk": {
+    "invite": "Invite selected users",
+    "activate": "Activate selected users",
+    "deactivate": "Deactivate selected users",
+    "delete": "Delete selected users",
+    "toastActivating": "Activating users...",
+    "toastDeactivating": "Deactivating users...",
+    "toastInviting": "Inviting users...",
+    "toastActivated": "Activated {{count}} user(s)",
+    "toastDeactivated": "Deactivated {{count}} user(s)",
+    "toastInvited": "Invited {{count}} user(s)",
+    "toastErrorActivate": "Error activating users",
+    "toastErrorDeactivate": "Error deactivating users",
+    "toastErrorInvite": "Error inviting users"
+  }
+}

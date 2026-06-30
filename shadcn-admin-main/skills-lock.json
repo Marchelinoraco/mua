@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "skills": {
+    "date-fns": {
+      "source": "wottpal/skills",
+      "sourceType": "github",
+      "skillPath": "skills/date-fns/SKILL.md",
+      "computedHash": "ba6642e34867d64bbdb93d685e58003020482c08bb74a3563b9aa93a28587a31"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
+    },
+    "react-expert": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-expert/SKILL.md",
+      "computedHash": "498e8247c701522e0a63496a439680a409dafe67c3d8d7d5e4902db0e6222252"
+    },
+    "react-hook-form-zod": {
+      "source": "ovachiever/droid-tings",
+      "sourceType": "github",
+      "skillPath": "skills/react-hook-form-zod/SKILL.md",
+      "computedHash": "1ee0fc6e35b6b6973d6117657e644605a5646bd7e6c2d0c55f52ec073679ac65"
+    },
+    "tanstack-devtools": {
+      "source": "tanstack-skills/tanstack-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/tanstack-devtools/skills/tanstack-devtools/SKILL.md",
+      "computedHash": "ecb51f9902ae6de9f512b299e6c16bd4befc3ff2c62f8cd1ece07e31b1c73dfe"
+    },
+    "tanstack-query": {
+      "source": "tanstack-skills/tanstack-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/tanstack-query/skills/tanstack-query/SKILL.md",
+      "computedHash": "b8a0477cd4d7bf8fa54d27f8e64d82388402f0d502591db50a357df5b9995c75"
+    },
+    "tanstack-router": {
+      "source": "tanstack-skills/tanstack-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/tanstack-router/skills/tanstack-router/SKILL.md",
+      "computedHash": "24beccc4016f91bab65547209cfd849ea5e66f3d5d92820683a9dd84669ced56"
+    },
+    "tanstack-table": {
+      "source": "tanstack-skills/tanstack-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/tanstack-table/skills/tanstack-table/SKILL.md",
+      "computedHash": "d5ac71bd795696cd3310165c3ea0e435c310a0ac3c4e9dd45b39ed91b8dbcbb1"
+    }
+  }
+}

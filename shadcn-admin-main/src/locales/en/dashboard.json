@@ -1,0 +1,39 @@
+{
+  "title": "Dashboard",
+  "tabs": {
+    "overview": "Overview",
+    "analytics": "Analytics",
+    "reports": "Reports",
+    "notifications": "Notifications"
+  },
+  "nav": {
+    "overview": "Overview",
+    "customers": "Customers",
+    "products": "Products",
+    "settings": "Settings"
+  },
+  "stats": {
+    "totalRevenue": "Total Revenue",
+    "subscriptions": "Subscriptions",
+    "sales": "Sales",
+    "activeNow": "Active Now",
+    "fromLastMonth": "+{{value}}% from last month",
+    "sinceLastHour": "+{{value}} since last hour"
+  },
+  "overview": "Overview",
+  "recentSales": "Recent Sales",
+  "recentSalesDescription": "You made {{count}} sales this month.",
+  "analytics": {
+    "title": "Traffic Overview",
+    "weeklyDesc": "Weekly clicks and unique visitors",
+    "totalClicks": "Total Clicks",
+    "uniqueVisitors": "Unique Visitors",
+    "bounceRate": "Bounce Rate",
+    "avgSession": "Avg. Session",
+    "referrers": "Referrers",
+    "referrersDesc": "Top sources driving traffic",
+    "devices": "Devices",
+    "devicesDesc": "How users access your app",
+    "vsLastWeek": "vs last week"
+  }
+}

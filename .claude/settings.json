@@ -1,0 +1,17 @@
+{
+  "agent": "tech-lead",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); case \"$input\" in *changelog.md*) exit 0;; esac; printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"File baru saja diubah. Perbarui changelog.md di root project sesuai perubahan ini sebelum menutup tugas.\"}}'",
+            "statusMessage": "Cek changelog"
+          }
+        ]
+      }
+    ]
+  }
+}
