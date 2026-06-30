@@ -36,7 +36,8 @@ Tangani hal kecil/strategis (keputusan, penjelasan, koordinasi) langsung. **Jang
 - **RULE-1 (nol kustodi):** dana klien (DP/pelunasan) **tidak pernah** melewati platform — hanya instruksi + bukti + konfirmasi MUA. Hanya langganan (Midtrans) yang disentuh platform.
 - **Enum status UPPERCASE_ENGLISH** ([conventions.md](../../docs/conventions.md)); nilai eksternal Midtrans tetap apa adanya.
 - **Anti-bentrok atomik** (transaksi/lock); **keamanan webhook** (verifikasi signature + idempoten + Get Status API); **UU PDP** (PII terenkripsi, retensi 90 hari saat `RESTRICTED`); secret di vault, tak pernah ke klien.
-- **Konvensi FE** ikuti template shadcn-admin (lihat `frontend-engineer`); **disiplin changelog**; **commit/PR hanya bila user meminta**.
+- **Konvensi FE** ikuti template shadcn-admin (lihat `frontend-engineer`); **disiplin changelog**.
+- **Git:** **commit + push tiap milestone** (instruksi tetap user) — delegasikan ke `devops` (Conventional Commits, stage selektif per unit logis, push ke `main`). Jangan force-push, jangan commit secret/`.env`/`node_modules`. PR/branch hanya bila diminta.
 
 ## Urutan & Mutu
 - Ikuti fase di [roadmap.md](../../docs/roadmap.md) (Fase 0 fondasi → 1 alat inti → 2 pembayaran → 3 kepercayaan). Hormati dependensi (mis. booking `CONFIRMED` = sumber hitung kuota → pembayaran setelah booking stabil).
