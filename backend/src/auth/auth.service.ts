@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -65,6 +66,13 @@ export class AuthService {
       orderBy: { tierUrutan: 'asc' },
       select: { id: true },
     });
+    if (!firstPlan) {
+      // Subscription.planId wajib (NOT NULL FK) — tanpa Plan ter-seed, registrasi
+      // tidak bisa lanjut. Jalankan `npx prisma db seed` di backend/.
+      throw new InternalServerErrorException(
+        'Tidak ada Plan aktif ditemukan. Hubungi admin (seed data belum dijalankan).',
+      );
+    }
 
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
     const now = new Date();
@@ -102,18 +110,16 @@ export class AuthService {
           },
         });
 
-        // Subscription TRIALING 14 hari (F07)
-        // planId = Plan dengan tierUrutan terendah aktif; null (via as any) jika DB
-        // belum diisi Plan — acceptable untuk fase dev awal sebelum seed Plan.
+        // Subscription TRIALING 14 hari (F07) — planId = Plan tierUrutan terendah aktif.
         await tx.subscription.create({
           data: {
             tenantId: tenant.id,
-            planId: firstPlan?.id ?? null,
+            planId: firstPlan.id,
             status: 'TRIALING',
             currentPeriodStart: now,
             currentPeriodEnd: trialEnd,
             ordersUsedPeriod: 0,
-          } as any, // planId nullable sementara — skema akan diperketat saat Plan di-seed
+          },
         });
 
         return { user, tenant };
