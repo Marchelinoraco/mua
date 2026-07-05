@@ -3,23 +3,30 @@ import { render, type RenderResult } from 'vitest-browser-react'
 import { type Locator, userEvent } from 'vitest/browser'
 import { UserAuthForm } from './user-auth-form'
 
-const FORM_MESSAGES = {
-  emailEmpty: 'Please enter your email.',
-  passwordEmpty: 'Please enter your password.',
-  passwordShort: 'Password must be at least 7 characters long.',
-} as const
-
 const navigate = vi.fn()
-const setUserMock = vi.fn()
-const setAccessTokenMock = vi.fn()
+const setAuthMock = vi.fn()
 
 vi.mock('@/stores/auth-store', () => ({
   useAuthStore: () => ({
     auth: {
-      setUser: setUserMock,
-      setAccessToken: setAccessTokenMock,
+      setAuth: setAuthMock,
     },
   }),
+}))
+
+vi.mock('@/lib/api', () => ({
+  api: {
+    post: vi.fn(() =>
+      Promise.resolve({
+        data: {
+          accessToken: 'mock-access-token',
+          user: { id: '1', email: 'a@b.com' },
+          tenant: null,
+          subscription: null,
+        },
+      })
+    ),
+  },
 }))
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
@@ -44,11 +51,6 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   }
 })
 
-vi.mock('@/lib/utils', async (orig) => ({
-  ...(await orig()),
-  sleep: vi.fn(() => Promise.resolve()),
-}))
-
 describe('UserAuthForm', () => {
   describe('Rendering without redirectTo', () => {
     let screen: RenderResult
@@ -61,9 +63,9 @@ describe('UserAuthForm', () => {
       vi.clearAllMocks()
       screen = await render(<UserAuthForm />)
       emailInput = screen.getByRole('textbox', { name: /^Email$/i })
-      passwordInput = screen.getByLabelText(/^Password$/i)
-      signInButton = screen.getByRole('button', { name: /^Sign in$/i })
-      forgotPasswordLink = screen.getByText(/^Forgot password\?$/i)
+      passwordInput = screen.getByLabelText(/^Kata Sandi$/i)
+      signInButton = screen.getByRole('button', { name: /^Masuk$/i })
+      forgotPasswordLink = screen.getByText(/^Lupa kata sandi\?$/i)
     })
 
     it('renders fields, submit button, and forgot password link', async () => {
@@ -77,30 +79,26 @@ describe('UserAuthForm', () => {
       await userEvent.click(signInButton)
 
       await expect
-        .element(screen.getByText(FORM_MESSAGES.emailEmpty))
+        .element(screen.getByText('Email wajib diisi.'))
         .toBeInTheDocument()
       await expect
-        .element(screen.getByText(FORM_MESSAGES.passwordEmpty))
+        .element(screen.getByText('Kata Sandi wajib diisi.'))
         .toBeInTheDocument()
     })
 
-    it('authenticates and navigates to default route on success', async () => {
+    it('calls setAuth and navigates to default route on success', async () => {
       await userEvent.fill(emailInput, 'a@b.com')
-      await userEvent.fill(passwordInput, '1234567')
+      await userEvent.fill(passwordInput, '12345678')
 
       await userEvent.click(signInButton)
 
-      await vi.waitFor(() => expect(setUserMock).toHaveBeenCalledOnce())
-      expect(setUserMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          email: 'a@b.com',
-          accountNo: expect.any(String),
-          role: expect.any(Array),
-          exp: expect.any(Number),
-        })
+      await vi.waitFor(() => expect(setAuthMock).toHaveBeenCalledOnce())
+      expect(setAuthMock).toHaveBeenCalledWith(
+        'mock-access-token',
+        expect.objectContaining({ email: 'a@b.com' }),
+        null,
+        null
       )
-      expect(setAccessTokenMock).toHaveBeenCalledOnce()
-      expect(setAccessTokenMock).toHaveBeenCalledWith('mock-access-token')
 
       await vi.waitFor(() =>
         expect(navigate).toHaveBeenCalledWith({ to: '/', replace: true })
@@ -116,12 +114,11 @@ describe('UserAuthForm', () => {
     )
 
     await userEvent.fill(getByRole('textbox', { name: /Email/i }), 'a@b.com')
-    await userEvent.fill(getByLabelText('Password'), '1234567')
+    await userEvent.fill(getByLabelText(/Kata Sandi/i), '12345678')
 
-    await userEvent.click(getByRole('button', { name: /Sign in/i }))
+    await userEvent.click(getByRole('button', { name: /Masuk/i }))
 
-    await vi.waitFor(() => expect(setUserMock).toHaveBeenCalledOnce())
-    expect(setAccessTokenMock).toHaveBeenCalledOnce()
+    await vi.waitFor(() => expect(setAuthMock).toHaveBeenCalledOnce())
 
     await vi.waitFor(() =>
       expect(navigate).toHaveBeenCalledWith({
