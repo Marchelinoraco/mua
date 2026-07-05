@@ -1,0 +1,137 @@
+{
+  "title": "Layanan",
+  "description": "Kelola katalog layanan, aturan transport, dan custom field booking.",
+  "addService": "Tambah Layanan",
+
+  "toast": {
+    "createSuccess": "Layanan berhasil ditambahkan.",
+    "updateSuccess": "Layanan berhasil diperbarui.",
+    "activateSuccess": "Layanan diaktifkan.",
+    "deactivateSuccess": "Layanan dinonaktifkan.",
+    "transportRuleSaved": "Aturan transport berhasil disimpan.",
+    "customFieldCreateSuccess": "Custom field berhasil ditambahkan.",
+    "customFieldUpdateSuccess": "Custom field berhasil diperbarui.",
+    "customFieldDeleteSuccess": "Custom field berhasil dihapus.",
+    "customFieldDeleteConflict": "Custom field tidak bisa dihapus karena masih dipakai booking yang sudah ada."
+  },
+
+  "tipeOptions": {
+    "MAKEUP": "Makeup",
+    "HAIR": "Rambut",
+    "NAIL": "Kuku",
+    "OTHER": "Lainnya"
+  },
+  "dpTipeOptions": {
+    "PERSEN": "Persen (%)",
+    "NOMINAL": "Nominal (Rp)"
+  },
+  "customFieldTipeOptions": {
+    "text": "Teks",
+    "select": "Pilihan",
+    "checkbox": "Checkbox",
+    "date": "Tanggal",
+    "file": "Berkas"
+  },
+
+  "formDialog": {
+    "titleAdd": "Tambah Layanan Baru",
+    "titleEdit": "Ubah Layanan",
+    "descAdd": "Buat layanan baru di sini. Klik simpan setelah selesai.",
+    "descEdit": "Perbarui layanan di sini. Klik simpan setelah selesai.",
+    "nama": "Nama Layanan",
+    "namaPlaceholder": "cth., Makeup Wisuda",
+    "deskripsi": "Deskripsi",
+    "deskripsiPlaceholder": "Deskripsi singkat layanan (opsional)",
+    "harga": "Harga",
+    "durasi": "Durasi",
+    "menit": "menit",
+    "tipe": "Kategori",
+    "dpTipe": "Tipe DP",
+    "dpNilai": "Nilai DP",
+    "butuhTransport": "Butuh Transport",
+    "butuhTransportDesc": "Aktifkan jika layanan ini memerlukan biaya transport tambahan.",
+    "saving": "Menyimpan...",
+    "save": "Simpan"
+  },
+
+  "list": {
+    "title": "Daftar Layanan",
+    "description": "Semua layanan yang tersedia di katalog Anda.",
+    "loadError": "Gagal memuat daftar layanan. Coba muat ulang halaman.",
+    "empty": "Belum ada layanan. Klik \"Tambah Layanan\" untuk membuat yang pertama.",
+    "columns": {
+      "nama": "Nama",
+      "tipe": "Kategori",
+      "harga": "Harga",
+      "durasi": "Durasi",
+      "dp": "DP",
+      "transport": "Transport",
+      "status": "Status",
+      "aksi": "Aksi"
+    },
+    "durasiValue": "{{count}} menit",
+    "transportRequired": "Butuh transport",
+    "statusAktif": "Aktif",
+    "statusNonaktif": "Nonaktif",
+    "toggleAktifLabel": "Aktifkan/nonaktifkan layanan {{nama}}",
+    "edit": "Ubah layanan"
+  },
+
+  "transport": {
+    "title": "Aturan Transport",
+    "description": "Tentukan biaya transport yang ditambahkan ke total booking.",
+    "loadError": "Gagal memuat aturan transport. Coba muat ulang halaman.",
+    "mode": "Mode Transport",
+    "modeFlat": "Flat (satu nominal)",
+    "modeZona": "Per Zona",
+    "flatNominal": "Nominal Flat",
+    "zonaEmpty": "Belum ada zona. Klik \"Tambah Zona\" untuk membuat yang pertama.",
+    "zonaNamaPlaceholder": "cth., Zona Kota",
+    "zonaRemove": "Hapus zona",
+    "zonaAdd": "Tambah Zona",
+    "saving": "Menyimpan...",
+    "save": "Simpan"
+  },
+
+  "customField": {
+    "title": "Custom Field Booking",
+    "description": "Pertanyaan tambahan yang akan ditampilkan pada form booking.",
+    "loadError": "Gagal memuat custom field. Coba muat ulang halaman.",
+    "empty": "Belum ada custom field.",
+    "add": "Tambah Field",
+    "edit": "Ubah field",
+    "delete": "Hapus field",
+    "wajibYa": "Wajib",
+    "wajibTidak": "Opsional",
+    "columns": {
+      "label": "Label",
+      "tipe": "Tipe",
+      "opsi": "Opsi",
+      "wajib": "Wajib",
+      "urutan": "Urutan",
+      "aksi": "Aksi"
+    },
+    "formDialog": {
+      "titleAdd": "Tambah Custom Field",
+      "titleEdit": "Ubah Custom Field",
+      "descAdd": "Buat pertanyaan baru untuk form booking klien.",
+      "descEdit": "Perbarui custom field di sini. Klik simpan setelah selesai.",
+      "label": "Label",
+      "labelPlaceholder": "cth., Alamat Acara",
+      "tipe": "Tipe Input",
+      "opsi": "Opsi Pilihan",
+      "opsiPlaceholder": "Ketik opsi lalu tekan Enter",
+      "opsiAdd": "Tambah",
+      "opsiRemove": "Hapus opsi",
+      "urutan": "Urutan Tampil",
+      "wajib": "Wajib Diisi",
+      "saving": "Menyimpan...",
+      "save": "Simpan"
+    },
+    "deleteDialog": {
+      "title": "Hapus Custom Field",
+      "desc": "Yakin ingin menghapus field \"{{label}}\"? Tindakan ini tidak dapat dibatalkan.",
+      "confirm": "Hapus"
+    }
+  }
+}

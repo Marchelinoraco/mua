@@ -4,6 +4,7 @@ import enCommon from '@/locales/en/common.json'
 import enDashboard from '@/locales/en/dashboard.json'
 import enErrors from '@/locales/en/errors.json'
 import enNavigation from '@/locales/en/navigation.json'
+import enServices from '@/locales/en/services.json'
 import enSettings from '@/locales/en/settings.json'
 import enTasks from '@/locales/en/tasks.json'
 import enUsers from '@/locales/en/users.json'
@@ -13,6 +14,7 @@ import idCommon from '@/locales/id/common.json'
 import idDashboard from '@/locales/id/dashboard.json'
 import idErrors from '@/locales/id/errors.json'
 import idNavigation from '@/locales/id/navigation.json'
+import idServices from '@/locales/id/services.json'
 import idSettings from '@/locales/id/settings.json'
 import idTasks from '@/locales/id/tasks.json'
 import idUsers from '@/locales/id/users.json'
@@ -29,6 +31,7 @@ export const resources = {
     dashboard: enDashboard,
     errors: enErrors,
     navigation: enNavigation,
+    services: enServices,
     settings: enSettings,
     tasks: enTasks,
     users: enUsers,
@@ -39,6 +42,7 @@ export const resources = {
     dashboard: idDashboard,
     errors: idErrors,
     navigation: idNavigation,
+    services: idServices,
     settings: idSettings,
     tasks: idTasks,
     users: idUsers,

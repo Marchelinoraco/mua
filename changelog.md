@@ -7,6 +7,88 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-07-05 — Frontend F03: halaman Layanan (katalog, transport, custom field)
+
+#### Ditambahkan
+- **`frontend/src/features/services/`** — fitur halaman "Layanan" penuh menggantikan placeholder "Segera hadir", mengikuti pola `frontend/src/features/users/` (provider + dialogs coordinator + primary-buttons) dan `frontend/src/features/onboarding/` (hook TanStack Query langsung ke `api` Axios, toast via `sonner`):
+  - `data/types.ts` — tipe `Service`, `TransportRule`, `TransportZone`, `CustomField` persis kontrak `ServiceResponseDto` dkk dari backend-engineer.
+  - `data/schema.ts` — skema Zod `serviceFormSchema`, `transportRuleFormSchema`, `customFieldFormSchema` dengan validasi conditional: `dpNilai` ≤ 100 saat `dpTipe=PERSEN`; `flatNominal` wajib saat `mode=FLAT`; `zona` non-kosong saat `mode=ZONA`; `opsi` non-kosong saat `tipe=select`. Mengekspor tipe `*FormInput` (bentuk sebelum coerce, dipakai `defaultValues`) terpisah dari `*FormValues` (bentuk output, dipakai payload mutation) — diperlukan karena `z.coerce.number()` punya input (`unknown`) dan output (`number`) berbeda di Zod v4 + `@hookform/resolvers` v5 (`useForm<Input, Context, Output>`).
+  - `data/data.ts` — daftar nilai enum mentah (`SERVICE_TIPE_VALUES`, `DP_TIPE_VALUES`, `CUSTOM_FIELD_TIPE_VALUES`) + kelas badge status aktif theme-aware (pola `BOOKING_STATUS_BADGE_CLASS`); label ditampilkan lewat i18n, bukan hardcode di file ini.
+  - `hooks/use-services.ts`, `hooks/use-transport-rule.ts`, `hooks/use-custom-fields.ts` — `useServices`/`useCreateService`/`useUpdateService`/`useToggleServiceAktif`, `useTransportRule`/`useUpsertTransportRule`, `useCustomFields`/`useCreateCustomField`/`useUpdateCustomField`/`useDeleteCustomField`. Semua mutation invalidate query cache terkait + toast sukses/error (`handleServerError`). `useDeleteCustomField` menangani khusus 409 (field masih dipakai booking historis) dengan menampilkan pesan dari `response.data.message`/`title` backend, bukan pesan generik.
+  - `components/service-provider.tsx` + `service-dialogs.tsx` + `service-primary-buttons.tsx` — koordinasi dialog create/edit (state `open`/`currentRow` via context), tombol "Tambah Layanan" di header halaman terhubung ke tombol edit per-baris di tabel.
+  - `components/service-list.tsx` — tabel shadcn: nama, kategori (Badge `tipe`), harga (`formatCurrencyIDR`), durasi, DP ("30%" atau `formatCurrencyIDR`), ikon transport bila `butuhTransport`, Badge status aktif/nonaktif, `Switch` toggle aktif langsung dari baris, tombol edit. Loading (`Skeleton`), error, dan empty state ditangani di komponen.
+  - `components/service-form-dialog.tsx` — dialog create/edit: nama, deskripsi, harga (prefix "Rp"), durasi (suffix "menit"), tipe (`Select`), dpTipe (`Select`) + dpNilai (suffix "%"/"Rp" dinamis mengikuti `dpTipe`), butuhTransport (`Switch`).
+  - `components/transport-settings-card.tsx` — `RadioGroup` FLAT/ZONA; FLAT menampilkan satu input nominal, ZONA menampilkan daftar dinamis `{nama, nominal}` via `useFieldArray` RHF dengan tombol tambah/hapus baris. Submit menormalkan payload (`flatNominal`/`zona` di-null-kan sesuai mode aktif) sebelum memanggil `useUpsertTransportRule`.
+  - `components/custom-field-list.tsx` + `custom-field-form-dialog.tsx` — list (tabel) + dialog create/edit custom field. `opsi` (khusus `tipe=select`) memakai input tag-list manual (state lokal + `form.setValue`, bukan `useFieldArray`, karena RHF `useFieldArray` mengharuskan array objek sedangkan `opsi` adalah `string[]`) dengan badge yang bisa dihapus. Hapus field pakai `ConfirmDialog` (`frontend/src/components/confirm-dialog.tsx`) — sesuai aturan bisnis, `CustomField` boleh dihapus permanen (beda dari `Service`).
+  - `index.tsx` — halaman utama: Header + tombol "Tambah Layanan", lalu 3 seksi `ServiceList` / `TransportSettingsCard` / `CustomFieldList` dalam satu `ServiceProvider`.
+  - **Tidak ada tombol hapus untuk `Service`** di UI manapun — hanya `Switch` aktif/nonaktif (FR-F03-6, riwayat order lama tetap valid).
+- **`frontend/src/routes/_authenticated/services/index.tsx`** — ganti placeholder "Segera hadir" agar merender `Services` dari `@/features/services` (pola sama seperti `routes/_authenticated/index.tsx` → `Dashboard`).
+- **`frontend/src/locales/id/services.json`** + **`frontend/src/locales/en/services.json`** — namespace i18n baru (judul, label form, pesan toast, opsi enum, empty/error state); didaftarkan di **`frontend/src/lib/i18n.ts`** (resource `services` untuk `id`/`en`).
+
+#### Verifikasi
+- `npm run build` (tsc -b && vite build) — 0 error TypeScript.
+- `npx eslint src/features/services src/routes/_authenticated/services src/lib/i18n.ts --max-warnings=0` — 0 error, 0 warning (termasuk suppress terarah `react-hooks/incompatible-library` untuk `form.watch()`, pola sama seperti `otp-form.tsx`/`users-table.tsx`).
+- Belum ada test baru ditulis untuk fitur ini (tidak ada `*.test.tsx` di `features/services`) — endpoint backend (`/services`, `/transport-rule`, `/custom-fields`) diasumsikan sesuai kontrak yang diberikan tech-lead; integrasi end-to-end belum diverifikasi terhadap backend nyata.
+
+### 2026-07-05 — Backend F03: modul Katalog Layanan, Transport Rule, Custom Field
+
+#### Ditambahkan
+- **`backend/src/services/`** (`ServicesModule`) — CRUD (tanpa hapus) katalog layanan tenant:
+  - `GET /services?aktif=true|false` — list urut `urutanTampil` asc lalu `createdAt` asc.
+  - `POST /services`, `PUT /services/:id` — create/update, validasi `class-validator` (harga & durasi positif, `dpNilai >= 0`).
+  - `PATCH /services/:id` — toggle `aktif`; **tidak ada endpoint DELETE** (FR-F03-6, jaga riwayat `BookingItem`).
+  - Validasi bisnis "`dpNilai` ≤ 100 jika `dpTipe=PERSEN`" dilakukan di `ServicesService` (bukan DTO) dengan menggabungkan payload baru + data lama, karena `dpTipe`/`dpNilai` bisa dikirim di request update terpisah.
+  - Semua query difilter `tenantId` dari `@CurrentTenant()`; response tidak menyertakan `tenantId`; `harga`/`dpNilai` (Prisma `Decimal`) dikonversi eksplisit ke `number`.
+- **`backend/src/transport-rules/`** (`TransportRulesModule`) — aturan transport 1:1 per tenant:
+  - `GET /transport-rule` — kembalikan `null` (bukan 404) jika tenant belum pernah mengatur.
+  - `PUT /transport-rule` — upsert; validasi conditional via `@ValidateIf` berdasar `mode` (`FLAT` → `flatNominal` wajib; `ZONA` → `zona[]` wajib non-kosong, divalidasi nested via `class-transformer`).
+- **`backend/src/custom-fields/`** (`CustomFieldsModule`) — pertanyaan booking kustom per tenant:
+  - `GET/POST/PUT/DELETE /custom-fields` — CRUD penuh (field ini boleh hard delete, beda dengan `Service`).
+  - `DELETE` menangkap error FK Prisma `P2003` → `409 Conflict` ("Custom field masih dipakai booking, tidak bisa dihapus.") jika masih direferensikan `CustomFieldValue` booking historis.
+  - Validasi "`opsi` wajib non-kosong jika `tipe=select`" digabung dengan data lama di service (pola sama seperti `ServicesService`).
+- **`backend/src/common/pricing/pricing.util.ts`** — util murni untuk kalkulasi harga (dipakai lintas modul, disiapkan untuk F04 booking):
+  - `computeDpAmount(harga, dpTipe, dpNilai)` — PERSEN dibulatkan ke rupiah terdekat; NOMINAL di-clamp agar tidak melebihi harga.
+  - `computeTransportFee(rule, zonaNama?)` — `null` → 0; `FLAT` → `flatNominal`; `ZONA` → cari berdasar nama, 0 jika tidak ditemukan.
+  - Unit test `pricing.util.spec.ts` (11 kasus): DP persen/nominal (AC-F03-1), transport flat/zona termasuk zona tak ditemukan (AC-F03-2), clamp DP nominal > harga.
+- Ketiga module didaftarkan di `backend/src/app.module.ts` (pola sama seperti `OnboardingModule`/`PaymentProfileModule`).
+
+#### Verifikasi
+- `npx tsc --noEmit` — 0 error.
+- `npm test` — 11/11 lulus (`pricing.util.spec.ts`).
+- `npm run start:dev` (proses watch existing) tetap hidup setelah perubahan; endpoint baru dicek via `curl` — `GET/PUT/PATCH/DELETE` baru mengembalikan `401` (guard JWT aktif, bukan 404) untuk `/api/services`, `/api/transport-rule`, `/api/custom-fields`.
+
+### 2026-07-05 — Skema: lengkapi Service (DP + transport) & TransportRule baru (persiapan F03)
+
+#### Ditambahkan
+- **`backend/prisma/schema.prisma`** — tutup gap skema vs [data-model.md](docs/data-model.md) untuk F03 (Katalog Layanan):
+  - Enum baru `DpTipe { PERSEN NOMINAL }` dan `TransportMode { FLAT ZONA }`.
+  - Model `Service`: tambah `dpTipe` (default `PERSEN`), `dpNilai` (Decimal 15,2, default 0 — persen 0-100 atau nominal rupiah tergantung `dpTipe`), `butuhTransport` (Boolean, default `false`).
+  - Model baru `TransportRule` — 1:1 per tenant (`tenantId @unique`), `mode` (`FLAT`/`ZONA`), `flatNominal` nullable, `zona` JSONB nullable (array `{nama, nominal}`), relasi cascade ke `Tenant`, index `@@index([tenantId])`. Relasi balik `Tenant.transportRule`.
+  - Model `BookingItem`: tambah `qty` (Int, default 1) sesuai `data-model.md` baris 46 — aman karena tabel masih kosong (F04 belum insert data).
+- **Migrasi Prisma** `backend/prisma/migrations/20260705085619_f03_katalog_layanan_transport_dp/` — additive only (2 `CREATE TYPE`, 2 `ALTER TABLE ADD COLUMN` dengan default, 1 `CREATE TABLE` + index & FK baru); diterapkan bersih ke database dev (`glowbook-db`), `prisma migrate status` bersih.
+
+### 2026-07-05 — Fix: registrasi 500 (tabel Plan kosong) + seed data Plan
+
+#### Ditambahkan
+- **`backend/prisma/seed.ts`** — seed 3 tier `Plan` global sesuai [business-model.md](docs/business-model.md) §3.3 (placeholder, belum final): Basic (kuota 30/bulan, Rp20.000), Pro (kuota 100/bulan, Rp50.000), Bisnis (unlimited, Rp150.000). Idempoten via `upsert` pada `tierUrutan`. Jalankan: `npx prisma db seed`.
+- **`backend/prisma.config.ts`** — tambah `migrations.seed: "ts-node prisma/seed.ts"` (konvensi seed Prisma 7 dipindah dari `package.json` ke config file).
+
+#### Diperbaiki
+- **`backend/src/auth/auth.service.ts`** — `POST /auth/register` selalu gagal 500 saat tabel `Plan` kosong: kode lama menutupi bug dengan `planId: firstPlan?.id ?? null` + `as any`, padahal `Subscription.planId` adalah kolom **wajib** (NOT NULL FK ke `Plan`) — insert melanggar constraint di level database. Sekarang: jika tidak ada Plan aktif, lempar `InternalServerErrorException` yang jelas ("seed data belum dijalankan") alih-alih insert diam-diam dengan `null`; hapus band-aid `as any`.
+
+---
+
+### 2026-07-05 — Fix: PrismaService gagal start (Prisma 7 butuh driver adapter)
+
+#### Diperbaiki
+- **`backend/src/prisma/prisma.service.ts`** — `PrismaClient` gagal diinisialisasi saat `npm run start:dev` pertama kali: Prisma 7 dengan generator `prisma-client-js` default memakai engine type `client` (tanpa binary Rust bawaan) sehingga **wajib** diberi `adapter` di constructor (bukan connection string langsung). Tambah `PrismaPg` dari `@prisma/adapter-pg` dibangun dari `process.env.DATABASE_URL`.
+
+#### Ditambahkan
+- **`backend/package.json`** — dependensi baru `@prisma/adapter-pg`, `pg`; devDependency `@types/pg`.
+- **`backend/.env`** (tidak dikomit — lihat `.gitignore`) — dibuat lokal oleh user berisi `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV` untuk pengembangan lokal dengan PostgreSQL via Docker (`docker run postgres:16`, port 5432).
+
+---
+
 ### 2026-07-05 — Dashboard: Redesign Overview ala CommerceO (data mock siap-API)
 
 #### Ditambahkan

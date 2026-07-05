@@ -1,0 +1,137 @@
+{
+  "title": "Services",
+  "description": "Manage your service catalog, transport rules, and booking custom fields.",
+  "addService": "Add Service",
+
+  "toast": {
+    "createSuccess": "Service created successfully.",
+    "updateSuccess": "Service updated successfully.",
+    "activateSuccess": "Service activated.",
+    "deactivateSuccess": "Service deactivated.",
+    "transportRuleSaved": "Transport rule saved successfully.",
+    "customFieldCreateSuccess": "Custom field created successfully.",
+    "customFieldUpdateSuccess": "Custom field updated successfully.",
+    "customFieldDeleteSuccess": "Custom field deleted successfully.",
+    "customFieldDeleteConflict": "This custom field can't be deleted because it's still used by existing bookings."
+  },
+
+  "tipeOptions": {
+    "MAKEUP": "Makeup",
+    "HAIR": "Hair",
+    "NAIL": "Nail",
+    "OTHER": "Other"
+  },
+  "dpTipeOptions": {
+    "PERSEN": "Percent (%)",
+    "NOMINAL": "Fixed amount (Rp)"
+  },
+  "customFieldTipeOptions": {
+    "text": "Text",
+    "select": "Select",
+    "checkbox": "Checkbox",
+    "date": "Date",
+    "file": "File"
+  },
+
+  "formDialog": {
+    "titleAdd": "Add New Service",
+    "titleEdit": "Edit Service",
+    "descAdd": "Create a new service here. Click save when you're done.",
+    "descEdit": "Update the service here. Click save when you're done.",
+    "nama": "Service Name",
+    "namaPlaceholder": "e.g., Graduation Makeup",
+    "deskripsi": "Description",
+    "deskripsiPlaceholder": "Short description of the service (optional)",
+    "harga": "Price",
+    "durasi": "Duration",
+    "menit": "minutes",
+    "tipe": "Category",
+    "dpTipe": "Deposit Type",
+    "dpNilai": "Deposit Value",
+    "butuhTransport": "Requires Transport",
+    "butuhTransportDesc": "Enable if this service requires an additional transport fee.",
+    "saving": "Saving...",
+    "save": "Save"
+  },
+
+  "list": {
+    "title": "Service List",
+    "description": "All services available in your catalog.",
+    "loadError": "Failed to load services. Try reloading the page.",
+    "empty": "No services yet. Click \"Add Service\" to create your first one.",
+    "columns": {
+      "nama": "Name",
+      "tipe": "Category",
+      "harga": "Price",
+      "durasi": "Duration",
+      "dp": "Deposit",
+      "transport": "Transport",
+      "status": "Status",
+      "aksi": "Actions"
+    },
+    "durasiValue": "{{count}} minutes",
+    "transportRequired": "Requires transport",
+    "statusAktif": "Active",
+    "statusNonaktif": "Inactive",
+    "toggleAktifLabel": "Toggle active state for {{nama}}",
+    "edit": "Edit service"
+  },
+
+  "transport": {
+    "title": "Transport Rule",
+    "description": "Set the transport fee added to the booking total.",
+    "loadError": "Failed to load the transport rule. Try reloading the page.",
+    "mode": "Transport Mode",
+    "modeFlat": "Flat (single amount)",
+    "modeZona": "Per Zone",
+    "flatNominal": "Flat Amount",
+    "zonaEmpty": "No zones yet. Click \"Add Zone\" to create your first one.",
+    "zonaNamaPlaceholder": "e.g., City Zone",
+    "zonaRemove": "Remove zone",
+    "zonaAdd": "Add Zone",
+    "saving": "Saving...",
+    "save": "Save"
+  },
+
+  "customField": {
+    "title": "Booking Custom Fields",
+    "description": "Additional questions shown on the booking form.",
+    "loadError": "Failed to load custom fields. Try reloading the page.",
+    "empty": "No custom fields yet.",
+    "add": "Add Field",
+    "edit": "Edit field",
+    "delete": "Delete field",
+    "wajibYa": "Required",
+    "wajibTidak": "Optional",
+    "columns": {
+      "label": "Label",
+      "tipe": "Type",
+      "opsi": "Options",
+      "wajib": "Required",
+      "urutan": "Order",
+      "aksi": "Actions"
+    },
+    "formDialog": {
+      "titleAdd": "Add Custom Field",
+      "titleEdit": "Edit Custom Field",
+      "descAdd": "Create a new question for the client booking form.",
+      "descEdit": "Update the custom field here. Click save when you're done.",
+      "label": "Label",
+      "labelPlaceholder": "e.g., Event Address",
+      "tipe": "Input Type",
+      "opsi": "Options",
+      "opsiPlaceholder": "Type an option then press Enter",
+      "opsiAdd": "Add",
+      "opsiRemove": "Remove option",
+      "urutan": "Display Order",
+      "wajib": "Required",
+      "saving": "Saving...",
+      "save": "Save"
+    },
+    "deleteDialog": {
+      "title": "Delete Custom Field",
+      "desc": "Are you sure you want to delete \"{{label}}\"? This action cannot be undone.",
+      "confirm": "Delete"
+    }
+  }
+}
