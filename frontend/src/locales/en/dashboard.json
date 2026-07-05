@@ -6,23 +6,57 @@
     "reports": "Reports",
     "notifications": "Notifications"
   },
-  "nav": {
-    "overview": "Overview",
-    "customers": "Customers",
-    "products": "Products",
-    "settings": "Settings"
-  },
+  "loadError": "Failed to load dashboard data. Try reloading the page.",
   "stats": {
-    "totalRevenue": "Total Revenue",
-    "subscriptions": "Subscriptions",
-    "sales": "Sales",
-    "activeNow": "Active Now",
-    "fromLastMonth": "+{{value}}% from last month",
-    "sinceLastHour": "+{{value}} since last hour"
+    "totalRevenue": "Revenue",
+    "bookings": "Bookings",
+    "clients": "Clients",
+    "quota": "Order Quota",
+    "vsLastMonth": "from last month",
+    "quotaUsed": "{{pct}}% of this period's quota used"
   },
-  "overview": "Overview",
-  "recentSales": "Recent Sales",
-  "recentSalesDescription": "You made {{count}} sales this month.",
+  "revenueChart": {
+    "title": "Weekly Revenue",
+    "description": "Total revenue per week, last 8 weeks",
+    "seriesLabel": "Revenue"
+  },
+  "bookingStatus": {
+    "title": "Booking Status",
+    "description": "Distribution of bookings by current status",
+    "empty": "No bookings to display yet."
+  },
+  "recentBookings": {
+    "title": "Recent Bookings",
+    "description": "{{count}} most recent bookings",
+    "empty": "No recent bookings yet.",
+    "columns": {
+      "code": "Code",
+      "client": "Client",
+      "service": "Service",
+      "date": "Date",
+      "dp": "Deposit",
+      "status": "Status"
+    }
+  },
+  "upcomingBookings": {
+    "title": "Upcoming Schedule",
+    "description": "Upcoming bookings",
+    "empty": "No upcoming bookings yet."
+  },
+  "popularServices": {
+    "title": "Popular Services",
+    "description": "By booking count this month",
+    "empty": "No service data yet.",
+    "count": "{{count}} bookings"
+  },
+  "status": {
+    "AWAITING_DP": "Awaiting Deposit",
+    "CONFIRMED": "Confirmed",
+    "PAID": "Paid",
+    "COMPLETED": "Completed",
+    "CANCELED": "Canceled",
+    "EXPIRED": "Expired"
+  },
   "analytics": {
     "title": "Traffic Overview",
     "weeklyDesc": "Weekly clicks and unique visitors",

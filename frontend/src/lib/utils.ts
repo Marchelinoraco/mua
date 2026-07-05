@@ -10,6 +10,18 @@ export function sleep(ms: number = 1000) {
 }
 
 /**
+ * Formats a number as Indonesian Rupiah currency, e.g. `formatCurrencyIDR(350000)` → "Rp350.000".
+ * Always rounds to whole rupiah (no decimals) since IDR has no practical sub-unit in this domain.
+ */
+export function formatCurrencyIDR(value: number): string {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+/**
  * Generates page numbers for pagination with ellipsis
  * @param currentPage - Current page number (1-based)
  * @param totalPages - Total number of pages

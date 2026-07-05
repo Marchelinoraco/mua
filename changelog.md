@@ -7,6 +7,87 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-07-05 — Dashboard: Redesign Overview ala CommerceO (data mock siap-API)
+
+#### Ditambahkan
+- **`frontend/src/components/ui/chart.tsx`** — primitif chart resmi shadcn/ui (`ChartContainer`, `ChartTooltip`, `ChartLegend`) membungkus recharts; theme-aware via CSS variables (`--chart-1`…`--chart-5`).
+- **`frontend/src/components/ui/progress.tsx`** — komponen Progress (radix-ui) untuk bar kuota order.
+- **`frontend/src/features/dashboard/data/types.ts`** — kontrak `DashboardStats` = acuan DTO future `GET /dashboard/stats` (revenue/bookings/clients + `deltaPct`, `quota`, `weeklyRevenue`, `statusBreakdown`, `recentBookings`, `upcomingBookings`, `popularServices`); enum `BookingStatus` UPPERCASE_ENGLISH sesuai `docs/data-model.md`.
+- **`frontend/src/features/dashboard/data/status.ts`** — urutan tampil status, kelas Badge per status (light/dark), dan warna chart per status via CSS variables (tanpa hex hardcode).
+- **`frontend/src/features/dashboard/data/mock-stats.ts`** — data dummy deterministik bernuansa MUA Indonesia (layanan wedding/wisuda/party, nominal Rupiah wajar).
+- **`frontend/src/features/dashboard/hooks/use-dashboard-stats.ts`** — hook TanStack Query `['dashboard-stats']`; `queryFn` resolve mock dengan TODO ganti ke `api.get('/dashboard/stats')` pasca F02–F04.
+- **`frontend/src/features/dashboard/components/`** — komponen baru: `stat-cards.tsx` (4 kartu: Pendapatan IDR, Booking, Klien, Kuota Order + progress bar; fallback `subscription.ordersUsedPeriod` dari auth-store), `revenue-chart.tsx` (area chart mingguan), `booking-status-card.tsx` (donut + legend per status), `recent-bookings-table.tsx` (tabel kode/klien/layanan/tanggal/DP/Badge status), `upcoming-bookings.tsx` (jadwal terdekat), `popular-services.tsx` (layanan terpopuler).
+- **`frontend/src/routes/_authenticated/availability/index.tsx`** — route placeholder Ketersediaan ("Segera hadir").
+- **`frontend/src/lib/utils.ts`** — helper `formatCurrencyIDR()` (Intl.NumberFormat id-ID, tanpa desimal).
+
+#### Diubah
+- **`frontend/src/features/dashboard/index.tsx`** — dirakit ulang mengikuti layout CommerceO adaptasi MUA: baris 4 stat cards → grafik pendapatan + donut status → tabel booking terbaru + kolom jadwal terdekat & layanan terpopuler; skeleton loading per seksi; state error; `TrialBanner` dan tab Analytics dipertahankan; TopNav sisa template (Customers/Products disabled) dihapus.
+- **`frontend/src/components/layout/data/sidebar-data.ts`** — tambah item **Ketersediaan** (`/availability`, ikon `CalendarClock`) di grup Utama.
+- **`frontend/src/locales/id/dashboard.json`** + **`en/dashboard.json`** — kunci baru untuk judul kartu, label status booking, dan judul seksi.
+- **`frontend/package.json`** — tambah dependensi `radix-ui` (Progress).
+
+#### Dihapus
+- **`frontend/src/features/dashboard/components/overview.tsx`** dan **`recent-sales.tsx`** — widget default template (data `Math.random()` dan nama hardcoded), digantikan komponen domain MUA di atas.
+
+---
+
+### 2026-07-01 — Fase 1 F01: Auth FE + Wizard Onboarding
+
+#### Ditambahkan
+- **`frontend/src/lib/api.ts`** — Axios instance (`VITE_API_URL`); request interceptor pasang `Authorization: Bearer <token>` dari auth-store; response interceptor 401 → `reset()` + redirect ke `/sign-in`; response interceptor 5xx → `toast.error`.
+- **`frontend/src/features/onboarding/data/schema.ts`** — skema Zod `paymentProfileSchema` + `onboardingChecklistSchema`; tipe `PaymentProfileFormValues` dan `OnboardingChecklist`.
+- **`frontend/src/features/onboarding/components/onboarding-checklist.tsx`** — komponen + hook `useOnboardingChecklist` (TanStack Query `GET /onboarding/checklist`); tampilkan badge "Siap Tayang" atau daftar item belum selesai.
+- **`frontend/src/features/onboarding/components/onboarding-payment-step.tsx`** — form PaymentProfile (namaBank, nomorRekening, namaPemilik, instruksiTambahan); `PUT /payment-profile` via `useMutation`; disclaimer dana non-kustodi; invalidasi checklist setelah simpan.
+- **`frontend/src/features/onboarding/index.tsx`** — `OnboardingWizard` 3-step: (1) selamat datang + info trial, (2) PaymentProfile, (3) stub layanan + checklist. Progress bar inline (Radix Progress tidak terinstal karena konflik peer-dep TS6), step pills, `Badge` langkah.
+- **`frontend/src/routes/_authenticated/onboarding/index.tsx`** — route TanStack `/_authenticated/onboarding/` yang render `OnboardingWizard`.
+- **`frontend/src/features/dashboard/components/trial-banner.tsx`** — `TrialBanner`: baca `subscription` dari auth-store; jika `TRIALING` tampilkan Alert kuning (sisa hari); jika ≤ 3 hari Alert merah + tombol "Berlangganan Sekarang" (link ke `/subscription`).
+- **`frontend/.env.example`** — template env: `VITE_API_URL=http://localhost:3000/api`.
+
+#### Diubah
+- **`frontend/src/stores/auth-store.ts`** — diganti total: hapus token dummy `'thisisjustarandomstring'`; tipe baru `AuthUser { id, email, phone?, timezone? }`, `AuthTenant { id, slug, namaBisnis, kota, status }`, `AuthSubscription { status, currentPeriodEnd, ordersUsedPeriod }`; tambah `tenant`, `subscription`, `justRegistered`; method baru `setAuth(token, user, tenant, subscription)`, `setJustRegistered(value)`. Cookie key diubah ke `glowbook_access_token`.
+- **`frontend/src/features/auth/sign-in/components/user-auth-form.tsx`** — ganti `sleep(2000)` mock dengan `api.post('/auth/login')`; simpan response via `auth.setAuth()`; `toast.promise()` pola template; hapus tombol OAuth (tidak relevan GlowBook).
+- **`frontend/src/features/auth/sign-up/components/sign-up-form.tsx`** — diganti total: form 2-step (Step 1: email, phone, password, konfirmasi; Step 2: namaBisnis, slug, kota); slug check real-time debounced 500 ms via `GET /tenants/slug-check`; indikator `CheckCircle2`/`XCircle`/`Loader2`; submit → `POST /auth/register` → `setAuth` + `setJustRegistered(true)` → navigate ke `/onboarding`.
+- **`frontend/src/routes/_authenticated/route.tsx`** — tambah `beforeLoad`: redirect ke `/sign-in` jika tidak ada token; redirect ke `/onboarding` jika `justRegistered === true` dan belum di halaman onboarding.
+- **`frontend/src/features/dashboard/index.tsx`** — tambah `<TrialBanner />` di awal `<Main>`.
+- **`frontend/src/locales/id/auth.json`** — tambah kunci baru: signUp multi-step (phone, namaBisnis, slug, kota, hint, status slug), onboarding (step1–step3, checklist).
+- **`frontend/src/locales/en/auth.json`** — sinkronkan kunci baru sesuai versi Indonesia.
+- **`frontend/src/stores/auth-store.test.ts`** — perbarui `sampleUser` ke shape `AuthUser` baru (`id` + `email`); hapus field lama `accountNo`/`role`/`exp`.
+- **`frontend/src/features/auth/sign-in/components/user-auth-form.test.tsx`** — perbarui mock: `setAuth` menggantikan `setUser`/`setAccessToken` terpisah; mock `api.post`; label disesuaikan ke teks Bahasa Indonesia.
+
+#### Verifikasi
+- `npm run build` (frontend) — lulus, **0 TypeScript error**.
+
+---
+
+### 2026-07-01 — Fase 1 F01: Onboarding Endpoint Lengkap
+
+#### Ditambahkan
+- **`backend/src/auth/dto/me-response.dto.ts`** — DTO response `GET /auth/me`: `{ user, tenant, subscription }`; tidak menyertakan `passwordHash` / `ownerUserId`.
+- **`backend/src/auth/dto/verify-otp.dto.ts`** — DTO `POST /auth/verify-otp`: validasi `phone` (format internasional) + `otp` string.
+- **`backend/src/onboarding/`** — `OnboardingModule` baru:
+  - `onboarding.service.ts` — `getChecklist(tenantId)`: query paralel `Service.count({ aktif: true })` + `PaymentProfile.findUnique`; kembalikan `{ hasService, hasPaymentProfile, isReady }`. TODO F05 untuk `hasAvailability`.
+  - `onboarding.controller.ts` — `GET /onboarding/checklist` terproteksi `JwtAuthGuard`, scoped `@CurrentTenant()`.
+  - `onboarding.module.ts` — modul NestJS.
+- **`backend/src/payment-profile/`** — `PaymentProfileModule` baru (RULE-1 nol kustodi):
+  - `dto/upsert-payment-profile.dto.ts` — validasi `namaBank`, `nomorRekening`, `namaPemilik`, `instruksiTambahan?` dengan `class-validator`.
+  - `dto/payment-profile-response.dto.ts` — response tanpa `tenantId`.
+  - `payment-profile.service.ts` — `getPaymentProfile(tenantId)` + `upsertPaymentProfile(tenantId, dto)` via Prisma `upsert`; semua query filter `tenantId`.
+  - `payment-profile.controller.ts` — `GET /payment-profile` + `PUT /payment-profile`, keduanya terproteksi `JwtAuthGuard`.
+  - `payment-profile.module.ts` — modul NestJS.
+- **`backend/src/tenant/dto/slug-check-response.dto.ts`** — DTO `{ available: bool, suggestion?: string }`.
+
+#### Diubah
+- **`backend/src/auth/auth.service.ts`** — `register()` diperluas: transaksi atomik tunggal kini membuat `User + Tenant + Theme(default) + Subscription(TRIALING 14 hari)`. Guard anti-duplikat tenant: `ConflictException` jika `User` sudah punya `Tenant`. Tambah `getMe(userId, tenantId)` untuk endpoint `GET /auth/me` (query `User` + `Tenant` paralel, tanpa bocor field sensitif).
+- **`backend/src/auth/auth.controller.ts`** — tambah `GET /auth/me` (terproteksi `JwtAuthGuard`) dan `POST /auth/verify-otp` (stub, selalu `{ verified: true }`, TODO F08). Perbaiki import `JwtPayload` dengan `import type` untuk kompatibilitas `isolatedModules`.
+- **`backend/src/tenant/tenant.service.ts`** — tambah `checkSlug(slug)`: validasi pola `^[a-z0-9-]{3,30}$`, cek DB, beri saran `slug-2`…`slug-10` jika tidak tersedia.
+- **`backend/src/tenant/tenant.controller.ts`** — refactor: prefix diubah ke `tenants`; tambah `GET /tenants/slug-check?slug=xxx` (publik, tanpa JWT); `GET /tenants/me` + `PATCH /tenants/me` tetap terproteksi JWT (guard dipindah ke level method).
+- **`backend/src/app.module.ts`** — daftarkan `OnboardingModule` dan `PaymentProfileModule`.
+
+#### Verifikasi
+- `npm run build` — lulus, 0 TypeScript error.
+
+---
+
 ### 2026-06-30 — Penutup Fase 0: Roadmap Diperbarui + Handoff Notes Fase 1
 
 #### Diubah

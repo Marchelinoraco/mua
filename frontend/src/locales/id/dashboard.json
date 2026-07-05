@@ -6,23 +6,57 @@
     "reports": "Laporan",
     "notifications": "Notifikasi"
   },
-  "nav": {
-    "overview": "Ikhtisar",
-    "customers": "Pelanggan",
-    "products": "Produk",
-    "settings": "Pengaturan"
-  },
+  "loadError": "Gagal memuat data dasbor. Coba muat ulang halaman.",
   "stats": {
-    "totalRevenue": "Total Pendapatan",
-    "subscriptions": "Langganan",
-    "sales": "Penjualan",
-    "activeNow": "Aktif Sekarang",
-    "fromLastMonth": "+{{value}}% dari bulan lalu",
-    "sinceLastHour": "+{{value}} sejak satu jam lalu"
+    "totalRevenue": "Pendapatan",
+    "bookings": "Booking",
+    "clients": "Klien",
+    "quota": "Kuota Order",
+    "vsLastMonth": "dari bulan lalu",
+    "quotaUsed": "{{pct}}% kuota terpakai periode ini"
   },
-  "overview": "Ikhtisar",
-  "recentSales": "Penjualan Terbaru",
-  "recentSalesDescription": "Anda melakukan {{count}} penjualan bulan ini.",
+  "revenueChart": {
+    "title": "Grafik Pendapatan Mingguan",
+    "description": "Total pendapatan per minggu, 8 minggu terakhir",
+    "seriesLabel": "Pendapatan"
+  },
+  "bookingStatus": {
+    "title": "Status Booking",
+    "description": "Sebaran booking berdasarkan status saat ini",
+    "empty": "Belum ada booking untuk ditampilkan."
+  },
+  "recentBookings": {
+    "title": "Booking Terbaru",
+    "description": "{{count}} booking terakhir masuk",
+    "empty": "Belum ada booking terbaru.",
+    "columns": {
+      "code": "Kode",
+      "client": "Klien",
+      "service": "Layanan",
+      "date": "Tanggal",
+      "dp": "DP",
+      "status": "Status"
+    }
+  },
+  "upcomingBookings": {
+    "title": "Jadwal Terdekat",
+    "description": "Booking yang akan datang",
+    "empty": "Belum ada jadwal mendatang."
+  },
+  "popularServices": {
+    "title": "Layanan Terpopuler",
+    "description": "Berdasarkan jumlah booking bulan ini",
+    "empty": "Belum ada data layanan.",
+    "count": "{{count}} booking"
+  },
+  "status": {
+    "AWAITING_DP": "Menunggu DP",
+    "CONFIRMED": "Terkonfirmasi",
+    "PAID": "Lunas",
+    "COMPLETED": "Selesai",
+    "CANCELED": "Dibatalkan",
+    "EXPIRED": "Kedaluwarsa"
+  },
   "analytics": {
     "title": "Ikhtisar Lalu Lintas",
     "weeklyDesc": "Klik dan pengunjung unik mingguan",

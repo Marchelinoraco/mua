@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Store,
   CalendarCheck,
+  CalendarClock,
   Users,
   Scissors,
   BarChart3,
@@ -47,6 +48,11 @@ export const sidebarData: SidebarData = {
           title: 'Booking & Order',
           url: '/bookings',
           icon: CalendarCheck,
+        },
+        {
+          title: 'Ketersediaan',
+          url: '/availability',
+          icon: CalendarClock,
         },
         {
           title: 'Klien',

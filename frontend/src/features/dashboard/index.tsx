@@ -7,56 +7,55 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { LanguageSwitch } from '@/components/language-switch'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { TopNav } from '@/components/layout/top-nav'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { Analytics } from './components/analytics'
-import { Overview } from './components/overview'
-import { RecentSales } from './components/recent-sales'
+import { BookingStatusCard } from './components/booking-status-card'
+import { PopularServices } from './components/popular-services'
+import { RecentBookingsTable } from './components/recent-bookings-table'
+import { RevenueChart } from './components/revenue-chart'
+import { StatCards } from './components/stat-cards'
+import { TrialBanner } from './components/trial-banner'
+import { UpcomingBookings } from './components/upcoming-bookings'
+import { useDashboardStats } from './hooks/use-dashboard-stats'
+
+function DashboardOverviewSkeleton() {
+  return (
+    <div className='space-y-4'>
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Skeleton key={index} className='h-[112px] w-full rounded-xl' />
+        ))}
+      </div>
+      <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
+        <Skeleton className='col-span-1 h-[380px] w-full rounded-xl lg:col-span-4' />
+        <Skeleton className='col-span-1 h-[380px] w-full rounded-xl lg:col-span-3' />
+      </div>
+      <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
+        <Skeleton className='col-span-1 h-[420px] w-full rounded-xl lg:col-span-4' />
+        <Skeleton className='col-span-1 h-[420px] w-full rounded-xl lg:col-span-3' />
+      </div>
+    </div>
+  )
+}
 
 export function Dashboard() {
   const { t } = useTranslation('dashboard')
   const { t: tCommon } = useTranslation('common')
-
-  const topNav = [
-    {
-      title: t('nav.overview'),
-      href: 'dashboard/overview',
-      isActive: true,
-      disabled: false,
-    },
-    {
-      title: t('nav.customers'),
-      href: 'dashboard/customers',
-      isActive: false,
-      disabled: true,
-    },
-    {
-      title: t('nav.products'),
-      href: 'dashboard/products',
-      isActive: false,
-      disabled: true,
-    },
-    {
-      title: t('nav.settings'),
-      href: 'dashboard/settings',
-      isActive: false,
-      disabled: true,
-    },
-  ]
+  const { data, isLoading, isError } = useDashboardStats()
 
   return (
     <>
       {/* ===== Top Heading ===== */}
       <Header>
-        <TopNav links={topNav} className='me-auto' />
-        <Search />
+        <Search className='me-auto' />
         <LanguageSwitch />
         <ThemeSwitch />
         <ConfigDrawer />
@@ -65,6 +64,7 @@ export function Dashboard() {
 
       {/* ===== Main ===== */}
       <Main>
+        <TrialBanner />
         <div className='mb-2 flex items-center justify-between space-y-2'>
           <h1 className='text-2xl font-bold tracking-tight'>{t('title')}</h1>
           <div className='flex items-center space-x-2'>
@@ -89,132 +89,84 @@ export function Dashboard() {
             </TabsList>
           </div>
           <TabsContent value='overview' className='space-y-4'>
-            <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    {t('stats.totalRevenue')}
-                  </CardTitle>
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
-                  >
-                    <path d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>$45,231.89</div>
-                  <p className='text-xs text-muted-foreground'>
-                    {t('stats.fromLastMonth', { value: '20.1' })}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    {t('stats.subscriptions')}
-                  </CardTitle>
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
-                  >
-                    <path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' />
-                    <circle cx='9' cy='7' r='4' />
-                    <path d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>+2350</div>
-                  <p className='text-xs text-muted-foreground'>
-                    {t('stats.fromLastMonth', { value: '180.1' })}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    {t('stats.sales')}
-                  </CardTitle>
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
-                  >
-                    <rect width='20' height='14' x='2' y='5' rx='2' />
-                    <path d='M2 10h20' />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>+12,234</div>
-                  <p className='text-xs text-muted-foreground'>
-                    {t('stats.fromLastMonth', { value: '19' })}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    {t('stats.activeNow')}
-                  </CardTitle>
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth='2'
-                    className='h-4 w-4 text-muted-foreground'
-                  >
-                    <path d='M22 12h-4l-3 9L9 3l-3 9H2' />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>+573</div>
-                  <p className='text-xs text-muted-foreground'>
-                    {t('stats.sinceLastHour', { value: '201' })}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-            <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
-              <Card className='col-span-1 lg:col-span-4'>
-                <CardHeader>
-                  <CardTitle>{t('overview')}</CardTitle>
-                </CardHeader>
-                <CardContent className='ps-2'>
-                  <Overview />
-                </CardContent>
-              </Card>
-              <Card className='col-span-1 lg:col-span-3'>
-                <CardHeader>
-                  <CardTitle>{t('recentSales')}</CardTitle>
-                  <CardDescription>
-                    {t('recentSalesDescription', { count: 265 })}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <RecentSales />
-                </CardContent>
-              </Card>
-            </div>
+            {isError ? (
+              <p className='py-12 text-center text-sm text-destructive'>
+                {t('loadError')}
+              </p>
+            ) : isLoading || !data ? (
+              <DashboardOverviewSkeleton />
+            ) : (
+              <>
+                <StatCards data={data} />
+
+                <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
+                  <Card className='col-span-1 lg:col-span-4'>
+                    <CardHeader>
+                      <CardTitle>{t('revenueChart.title')}</CardTitle>
+                      <CardDescription>
+                        {t('revenueChart.description')}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className='ps-2'>
+                      <RevenueChart data={data.weeklyRevenue} />
+                    </CardContent>
+                  </Card>
+                  <Card className='col-span-1 lg:col-span-3'>
+                    <CardHeader>
+                      <CardTitle>{t('bookingStatus.title')}</CardTitle>
+                      <CardDescription>
+                        {t('bookingStatus.description')}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <BookingStatusCard
+                        statusBreakdown={data.statusBreakdown}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
+                  <Card className='col-span-1 lg:col-span-4'>
+                    <CardHeader>
+                      <CardTitle>{t('recentBookings.title')}</CardTitle>
+                      <CardDescription>
+                        {t('recentBookings.description', {
+                          count: data.recentBookings.length,
+                        })}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <RecentBookingsTable bookings={data.recentBookings} />
+                    </CardContent>
+                  </Card>
+                  <div className='col-span-1 space-y-4 lg:col-span-3'>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t('upcomingBookings.title')}</CardTitle>
+                        <CardDescription>
+                          {t('upcomingBookings.description')}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <UpcomingBookings bookings={data.upcomingBookings} />
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t('popularServices.title')}</CardTitle>
+                        <CardDescription>
+                          {t('popularServices.description')}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <PopularServices services={data.popularServices} />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </>
+            )}
           </TabsContent>
           <TabsContent value='analytics' className='space-y-4'>
             <Analytics />
