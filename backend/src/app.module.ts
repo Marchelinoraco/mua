@@ -7,6 +7,9 @@ import { TenantModule } from './tenant/tenant.module';
 import { HealthModule } from './health/health.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { PaymentProfileModule } from './payment-profile/payment-profile.module';
+import { ServicesModule } from './services/services.module';
+import { TransportRulesModule } from './transport-rules/transport-rules.module';
+import { CustomFieldsModule } from './custom-fields/custom-fields.module';
 
 @Module({
   imports: [
@@ -20,6 +23,9 @@ import { PaymentProfileModule } from './payment-profile/payment-profile.module';
     HealthModule,
     OnboardingModule,
     PaymentProfileModule,
+    ServicesModule,
+    TransportRulesModule,
+    CustomFieldsModule,
   ],
   providers: [
     {
