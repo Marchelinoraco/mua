@@ -90,6 +90,16 @@ enum PlanInterval {
   MONTHLY
 }
 
+enum DpTipe {
+  PERSEN
+  NOMINAL
+}
+
+enum TransportMode {
+  FLAT
+  ZONA
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -125,6 +135,7 @@ model Tenant {
   theme          Theme?
   subscription   Subscription?
   paymentProfile PaymentProfile?
+  transportRule  TransportRule?
   services       Service[]
   customFields   CustomField[]
   clients        Client[]
@@ -164,20 +175,39 @@ model Theme {
 /// Layanan MUA per tenant — dari katalog (F03).
 /// Harga bisa berubah; snapshot tersimpan di BookingItem.hargaSnapshot.
 model Service {
-  id            String      @id @default(cuid())
-  tenantId      String
-  nama          String
-  deskripsi     String?
-  harga         Decimal     @db.Decimal(15, 2)
-  durasi        Int         // durasi layanan dalam menit
-  tipe          ServiceType @default(MAKEUP)
-  aktif         Boolean     @default(true)
-  urutanTampil  Int         @default(0)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id              String      @id @default(cuid())
+  tenantId        String
+  nama            String
+  deskripsi       String?
+  harga           Decimal     @db.Decimal(15, 2)
+  durasi          Int         // durasi layanan dalam menit
+  tipe            ServiceType @default(MAKEUP)
+  dpTipe          DpTipe      @default(PERSEN)
+  dpNilai         Decimal     @db.Decimal(15, 2) @default(0) // persen (0-100) jika dpTipe=PERSEN, atau nominal rupiah jika NOMINAL
+  butuhTransport  Boolean     @default(false)
+  aktif           Boolean     @default(true)
+  urutanTampil    Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   bookingItems BookingItem[]
+
+  @@index([tenantId])
+}
+
+/// Aturan transport per tenant (F03) — 1:1 dengan Tenant.
+/// mode=FLAT pakai flatNominal; mode=ZONA pakai zona (array {nama, nominal}).
+model TransportRule {
+  id           String        @id @default(cuid())
+  tenantId     String        @unique // 1:1 ke Tenant
+  mode         TransportMode @default(FLAT)
+  flatNominal  Decimal?      @db.Decimal(15, 2) // dipakai jika mode=FLAT
+  zona         Json?         // array {nama, nominal} dipakai jika mode=ZONA
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
 }
@@ -277,6 +307,7 @@ model BookingItem {
   bookingId     String
   serviceId     String
   namaSnapshot  String  // snapshot nama layanan saat booking dibuat
+  qty           Int     @default(1)
   hargaSnapshot Decimal @db.Decimal(15, 2) // snapshot harga saat booking; JANGAN refer ke Service.harga
   durasi        Int     // durasi dalam menit (snapshot dari Service.durasi)
 
