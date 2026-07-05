@@ -5,6 +5,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { TenantModule } from './tenant/tenant.module';
 import { HealthModule } from './health/health.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
+import { PaymentProfileModule } from './payment-profile/payment-profile.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { HealthModule } from './health/health.module';
     AuthModule,
     TenantModule,
     HealthModule,
+    OnboardingModule,
+    PaymentProfileModule,
   ],
   providers: [
     {
