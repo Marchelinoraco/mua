@@ -49,5 +49,25 @@ flowchart LR
 - Kepatuhan UU PDP: persetujuan, hak akses/hapus, retensi data (90 hari saat restricted).
 - Audit log untuk tindakan sensitif lintas tenant & admin.
 
-## 5. Skalabilitas ke Marketplace (BR-9)
+## 5. Deployment (MVP — infrastruktur gratis)
+Monorepo `github.com/Marchelinoraco/mua` di-deploy sebagai **2 project Vercel** + **Neon PostgreSQL** (tanpa Docker):
+
+| Komponen | Platform | Konfigurasi kunci |
+|----------|----------|-------------------|
+| Frontend (Vite SPA) | Vercel, Root Directory `frontend/` | `vercel.json` rewrite SPA → `/index.html`; env `VITE_API_URL` |
+| Backend (NestJS) | Vercel Functions, Root Directory `backend/` | Entry `api/index.ts` (ExpressAdapter + cache bootstrap); `vercel.json` rewrite → `/api/index`, region `sin1`; `vercel-build` = `prisma generate && prisma migrate deploy` |
+| Database | Neon (Singapore), 2 branch: `main` (production) & `dev` | Runtime pakai **pooled** URL (`DATABASE_URL`); migrasi pakai **direct** URL (`DIRECT_DATABASE_URL`) via `prisma.config.ts` |
+
+Pemetaan environment (lihat aturan lengkap di [conventions.md](conventions.md) §Workflow Branch & Rilis):
+
+| Git branch | Vercel env | Neon branch |
+|-----------|------------|-------------|
+| `dev` | Preview | `dev` |
+| `main` | Production | `main` |
+
+Env var di-scope per environment di Vercel (Production ↔ Neon `main`; Preview ↔ Neon `dev`): `DATABASE_URL`, `DIRECT_DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGIN`, `NODE_ENV` (API) dan `VITE_API_URL` (FE). Dev lokal memakai `backend/.env` (Neon branch `dev`) — tidak pernah di-commit.
+
+**Batasan yang diterima untuk MVP:** function stateless + timeout 10 dtk (cukup untuk CRUD); proses terjadwal (hold-expiry, dunning, reminder — lihat Scheduler/Worker §3) akan memakai **Vercel Cron** saat F07/F08 dibangun.
+
+## 6. Skalabilitas ke Marketplace (BR-9)
 Model data tenant + storefront dirancang agar agregasi/direktori lintas tenant (Fase 4) bisa ditambahkan tanpa perombakan besar: storefront, layanan, rating, dan lokasi sudah ter-struktur dan dapat di-index.

@@ -10,6 +10,9 @@ export default defineConfig({
     seed: "ts-node prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Migrasi (`migrate deploy`/`migrate dev`) memakai koneksi direct Neon;
+    // fallback ke DATABASE_URL supaya dev lokal tanpa DIRECT_DATABASE_URL tetap jalan.
+    // Runtime PrismaService TIDAK memakai file ini — tetap pakai DATABASE_URL pooled.
+    url: process.env["DIRECT_DATABASE_URL"] ?? process.env["DATABASE_URL"],
   },
 });

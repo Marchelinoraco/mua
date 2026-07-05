@@ -7,6 +7,27 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-07-05 — Deploy: adaptasi Vercel serverless + Neon, workflow branch dev/main
+
+#### Ditambahkan
+- **`backend/src/app.setup.ts`** — fungsi `configureApp(app)` (global prefix `api` + CORS dari `CORS_ORIGIN`), dipakai bersama oleh entry dev lokal dan serverless — tanpa duplikasi bootstrap.
+- **`backend/api/index.ts`** — entry serverless Vercel: bootstrap NestJS di atas `ExpressAdapter`, `app.init()` tanpa listen, promise bootstrap di-cache di module scope (reset saat gagal agar invocation berikut bisa retry), export default handler Express.
+- **`backend/vercel.json`** — region `sin1` (Singapore, dekat Neon), rewrite semua path → function `/api/index` (zero-config).
+- **`frontend/vercel.json`** — rewrite SPA fallback ke `/index.html` (TanStack Router client-side routing).
+- **`docs/conventions.md`** — seksi baru **Workflow Branch & Rilis**: branch `dev` (kerja harian → Neon `dev` + Vercel Preview) dan `main` (production → Neon `main` + Vercel Production); merge `dev`→`main` langsung (tanpa PR) **hanya saat user memerintahkan rilis**.
+- **`docs/architecture.md`** — seksi Deployment: Vercel 2 project (Root Directory `backend/` & `frontend/`), Neon 2 branch, tabel pemetaan git↔Vercel↔Neon, aturan env var per scope (Production/Preview).
+
+#### Diubah
+- **`backend/prisma.config.ts`** — migrasi memakai `DIRECT_DATABASE_URL ?? DATABASE_URL` (Neon: migrasi wajib koneksi direct; runtime `PrismaService` tetap `DATABASE_URL` pooled).
+- **`backend/src/main.ts`** — di-refactor memanggil `configureApp(app)`; perilaku dev lokal tidak berubah.
+- **`backend/package.json`** — script baru `vercel-build` (`prisma generate && prisma migrate deploy` — migrasi otomatis mengikuti env branch saat deploy); `express` dieksplisitkan ke `dependencies`.
+- **`backend/tsconfig.build.json`** — exclude folder `api/` dari `nest build` lokal (function di-compile oleh Vercel, tidak masuk `dist/`).
+- **`backend/.env.example`** — tambah `DIRECT_DATABASE_URL` (contoh format Neon direct), `CORS_ORIGIN`; perjelas contoh `DATABASE_URL` format Neon pooled.
+- **`frontend/.env.example`** — tambah contoh nilai production `VITE_API_URL=https://<api-domain>.vercel.app/api`.
+- **Workflow git** — commit milestone kini ke branch **`dev`** (bukan `main`); `main` hanya menerima merge saat rilis.
+
+---
+
 ### 2026-07-05 — Frontend F03: halaman Layanan (katalog, transport, custom field)
 
 #### Ditambahkan

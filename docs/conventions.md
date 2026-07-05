@@ -29,6 +29,20 @@ Nilai enum **status** ditulis **UPPERCASE_ENGLISH** (snake_case bila multi-kata)
 
 > **Catatan:** nilai eksternal pihak ketiga (mis. `transaction_status` Midtrans: `capture`, `settlement`, `pending`, `deny`, `expire`, `refund`) **ditulis apa adanya** sesuai API, tidak di-uppercase. Field non-status (`jenis`, `tipe`, `mode`, `kanal`, `interval`) tetap memakai nilai domainnya saat ini.
 
+## Workflow Branch & Rilis
+Branch git dipetakan 1:1 ke branch Neon dan environment Vercel:
+
+| Git branch | Vercel environment | Neon branch | Peran |
+|-----------|--------------------|-------------|-------|
+| `dev` | Preview (alias stabil `*-git-dev-*.vercel.app`) | `dev` | Kerja harian & milestone |
+| `main` | Production | `main` (default) | User nyata |
+
+Aturan (berlaku untuk semua agent, terutama `devops`):
+1. **Semua commit milestone → branch `dev`** (Conventional Commits, stage selektif per unit logis), lalu `git push origin dev`.
+2. **`main` hanya di-update saat user memerintahkan "rilis"**: `git checkout main && git merge dev && git push origin main && git checkout dev`. Merge langsung, tanpa PR.
+3. Jangan force-push ke `dev` maupun `main`. Jangan commit `.env`/secret/`node_modules`.
+4. Migrasi database mengikuti branch otomatis: script `vercel-build` (`prisma migrate deploy`) memigrasi Neon `dev` saat deploy Preview dan Neon `main` saat deploy Production.
+
 ## Legenda Rilis (selaras PRD §12)
 - **R1 — Alat Inti:** onboarding, storefront, layanan, kalender, booking, order/klien, notifikasi dasar.
 - **R2 — Pembayaran & Billing:** pembayaran klien manual + langganan Midtrans.
