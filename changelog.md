@@ -7,6 +7,13 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-07-09 — Vercel build fix: Prisma client generation sebelum NestJS compile
+
+#### Diperbaiki
+- **`backend/vercel.json`** — tambah `buildCommand: "npm run vercel-build && npm run build"` agar Vercel menjalankan `prisma generate` (dan migrasi) **sebelum** `nest build`. Tanpa ini, `@prisma/client` belum ter-generate → 47 TS error saat build.
+
+---
+
 ### 2026-07-05 — Deploy: adaptasi Vercel serverless + Neon, workflow branch dev/main
 
 #### Ditambahkan
@@ -24,6 +31,7 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 - **`backend/tsconfig.build.json`** — exclude folder `api/` dari `nest build` lokal (function di-compile oleh Vercel, tidak masuk `dist/`).
 - **`backend/.env.example`** — tambah `DIRECT_DATABASE_URL` (contoh format Neon direct), `CORS_ORIGIN`; perjelas contoh `DATABASE_URL` format Neon pooled.
 - **`frontend/.env.example`** — tambah contoh nilai production `VITE_API_URL=https://<api-domain>.vercel.app/api`.
+- **`backend/.gitignore`** — perkuat pola menjadi `.env` + `.env.*` (kecuali `.env.example`), agar file referensi env berisi secret (mis. `.env.vercel.local`) tidak pernah ter-commit.
 - **Workflow git** — commit milestone kini ke branch **`dev`** (bukan `main`); `main` hanya menerima merge saat rilis.
 
 ---

@@ -1,4 +1,5 @@
 {
+  "buildCommand": "npm run vercel-build && npm run build",
   "regions": ["sin1"],
   "rewrites": [
     {
