@@ -7,6 +7,11 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-07-14 — Fix konflik peer dependency `i18next` vs TypeScript 6 (Vercel build frontend)
+
+#### Diperbaiki
+- **`frontend/package.json`** — upgrade `i18next` `^24.2.3` → `^26.3.6` dan `react-i18next` `^15.7.4` → `^17.0.9`. Versi lama mendeklarasikan `peerDependenciesMeta.typescript` hanya `^5`, bentrok dengan `typescript ~6.0.3` yang sudah dipakai di `devDependencies` frontend → `npm install`/`npm ci` gagal ERESOLVE saat build di Vercel. Versi baru mendukung `typescript ^5 || ^6 || ^7` sehingga resolusi dependency bersih tanpa `--legacy-peer-deps`. Diverifikasi: `npm ci`, `npx tsc -b`, dan `npm run build` sukses; tidak ada perubahan API (`useTranslation`, `initReactI18next`, `i18next-browser-languagedetector`) yang berdampak pada pemakaian di `src/lib/i18n.ts` dan seluruh fitur yang memakai `useTranslation`.
+
 ### 2026-07-13 — Rilis pertama GlowBook: merge `dev` → `main`
 
 #### Diubah
