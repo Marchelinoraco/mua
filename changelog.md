@@ -7,6 +7,11 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-07-13 — Rilis pertama GlowBook: merge `dev` → `main`
+
+#### Diubah
+- **Branch `main`** di-fast-forward dari `86415ca` ke `402fabe` (merge langsung dari `dev`, sesuai `docs/conventions.md` §Workflow Branch & Rilis) — mempromosikan fondasi F03 (Layanan) beserta fix deploy Vercel (entry serverless, config Neon, `prisma generate` sebelum `nest build`) ke environment Production.
+
 ### 2026-07-09 — Vercel build fix: Prisma client generation sebelum NestJS compile
 
 #### Diperbaiki
