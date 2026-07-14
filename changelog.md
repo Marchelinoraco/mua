@@ -7,7 +7,52 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
-### 2026-07-15 — QA: Validasi Milestone F05 (Kalender & Anti-Bentrok)
+### 2026-07-15 — F02 Frontend: Halaman Storefront Publik `/s/$slug`
+
+#### Ditambahkan
+- **`frontend/src/routes/s/$slug/index.tsx`** — route publik baru **di luar** `_authenticated` (tanpa guard/token), thin wrapper yang merender fitur `StorefrontPublic` berdasarkan `$slug` dari URL.
+- **`frontend/src/features/storefront-public/`** — fitur baru mengikuti pola template (`index.tsx`, `components/`, `data/`, `hooks/`), mengonsumsi kontrak F02 backend (`GET /api/s/:slug`, `GET /api/s/:slug/slots`, `POST /api/s/:slug/report`) via TanStack Query:
+  - **Hero**: banner (fallback gradien `warnaPrimer→warnaSekunder`), logo bulat overlap (fallback inisial nama), `namaBisnis`, kota (ikon pin, `null`-safe).
+  - **Theming**: `warnaPrimer`/`warnaSekunder` diterapkan sebagai CSS custom properties (`--sf-primary`/`--sf-secondary`) inline di container halaman, divalidasi lewat `isSafeCssColor()` (hex/rgb/hsl) sebelum dipakai — nilai tak valid fallback ke token app default. `font`: hanya dipetakan bila cocok daftar aman (`Inter`/`Manrope`, sudah dimuat via `index.html`) lewat `resolveSafeFontFamily()`; tidak ada fetch Google Fonts runtime. **`theme.customCss` sengaja TIDAK PERNAH dirender/di-inject** (dicatat di komentar kode) — menunggu keputusan tech-lead soal sanitizer.
+  - **Daftar layanan**: card per layanan (nama, deskripsi, durasi, harga `formatCurrencyIDR`, badge tipe, badge DP persen/nominal, ikon transport bila `butuhTransport`), state kosong ramah.
+  - **Seksi transport**: FLAT → satu baris nominal; ZONA → tabel zona+nominal. Tersembunyi bila tenant belum punya `TransportRule`.
+  - **Cek ketersediaan (preview read-only)**: date picker (reuse `@/components/date-picker`) + `GET /s/:slug/slots` → chip jam tersedia (`menitKeHHmm`); bukan bagian alur booking.
+  - **CTA "Booking"**: tombol sticky-bottom mobile → dialog placeholder "Booking Online Segera Hadir" (F04 belum ada; tidak ada form booking dibuat).
+  - **Footer**: link "Laporkan halaman ini" → dialog report (RHF+Zod: `alasan` 10–1000 char, `kontak` opsional maks 200 char) → `toast` sukses/error, 429 ditangani khusus ("Terlalu banyak percobaan").
+  - **Status INACTIVE** (tenant `RESTRICTED`): halaman "「namaBisnis」 sedang tidak menerima booking untuk sementara" — bukan error.
+  - **404**: halaman ramah "Storefront Tidak Ditemukan" tanpa menu dashboard.
+  - **Skeleton** loading state; fallback generik untuk error non-404 (5xx/jaringan).
+  - State dialog dikelola via `StorefrontProvider`/`useStorefrontDialogs` (context, pola sama `<name>-provider.tsx` template) + `StorefrontDialogs` koordinator.
+- **`frontend/src/locales/{id,en}/storefront.json`** — namespace i18n baru, didaftarkan di `src/lib/i18n.ts`; default Bahasa Indonesia.
+- **`frontend/src/features/storefront-public/data/{data,schema}.test.ts`** — unit test util (`isSafeCssColor`, `resolveSafeFontFamily`) & skema Zod (`reportFormSchema`); 11 kasus, semua lulus.
+
+#### Diperiksa (tanpa perubahan)
+- `npx tsc -b` dan `npm run build` — 0 error. `npx vitest run --browser.headless src/features/storefront-public` — 2 suite/11 test lulus.
+- Verifikasi manual (`backend start:dev` + `frontend npm run dev`, Neon dev) via Playwright headless: storefront `ACTIVE` (tema warna, layanan, badge DP, transport ZONA) tampil benar di viewport mobile 390px; slug tak ada → halaman 404 ramah; tenant `RESTRICTED` (sementara di-toggle lalu dikembalikan) → halaman nonaktif sesuai teks yang diminta; dialog report berhasil kirim → toast sukses; dialog booking placeholder tampil sesuai spesifikasi; preview slot tanggal menampilkan chip jam tersedia dengan warna tema. Data uji sementara (transport rule, status tenant, report) dibersihkan/dikembalikan setelah verifikasi — tidak ada perubahan permanen ke Neon dev.
+- Full `npm run test` menunjukkan kegagalan hanya pada suite pre-existing tak terkait (`sign-up-form.test.tsx` dkk — timeout locator browser mode di lingkungan sandbox ini); nol regresi baru dari perubahan F02 frontend.
+
+### 2026-07-15 — F02 Backend: Storefront Publik (profil + report/flag)
+
+#### Ditambahkan
+- **`backend/src/storefront/`** — modul baru `StorefrontModule` (endpoint PUBLIK, tanpa `JwtAuthGuard`), terdaftar di `app.module.ts`:
+  - `GET /api/s/:slug` — profil storefront: resolve tenant by slug; **404** ("Storefront tidak ditemukan") bila slug tak ada atau tenant `CANCELED`; **200 `{ status: "INACTIVE", namaBisnis }`** minimal (tanpa field lain) bila tenant `RESTRICTED` (AC-F02-3); selain itu **200 `{ status: "ACTIVE", namaBisnis, kota, slug, theme, services, transport }`** — `services` hanya yang `aktif=true`, urut `nama` asc; `theme` menyertakan `customCss` mentah (FE yang memutuskan render), fallback ke default schema bila tenant belum punya row `Theme`; `transport` `null` bila tenant belum mengatur `TransportRule`. Query `select` Prisma SENGAJA tidak menyertakan `ownerUserId`, relasi `owner`, `subscription`, `paymentProfile`, `clients`, `bookings` — tidak ada jalur bocor data sensitif dari endpoint publik ini. Throttle 60/menit.
+  - `POST /api/s/:slug/report` — simpan `StorefrontReport` (status `OPEN` default) dari body `{ alasan (10-1000 char), kontak? (maks 200 char) }`; balas **201 `{ ok: true }`** tanpa id/detail (anti-enumeration); **404** bila slug tak ada. Throttle sangat ketat 3/menit per IP (endpoint tulis publik tanpa auth).
+  - Controller berbagi path dasar `/s/:slug` dengan `SlotsController` (F05) tanpa collision route — dipisah modul per tanggung jawab sesuai arahan tech-lead.
+  - `src/storefront/dto/storefront-profile-response.dto.ts`, `dto/create-storefront-report.dto.ts` — DTO response (union type `ACTIVE`/`INACTIVE`) & DTO request (`class-validator`).
+- **`backend/src/storefront/storefront.service.spec.ts`** — unit test `StorefrontService` (Prisma di-mock, pola sama `blocked-dates.service.spec.ts`): 404 slug tak ada, 404 tenant `CANCELED`, bentuk `INACTIVE` minimal utk `RESTRICTED` (memverifikasi `Object.keys` hanya `status`+`namaBisnis`), profil `ACTIVE` lengkap + hanya service `aktif=true` yang keluar, `select` Prisma tidak mengandung field sensitif, `transport: null` bila belum ada `TransportRule`, penyimpanan report (`kontak` opsional → `null`), 404 saat report ke slug tak ada. 9 kasus, semua lulus.
+
+#### Diperiksa (tanpa perubahan)
+- `npm run build` — 0 error. `npm test` — 5 suite / 44 test lulus (35 existing + 9 baru), termasuk integrasi Neon dev yang sudah ada.
+- Verifikasi manual via `start:dev` terhadap Neon dev (tenant nyata `f05-test-1784043392`): `GET /api/s/:slug` mengembalikan bentuk `ACTIVE` sesuai kontrak; `GET` slug tak ada → 404; `POST /report` → `201 { ok: true }` dan row `StorefrontReport` (status `OPEN`) benar-benar masuk ke DB (diverifikasi via query langsung); validasi `alasan` < 10 karakter → 400; toggle tenant ke `RESTRICTED` sementara → `GET` mengembalikan `{ status: "INACTIVE", namaBisnis }` persis, lalu dikembalikan ke `TRIAL`; throttle 3/menit pada endpoint report dikonfirmasi aktif (request setelah kuota terpakai → 429). Tidak ada perubahan permanen ke data Neon dev selain satu baris test `StorefrontReport` yang sengaja dibuat untuk verifikasi.
+
+### 2026-07-15 — F02 DB: Model `StorefrontReport` (Report/Flag Storefront Publik)
+
+#### Ditambahkan
+- **`backend/prisma/schema.prisma`** — model `StorefrontReport` (tenant-scoped) untuk tombol report/flag storefront publik (F02, FR-F02-5), dikonsumsi alur moderasi reaktif admin (F12, US-F12-2): `id, tenantId, alasan, kontak?, status(ReportStatus @default(OPEN)), createdAt`. Enum baru `ReportStatus { OPEN, REVIEWED, DISMISSED }` (UPPERCASE_ENGLISH sesuai `docs/conventions.md`). FK `tenantId → Tenant.id` dengan `onDelete: Cascade`; index pada `tenantId` dan `status`. Relasi balik `Tenant.storefrontReports`.
+- **`backend/prisma/migrations/20260714170534_f02_storefront_report/`** — migrasi Prisma (CreateEnum `ReportStatus`, CreateTable `StorefrontReport`, index, FK) diterapkan ke Neon dev; `prisma migrate status` bersih, `prisma generate` & `npm run build` (Nest) sukses tanpa error.
+
+#### Diubah
+- **`docs/data-model.md`** — seksi "Pendukung" ditambah entri `StorefrontReport` (skema ringkas + referensi F02/F12).
 
 #### Ditambahkan
 - **`backend/src/blocked-dates/blocked-dates.service.spec.ts`** — unit test (Prisma di-mock) untuk edge case F05 §9 yang sebelumnya tidak diuji: `create()` menolak (409 `ConflictException`) bila rentang blokir beririsan booking `CONFIRMED`/`PAID`; mengizinkan blokir bila tidak ada bentrok; menolak (400 `BadRequestException`) bila `tanggalMulai > tanggalSelesai`; memverifikasi booking `AWAITING_DP` (hold, belum confirmed) TIDAK menghalangi blokir tanggal (hanya status permanen yang menghalangi). 4 kasus, semua lulus.
