@@ -14,6 +14,7 @@ import { CustomFieldsModule } from './custom-fields/custom-fields.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { BlockedDatesModule } from './blocked-dates/blocked-dates.module';
 import { SlotsModule } from './slots/slots.module';
+import { StorefrontModule } from './storefront/storefront.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SlotsModule } from './slots/slots.module';
     AvailabilityModule,
     BlockedDatesModule,
     SlotsModule,
+    StorefrontModule,
   ],
   providers: [
     {
