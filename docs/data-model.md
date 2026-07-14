@@ -38,11 +38,11 @@ erDiagram
 - **Portfolio** `id, tenant_id, image_url, caption, urutan`
 
 ### Jadwal
-- **Availability** `id, tenant_id, hari, jam_mulai, jam_selesai, slot_durasi, kapasitas`
-- **BlockedDate** `id, tenant_id, tanggal/range, alasan`
+- **Availability** `id, tenant_id, hari(Int 0=Minggu..6=Sabtu), jam_mulai(Int, menit sejak 00:00), jam_selesai(Int, menit sejak 00:00), slot_durasi(Int, menit), kapasitas(Int, default 1)` — unique `(tenant_id, hari)`: satu window jam kerja per hari per tenant di MVP (multi-window/hari = ekstensi masa depan).
+- **BlockedDate** `id, tenant_id, tanggal_mulai(Date), tanggal_selesai(Date), alasan?` — rentang inklusif; satu hari = `tanggal_mulai = tanggal_selesai`. Index `(tenant_id, tanggal_mulai, tanggal_selesai)` untuk query overlap.
 
 ### Booking & Klien
-- **Booking** `id, tenant_id, kode, client_id, tanggal, jam_mulai, jam_selesai, status(AWAITING_DP|CONFIRMED|PAID|COMPLETED|CANCELED|EXPIRED), subtotal, transport_fee, total, dp_amount, sisa_amount, lokasi, custom_values{}, hold_expires_at, created_at`
+- **Booking** `id, tenant_id, kode, client_id, tanggal_acara, status(AWAITING_DP|CONFIRMED|PAID|COMPLETED|CANCELED|EXPIRED), subtotal, transport_fee, total, dp_amount, sisa_amount, lokasi, custom_values{}, hold_expires_at, created_at` — **tidak menyimpan jam_mulai/jam_selesai sendiri**: jendela hari kerja berasal dari `Availability(tenant_id, hari)`, durasi dihitung dari Σ `BookingItem.durasi`.
 - **BookingItem** `id, booking_id, service_id, qty, harga_snapshot`
 - **Client** `id, tenant_id, nama, phone, email, catatan, total_booking, created_at`
 
