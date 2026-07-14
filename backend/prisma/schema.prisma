@@ -100,6 +100,12 @@ enum TransportMode {
   ZONA
 }
 
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  DISMISSED
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -132,20 +138,21 @@ model Tenant {
   owner User @relation(fields: [ownerUserId], references: [id])
 
   /// Relasi ke entitas tenant-scoped (cascade delete: hapus Tenant → hapus semua data)
-  theme          Theme?
-  subscription   Subscription?
-  paymentProfile PaymentProfile?
-  transportRule  TransportRule?
-  services       Service[]
-  customFields   CustomField[]
-  clients        Client[]
-  bookings       Booking[]
-  payments       Payment[]
-  reviews        Review[]
-  invoices       Invoice[]
-  notifications  Notification[]
-  availabilities Availability[]
-  blockedDates   BlockedDate[]
+  theme             Theme?
+  subscription      Subscription?
+  paymentProfile    PaymentProfile?
+  transportRule     TransportRule?
+  services          Service[]
+  customFields      CustomField[]
+  clients           Client[]
+  bookings          Booking[]
+  payments          Payment[]
+  reviews           Review[]
+  invoices          Invoice[]
+  notifications     Notification[]
+  availabilities    Availability[]
+  blockedDates      BlockedDate[]
+  storefrontReports StorefrontReport[]
 
   @@index([ownerUserId])
   @@index([slug])
@@ -514,6 +521,28 @@ model Notification {
 
   @@index([tenantId])
   @@index([bookingId])
+}
+
+// ---------------------------------------------------------------------------
+// Moderasi (F02, F12)
+// ---------------------------------------------------------------------------
+
+/// Report/flag storefront publik oleh pengunjung (F02, FR-F02-5) — dikonsumsi
+/// tim admin di alur moderasi reaktif (F12, US-F12-2).
+/// `alasan` teks bebas dari pelapor — batasi panjang di DTO BE, bukan di DB.
+/// `kontak` opsional (email/WA pelapor) untuk follow-up bila diperlukan.
+model StorefrontReport {
+  id        String       @id @default(cuid())
+  tenantId  String // tenant yang dilaporkan
+  alasan    String
+  kontak    String?
+  status    ReportStatus @default(OPEN)
+  createdAt DateTime     @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
 }
 
 // ---------------------------------------------------------------------------
