@@ -19,7 +19,9 @@ export class RegisterDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^[+]?[0-9]{8,15}$/, { message: 'Format nomor telepon tidak valid.' })
+  @Matches(/^[+]?[0-9]{8,15}$/, {
+    message: 'Format nomor telepon tidak valid.',
+  })
   phone?: string;
 
   @IsNotEmpty({ message: 'Nama bisnis wajib diisi.' })
@@ -29,8 +31,9 @@ export class RegisterDto {
 
   @IsNotEmpty({ message: 'Slug wajib diisi.' })
   @IsString()
-  @Matches(/^[a-z0-9-]{3,50}$/, {
-    message: 'Slug hanya boleh huruf kecil, angka, dan tanda hubung (3–50 karakter).',
+  @Matches(/^[a-z0-9-]{3,30}$/, {
+    message:
+      'Slug hanya boleh huruf kecil, angka, dan tanda hubung (3–30 karakter).',
   })
   slug: string;
 
