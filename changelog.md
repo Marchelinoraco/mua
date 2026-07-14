@@ -7,6 +7,94 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-07-15 — QA: Validasi Milestone F05 (Kalender & Anti-Bentrok)
+
+#### Ditambahkan
+- **`backend/src/blocked-dates/blocked-dates.service.spec.ts`** — unit test (Prisma di-mock) untuk edge case F05 §9 yang sebelumnya tidak diuji: `create()` menolak (409 `ConflictException`) bila rentang blokir beririsan booking `CONFIRMED`/`PAID`; mengizinkan blokir bila tidak ada bentrok; menolak (400 `BadRequestException`) bila `tanggalMulai > tanggalSelesai`; memverifikasi booking `AWAITING_DP` (hold, belum confirmed) TIDAK menghalangi blokir tanggal (hanya status permanen yang menghalangi). 4 kasus, semua lulus.
+
+#### Diperiksa (tanpa perubahan)
+- **BE**: `npm test` — 4 suite/35 test lulus (31 existing + 4 baru). Integrasi `slots.service.integration.spec.ts` dikonfirmasi benar-benar berjalan terhadap Neon dev (bukan di-skip) — dua `$transaction` paralel pada slot kapasitas 1 menghasilkan tepat 1 sukses + 1 `ConflictException`, AC-F05-1 tervalidasi nyata (bukan simulasi). `npm run build` — 0 error.
+- **AC-F05-2** (hold kedaluwarsa → slot bebas): sudah tercakup eksplisit di `slots.util.spec.ts` (`isBookingActive`) — kasus `holdUntil` di masa depan (memblokir) dan `holdUntil` sudah lewat (bebas, lazy expiry) sama-sama diuji. Tidak perlu tes tambahan.
+- **AC-F05-3** (konfirmasi DP mengunci permanen): di luar lingkup F05, didelegasikan ke F06 — tidak dibuat tes di sini.
+- **FE**: `npx vitest run src/lib src/features/schedule` — 19/19 lulus, termasuk `time.test.ts` dan `cookies.test.ts` (tidak ada test komponen di `src/features/schedule/` — verifikasi fitur ini murni manual E2E Playwright oleh frontend-engineer, dicatat sebagai gap koverage otomatis, bukan blocker). Full run `npx vitest run` menunjukkan kegagalan hanya pada suite pre-existing tak terkait (`config-drawer`, `users-*-dialog`, `tasks-*-dialog`, `sign-up-form`, `user-auth-form` — timeout locator browser, dikonfirmasi sudah ada sebelum F05); nol regresi baru, nol kegagalan pada file yang disentuh F05.
+- Tidak ada perubahan kode produksi — hanya file test baru di atas.
+
+### 2026-07-14 — F05 Frontend: Halaman "Jadwal" (Jam Kerja, Tanggal Diblokir, Kalender) + Fix Keamanan Cookie (M-2)
+
+#### Ditambahkan
+- **`frontend/src/features/schedule/`** — fitur "Jadwal" (F05) mengikuti pola template (`provider` + `hooks` TanStack Query + Zod + i18n), terhubung ke API `backend-engineer` yang sudah ada (`/availability`, `/blocked-dates`, `/calendar`):
+  - `data/types.ts`, `data/schema.ts` — kontrak `Availability`/`BlockedDate`/`CalendarResponse` persis DTO backend; skema Zod mirror validasi BE (`jamMulai<jamSelesai`, rentang jam ≥ `slotDurasi`, tanggal selesai ≥ mulai untuk rentang blokir).
+  - `data/data.ts` — `HARI_TAMPIL_ORDER` (Senin→Minggu untuk tampilan, terpisah dari `hari` 0=Minggu..6=Sabtu punya BE — sengaja tidak diurutkan ulang array dari API).
+  - `hooks/use-availability.ts`, `hooks/use-blocked-dates.ts`, `hooks/use-calendar.ts` — query + mutation + invalidation silang (`availability`/`blocked-dates` → invalidate `calendar` juga karena saling memengaruhi tampilan kalender). `useCreateBlockedDate` menangani `409` dari BE (irisan booking `CONFIRMED`/`PAID`) dengan menampilkan pesan server apa adanya ("Pindahkan booking tersebut...").
+  - `components/schedule-provider.tsx`, `schedule-dialogs.tsx` — state dialog tambah/hapus tanggal diblokir (pola `ServiceProvider`).
+  - `components/availability-editor.tsx` — editor 7 hari (toggle aktif, jam mulai/selesai via `<input type="time">`, slot durasi, kapasitas); simpan = `PUT` array hanya hari aktif (hari nonaktif otomatis "dihapus" sesuai kontrak replace-all BE).
+  - `components/blocked-dates-list.tsx`, `blocked-date-form-dialog.tsx` — list + dialog tambah (tanggal tunggal atau rentang via toggle "Rentang beberapa hari", pakai `DatePicker` yang sudah ada) + hapus via `ConfirmDialog` existing.
+  - `components/schedule-calendar.tsx`, `schedule-calendar-day.tsx` — grid bulan CSS custom (bukan library eksternal), navigasi prev/next bulan → fetch ulang `GET /calendar` per rentang bulan; per hari: badge "Diblokir" (tooltip alasan) dan hingga 2 badge kode booking (warna status pakai `BOOKING_STATUS_BADGE_CLASS` dari fitur dashboard, label status dari namespace i18n `dashboard`).
+  - `index.tsx` — komposisi `ScheduleProvider` + `Tabs` 3 seksi (Kalender/Jam Kerja/Tanggal Diblokir) + `ScheduleDialogs`, mengikuti layout `Header`/`Main` template.
+- **`frontend/src/lib/time.ts`** (+ `time.test.ts`) — util bersama `menitKeHHmm`/`hhmmKeMenit` (konversi menit-sejak-00:00 ↔ `"HH:mm"`) dipakai fitur Jadwal untuk merepresentasikan `jamMulai`/`jamSelesai` integer BE sebagai input jam yang lazim dibaca manusia.
+- **`frontend/src/locales/{id,en}/schedule.json`** — namespace i18n baru untuk fitur Jadwal, didaftarkan di `src/lib/i18n.ts`.
+- Route existing `frontend/src/routes/_authenticated/availability/index.tsx` (placeholder "Segera hadir") disambungkan ke `<Schedule />` — tidak perlu route baru karena placeholder untuk `/availability` sudah ada di sidebar.
+
+#### Diubah
+- **`frontend/src/lib/cookies.ts`** (fix audit M-2) — `setCookie` kini menyertakan atribut `SameSite=Lax` (mitigasi CSRF) selalu, dan `Secure` hanya bila `location.protocol === 'https:'` (agar `npm run dev` di `http://localhost` tetap bisa login — browser menolak cookie `Secure` di konteks non-HTTPS).
+- **`frontend/src/components/date-picker.tsx`** — `disabled` (fungsi tanggal nonaktif) dan `className` dibuat jadi prop opsional (sebelumnya hardcode untuk kasus tanggal lahir: tak boleh di masa depan) supaya komponen bisa dipakai ulang oleh dialog Tanggal Diblokir (kasus sebaliknya: tak boleh tanggal lampau) tanpa menduplikasi komponen. Pemakaian existing (`account-form.tsx`, field `dob`) tidak berubah perilakunya (default tetap sama).
+- **`frontend/src/components/layout/data/sidebar-data.ts`** — label menu "Ketersediaan" → "Jadwal" (cakupan halaman kini lebih luas: jam kerja + tanggal diblokir + kalender, bukan hanya jam kerja).
+
+#### Diperiksa (tanpa perubahan)
+- **`frontend/src/stores/auth-store.ts`** — sudah TIDAK men-decode JWT untuk mendapatkan `email`; `user` (termasuk `email`) diisi dari respons `POST /auth/register`/`login` via `setAuth()`, konsisten dengan payload JWT BE yang kini hanya berisi `sub`/`tenantId`. Tidak ditemukan pemakaian decode-JWT lain di `frontend/src`.
+
+#### Verifikasi
+- `npx tsc -b` — 0 error. `npm run build` — sukses (bundle baru `availability-*.js` untuk fitur Jadwal, tidak ada error lain).
+- `npx eslint` pada seluruh file baru/diubah — 0 error, 0 warning (pre-existing errors di file lain yang tidak disentuh — `sign-up-form.tsx`, `user-auth-form.tsx`, `trial-banner.tsx`, `date.ts`, `onboarding/index.tsx`, `types/i18next.d.ts` — dikonfirmasi sudah ada sebelum perubahan ini, di luar lingkup tugas).
+- `npx vitest run src/lib/time.test.ts src/lib/cookies.test.ts` — lulus (termasuk round-trip `menitKeHHmm`/`hhmmKeMenit` dan cookie `Secure`/`SameSite` tidak merusak get/set/remove existing test yang jalan di `http:` browser test-runner).
+- Uji manual end-to-end (`npm run start:dev` backend @ Neon dev + `npm run dev` frontend, didorong lewat Playwright headless untuk mengambil screenshot tiap langkah): register akun MUA baru → set Jam Kerja Senin 09:00–17:00/slot 60/kapasitas 1 → **Simpan** → toast "Jam kerja berhasil disimpan." → reload → nilai tetap tersimpan. Tab Tanggal Diblokir → **Tambah Blokir** tanggal besok alasan "Tes libur" → **409** diuji tidak terjadi (tanggal kosong) → sukses, toast "Tanggal berhasil diblokir." → tambah tanggal kedua → hapus salah satu via `ConfirmDialog` (pesan terisi tanggal terformat) → toast "Blokir tanggal berhasil dihapus." Tab Kalender menampilkan grid Juli 2026 dengan badge "Diblokir" pada tanggal yang diblokir via `curl` sebelumnya. Nol error console, nol request gagal di semua langkah.
+
+### 2026-07-14 — F05 Backend: Kalender & Anti-Bentrok (API) + Security Hardening (H-1, H-2, M-1, M-3, L-5)
+
+#### Ditambahkan
+- **`backend/src/availability/`** (`AvailabilityModule`) — jam kerja MUA per hari (FR-F05-1):
+  - `GET /api/availability` — list aturan tenant, urut `hari` asc.
+  - `PUT /api/availability` — bulk upsert **replace-all** dalam satu `$transaction`: body adalah ARRAY langsung (divalidasi per-elemen via `ParseArrayPipe({ items: UpsertAvailabilityItemDto })`, bukan dibungkus objek). Hari yang tidak dikirim (atau dikirim `aktif:false`) **dihapus**; `aktif` bukan kolom DB — hanya sinyal request untuk skip persist. Validasi: `0<=hari<=6`, `0<=jamMulai<jamSelesai<=1440`, `slotDurasi>0`, `kapasitas>=1`, `jamSelesai-jamMulai>=slotDurasi`, tidak boleh ada `hari` duplikat dalam satu payload.
+- **`backend/src/blocked-dates/`** (`BlockedDatesModule`) — tanggal/rentang diblokir (FR-F05-2):
+  - `GET /api/blocked-dates?from=&to=` — list, filter rentang opsional (overlap).
+  - `POST /api/blocked-dates` — buat `{tanggalMulai, tanggalSelesai, alasan?}`; **409 Conflict** bila rentang beririsan dengan booking `CONFIRMED`/`PAID` existing (F05 §9) — pesan minta pindahkan booking dulu.
+  - `DELETE /api/blocked-dates/:id` — cek kepemilikan `tenantId` dulu (404 jika bukan milik tenant), baru hapus.
+- **`backend/src/slots/`** (`SlotsModule`) — slot engine F05, dipakai storefront publik & disiapkan untuk F04:
+  - `slots.util.ts` — fungsi murni testable: `parseDateOnlyUtc`/`toDateOnlyString`/`addDaysUtc`/`diffDaysUtc`/`truncateToDateUtc` (tanggal diperlakukan UTC-naive — belum ada kolom timezone per tenant), `generateSlotWindows` (FR-F05-3), `rangesOverlap`, `isBookingActive` (lazy expiry: `AWAITING_DP` dengan `holdUntil` lewat dianggap bebas tanpa perlu worker — flip status ke `EXPIRED` didelegasikan ke cron terpisah, direncanakan F08), `countOccupancy`.
+  - `SlotsController` (`GET /api/s/:slug/slots?date=YYYY-MM-DD`) — **PUBLIK, tanpa `JwtAuthGuard`**: resolve tenant dari slug, hitung slot dari `Availability` dikurangi `BlockedDate` dan okupansi booking aktif (`CONFIRMED`/`PAID`/`AWAITING_DP` belum expired). Response minimal `{ date, slots: [{jamMulai, jamSelesai, tersedia}] }` — tidak membocorkan detail booking/klien. Throttle ketat 30/menit (H-1).
+  - `CalendarController` (`GET /api/calendar?from=&to=`, dashboard, auth) — gabungan booking (dengan nama klien + total durasi) + blocked dates + availability tenant, dikelompokkan per tanggal (`days[]`); dibatasi maks 100 hari per request.
+  - `SlotsService.reserveSlotOrThrow(tx, tenantId, tanggalAcara, durasiMenit)` — **primitif anti-bentrok (FR-F05-7)**, dipakai F04 nanti: HARUS dipanggil di dalam `prisma.$transaction`. Kunci atomik via `pg_advisory_xact_lock(hashtext(tenantId:tanggal))` (Prisma tagged template `$executeRaw`, terparameterisasi penuh — bukan `SELECT...FOR UPDATE` karena baris booking untuk slot itu mungkin belum eksis sama sekali sehingga `FOR UPDATE` tidak bisa mencegah race pada booking pertama di hari itu). Setelah lock, re-cek availability/blocked-date/okupansi; jika penuh → `ConflictException("Slot baru saja terisi.")`.
+- **Test slot engine**:
+  - `backend/src/slots/slots.util.spec.ts` — 19 kasus unit murni: parsing tanggal, generate slot window, overlap rentang, lazy expiry hold (AC-F05-2), overlap blocked date (F05 §9), perhitungan okupansi.
+  - `backend/src/slots/slots.service.integration.spec.ts` — integrasi terhadap Neon dev nyata (`describe.skip` otomatis bila `DATABASE_URL` tidak ada): dua `$transaction` paralel `reserveSlotOrThrow` + `booking.create` pada slot kapasitas 1 → **tepat satu sukses, satu `ConflictException`** (AC-F05-1), memverifikasi tidak ada double-book tersimpan di DB. Data uji dibersihkan di `afterAll`.
+- **`@nestjs/throttler`** (H-1) — rate-limit global `ThrottlerModule.forRoot({ throttlers: [{ ttl: 60_000, limit: 60 }] })` + `APP_GUARD` di `app.module.ts`; `@Throttle` lebih ketat di `POST /auth/register` & `POST /auth/login` (5/menit), `GET /tenants/slug-check` (10/menit), `POST /auth/verify-otp` (5/menit), `GET /s/:slug/slots` (30/menit).
+
+#### Diubah
+- **`backend/src/app.setup.ts`** (H-1) — `app.getHttpAdapter().getInstance()` di-cast ke `Application` (express) lalu `.set('trust proxy', 1)` — supaya `ThrottlerGuard` membaca IP klien asli dari `X-Forwarded-For` di belakang proxy Vercel (`1` = percaya satu hop terdekat saja, mitigasi IP-spoofing).
+- **`backend/src/auth/auth.controller.ts`** (H-2) — `POST /auth/verify-otp` **tidak lagi** membalas `{ verified: true }` tanpa verifikasi nyata (stub berbahaya) — sekarang selalu melempar `NotImplementedException` (501). Dicek: tidak ada pemakaian `verify-otp`/`verifyOtp` di `frontend/src`, sehingga aman diubah tanpa koordinasi FE. TODO F08 tetap: integrasi WhatsApp Business API nyata.
+- **`backend/src/auth/auth.service.ts`** (M-1, M-3) — `register()`: pesan konflik email disamakan jadi generik `"Registrasi gagal. Periksa kembali data Anda."` untuk SEMUA kasus akun sudah ada (anti-enumeration) — sebelumnya membedakan "email sudah terdaftar" vs "akun sudah punya tenant", yang bisa dipakai menebak email terdaftar. Pesan "Slug sudah digunakan" tetap spesifik (slug memang publik). `signToken()` di `register()`/`login()` tidak lagi menyertakan `email` di payload JWT.
+- **`backend/src/common/decorators/current-user.decorator.ts`** (M-3) — `JwtPayload` dipangkas jadi `{ sub, tenantId }` saja (hapus `email`) — guard/tenant-scoping hanya butuh keduanya; profil (termasuk email) diambil ulang dari DB via `GET /auth/me` bila FE butuh.
+- **`backend/src/auth/dto/register.dto.ts`** (L-5) — regex slug `{3,50}` → `{3,30}`, disamakan dengan `GET /tenants/slug-check` (`{3,30}`).
+- **`backend/src/tenant/tenant.controller.ts`** — tambah `@Throttle({ limit: 10, ttl: 60_000 })` di `GET /tenants/slug-check` (H-1).
+- **`backend/src/app.module.ts`** — daftarkan `ThrottlerModule` + `APP_GUARD: ThrottlerGuard`, dan modul baru `AvailabilityModule`, `BlockedDatesModule`, `SlotsModule`.
+- **`backend/package.json`** — dependensi baru `@nestjs/throttler`.
+
+#### Verifikasi
+- `npm run build` (nest build) — 0 error.
+- `npm test` — 31/31 lulus (19 unit `slots.util.spec.ts` + 1 integrasi race-condition `slots.service.integration.spec.ts` + 11 existing `pricing.util.spec.ts`).
+- `npx eslint` pada seluruh file baru/diubah — 0 error, 0 warning baru (2 error pre-existing tak terkait — `auth.module.ts` unsafe `any` di `JwtModuleOptions`, `main.ts` floating-promise `bootstrap()` — dibiarkan, di luar lingkup tugas ini).
+- Uji manual via `npm run start:dev` (Neon dev): register → `PUT /availability` (Selasa 09:00–17:00, slot 60 menit, kapasitas 1) → `GET /s/:slug/slots?date=2026-07-21` menampilkan 8 slot `tersedia:true` → `POST /blocked-dates` tanggal sama → slot berubah `tersedia:false` semua → `DELETE /blocked-dates/:id` → slot kembali `tersedia:true`. `GET /calendar` menampilkan hari terblokir + alasan. `POST /auth/verify-otp` → `501`. Registrasi email duplikat → pesan generik `409`. Payload JWT terverifikasi hanya berisi `sub`/`tenantId` (tanpa `email`). Data uji dibersihkan setelahnya.
+- **Kontrak API untuk `frontend-engineer`** — lihat ringkasan endpoint & DTO di bawah (dilaporkan penuh ke tech-lead/frontend-engineer di luar file ini; struktur response persis seperti didefinisikan di masing-masing `dto/*.dto.ts`).
+
+### 2026-07-14 — F05: model `Availability` & `BlockedDate` (jadwal & anti-bentrok)
+
+#### Ditambahkan
+- **`backend/prisma/schema.prisma`** — model `Availability` (`tenantId, hari` Int 0=Minggu..6=Sabtu, `jamMulai`/`jamSelesai` Int menit-sejak-tengah-malam, `slotDurasi` Int menit, `kapasitas` Int default 1; `@@unique([tenantId, hari])` — satu window jam kerja per hari per tenant di MVP; `@@index([tenantId])`) dan model `BlockedDate` (`tenantId, tanggalMulai`/`tanggalSelesai` `@db.Date` rentang inklusif, `alasan` opsional; `@@index([tenantId])` + `@@index([tenantId, tanggalMulai, tanggalSelesai])` untuk query overlap). Keduanya relasi `Tenant` `onDelete: Cascade`. Ditambahkan komentar pada model `Booking` menegaskan durasi booking dihitung dari Σ `BookingItem.durasi` dan jendela hari dari `Availability`, bukan kolom terpisah di `Booking`.
+- **`backend/prisma/migrations/20260714141740_f05_availability_blocked_date/`** — migrasi Prisma: `CREATE TABLE Availability`, `CREATE TABLE BlockedDate`, index & unique constraint terkait, FK ke `Tenant` (cascade). Diverifikasi terhadap Neon `dev`: `prisma migrate status` bersih, `prisma generate` & `npm run build` (nest build) sukses.
+
+#### Diubah
+- **`docs/data-model.md`** §Jadwal — detail tipe & representasi final `Availability`/`BlockedDate` (Int untuk hari/jam, Date untuk rentang blokir) serta catatan bahwa `Booking` tidak menyimpan `jam_mulai`/`jam_selesai` sendiri (diturunkan dari `Availability` + `BookingItem.durasi`).
+
 ### 2026-07-14 — Fix konflik peer dependency `i18next` vs TypeScript 6 (Vercel build frontend)
 
 #### Diperbaiki
