@@ -7,6 +7,7 @@ import enNavigation from '@/locales/en/navigation.json'
 import enSchedule from '@/locales/en/schedule.json'
 import enServices from '@/locales/en/services.json'
 import enSettings from '@/locales/en/settings.json'
+import enStorefront from '@/locales/en/storefront.json'
 import enTasks from '@/locales/en/tasks.json'
 import enUsers from '@/locales/en/users.json'
 import idAuth from '@/locales/id/auth.json'
@@ -18,6 +19,7 @@ import idNavigation from '@/locales/id/navigation.json'
 import idSchedule from '@/locales/id/schedule.json'
 import idServices from '@/locales/id/services.json'
 import idSettings from '@/locales/id/settings.json'
+import idStorefront from '@/locales/id/storefront.json'
 import idTasks from '@/locales/id/tasks.json'
 import idUsers from '@/locales/id/users.json'
 import i18n from 'i18next'
@@ -36,6 +38,7 @@ export const resources = {
     schedule: enSchedule,
     services: enServices,
     settings: enSettings,
+    storefront: enStorefront,
     tasks: enTasks,
     users: enUsers,
   },
@@ -48,6 +51,7 @@ export const resources = {
     schedule: idSchedule,
     services: idServices,
     settings: idSettings,
+    storefront: idStorefront,
     tasks: idTasks,
     users: idUsers,
   },

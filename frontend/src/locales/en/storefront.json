@@ -1,0 +1,65 @@
+{
+  "notFound": {
+    "title": "Storefront Not Found",
+    "desc": "The page you're looking for isn't available. Make sure the link you opened is correct."
+  },
+  "inactive": {
+    "desc": "{{namaBisnis}} is temporarily not accepting bookings. Please check back later."
+  },
+  "loadError": {
+    "title": "Failed to Load Page",
+    "desc": "Something went wrong while loading this storefront. Try reloading the page."
+  },
+  "services": {
+    "title": "Services",
+    "empty": "No services to show yet.",
+    "durasiValue": "{{count}} minutes",
+    "butuhTransport": "Travel required",
+    "dpLabel": "Deposit {{nilai}}"
+  },
+  "transport": {
+    "title": "Travel Fee",
+    "flatDesc": "A flat travel fee of {{nominal}} applies to all locations.",
+    "zona": "Zone",
+    "nominal": "Amount"
+  },
+  "availability": {
+    "title": "Check Availability",
+    "desc": "Pick a date to see the open time slots.",
+    "pilihTanggal": "Pick a date",
+    "hint": "Pick a date to see available slots.",
+    "empty": "No available slots on this date.",
+    "loadError": "Failed to load availability. Try another date."
+  },
+  "cta": {
+    "booking": "Book Now"
+  },
+  "booking": {
+    "title": "Online Booking Coming Soon",
+    "desc": "Online booking is on its way. For now, please contact the MUA directly through their social media contact to make an appointment.",
+    "close": "Close"
+  },
+  "footer": {
+    "report": "Report this page",
+    "poweredBy": "Powered by GlowBook"
+  },
+  "report": {
+    "title": "Report This Page",
+    "desc": "Let us know if this page violates our terms (inappropriate content, scam, etc).",
+    "alasan": "Reason",
+    "alasanPlaceholder": "Explain your reason for reporting (minimum 10 characters)",
+    "kontak": "Contact (optional)",
+    "kontakPlaceholder": "Your email or WhatsApp number",
+    "submit": "Submit Report",
+    "sending": "Sending...",
+    "toastSuccess": "Report submitted successfully. Thank you.",
+    "toastThrottle": "Too many attempts. Please try again shortly.",
+    "toastError": "Failed to submit report. Please try again."
+  },
+  "tipeOptions": {
+    "MAKEUP": "Makeup",
+    "HAIR": "Hair",
+    "NAIL": "Nail Art",
+    "OTHER": "Other"
+  }
+}
