@@ -20,7 +20,9 @@ export class PaymentProfileService {
    * GET /payment-profile — ambil PaymentProfile milik tenant.
    * Throw NotFoundException jika belum diisi (belum setup onboarding).
    */
-  async getPaymentProfile(tenantId: string): Promise<PaymentProfileResponseDto> {
+  async getPaymentProfile(
+    tenantId: string,
+  ): Promise<PaymentProfileResponseDto> {
     const profile = await this.prisma.paymentProfile.findUnique({
       where: { tenantId },
       select: {

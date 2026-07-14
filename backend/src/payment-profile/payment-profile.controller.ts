@@ -13,9 +13,7 @@ import { PaymentProfileResponseDto } from './dto/payment-profile-response.dto';
 @Controller('payment-profile')
 @UseGuards(JwtAuthGuard)
 export class PaymentProfileController {
-  constructor(
-    private readonly paymentProfileService: PaymentProfileService,
-  ) {}
+  constructor(private readonly paymentProfileService: PaymentProfileService) {}
 
   /** GET /payment-profile — ambil instruksi rekening tenant yang login. */
   @Get()
