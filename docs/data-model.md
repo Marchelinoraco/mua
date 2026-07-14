@@ -57,6 +57,7 @@ erDiagram
 ### Pendukung
 - **Review** `id, tenant_id, booking_id, rating(1-5), komentar, status(PUBLISHED|FLAGGED|HIDDEN), created_at`
 - **Notification** `id, tenant_id, kanal(wa|email), template, target, payload, status(QUEUED|SENT|DELIVERED|FAILED), sent_at`
+- **StorefrontReport** `id, tenant_id, alasan, kontak?, status(OPEN|REVIEWED|DISMISSED), created_at` — report/flag storefront publik oleh pengunjung (F02, FR-F02-5), dikonsumsi alur moderasi reaktif admin (F12, US-F12-2). `alasan` teks bebas dari pelapor (batasi panjang di DTO BE); `kontak` opsional untuk follow-up.
 - **AuditLog** **[global]** `id, actor, tenant_id, aksi, entity, before, after, at`
 
 ## 3. Status Penting (lihat dokumen fitur)
