@@ -21,7 +21,13 @@ export function getCookie(name: string): string | undefined {
 }
 
 /**
- * Set a cookie with name, value, and optional max age
+ * Set a cookie with name, value, and optional max age.
+ *
+ * Keamanan (temuan audit M-2): selalu set `SameSite=Lax` untuk mitigasi CSRF,
+ * dan `Secure` bila halaman dilayani via HTTPS. `Secure` sengaja diskip pada
+ * `http:` (mis. `npm run dev` di localhost) karena browser menolak menyimpan
+ * cookie `Secure` di konteks non-HTTPS — tanpa pengecualian ini, login akan
+ * gagal di dev lokal.
  */
 export function setCookie(
   name: string,
@@ -30,7 +36,11 @@ export function setCookie(
 ): void {
   if (typeof document === 'undefined') return
 
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}`
+  const isHttps =
+    typeof location !== 'undefined' && location.protocol === 'https:'
+  const secureAttr = isHttps ? '; Secure' : ''
+
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax${secureAttr}`
 }
 
 /**
