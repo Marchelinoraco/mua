@@ -12,12 +12,20 @@ type DatePickerProps = {
   selected: Date | undefined
   onSelect: (date: Date | undefined) => void
   placeholder?: string
+  /** Override default (dipakai untuk field tanggal lahir: tak boleh di masa depan). */
+  disabled?: (date: Date) => boolean
+  className?: string
 }
+
+const defaultDisabled = (date: Date) =>
+  date > new Date() || date < new Date('1900-01-01')
 
 export function DatePicker({
   selected,
   onSelect,
   placeholder = 'Pick a date',
+  disabled = defaultDisabled,
+  className,
 }: DatePickerProps) {
   return (
     <Popover>
@@ -25,7 +33,10 @@ export function DatePicker({
         <Button
           variant='outline'
           data-empty={!selected}
-          className='w-60 justify-start text-start font-normal data-[empty=true]:text-muted-foreground'
+          className={
+            className ??
+            'w-60 justify-start text-start font-normal data-[empty=true]:text-muted-foreground'
+          }
         >
           {selected ? formatDate(selected) : <span>{placeholder}</span>}
           <CalendarIcon className='ms-auto h-4 w-4 opacity-50' />
@@ -37,9 +48,7 @@ export function DatePicker({
           captionLayout='dropdown'
           selected={selected}
           onSelect={onSelect}
-          disabled={(date: Date) =>
-            date > new Date() || date < new Date('1900-01-01')
-          }
+          disabled={disabled}
         />
       </PopoverContent>
     </Popover>

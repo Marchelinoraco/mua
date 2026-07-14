@@ -1,0 +1,83 @@
+{
+  "title": "Jadwal",
+  "description": "Atur jam kerja, tanggal diblokir, dan lihat kalender booking.",
+
+  "tabs": {
+    "calendar": "Kalender",
+    "availability": "Jam Kerja",
+    "blockedDates": "Tanggal Diblokir"
+  },
+
+  "hari": {
+    "0": "Minggu",
+    "1": "Senin",
+    "2": "Selasa",
+    "3": "Rabu",
+    "4": "Kamis",
+    "5": "Jumat",
+    "6": "Sabtu"
+  },
+
+  "availability": {
+    "title": "Jam Kerja",
+    "description": "Aktifkan hari kerja dan atur rentang jam, durasi slot, serta kapasitas per hari.",
+    "loadError": "Gagal memuat jam kerja. Coba muat ulang halaman.",
+    "jamMulai": "Jam Mulai",
+    "jamSelesai": "Jam Selesai",
+    "slotDurasi": "Durasi Slot (menit)",
+    "kapasitas": "Kapasitas",
+    "save": "Simpan Jam Kerja",
+    "saving": "Menyimpan...",
+    "toast": {
+      "saveSuccess": "Jam kerja berhasil disimpan."
+    }
+  },
+
+  "blockedDates": {
+    "title": "Tanggal Diblokir",
+    "description": "Tandai tanggal atau rentang tanggal yang tidak tersedia untuk booking (libur, acara di luar sistem).",
+    "add": "Tambah Blokir",
+    "loadError": "Gagal memuat tanggal diblokir. Coba muat ulang halaman.",
+    "empty": "Belum ada tanggal yang diblokir.",
+    "delete": "Hapus",
+    "columns": {
+      "tanggal": "Tanggal",
+      "alasan": "Alasan",
+      "aksi": "Aksi"
+    },
+    "deleteDialog": {
+      "title": "Hapus Blokir Tanggal?",
+      "desc": "Blokir untuk tanggal {{tanggal}} akan dihapus dan slot pada tanggal tersebut kembali tersedia.",
+      "confirm": "Hapus"
+    },
+    "formDialog": {
+      "title": "Blokir Tanggal",
+      "desc": "Pilih tanggal atau rentang tanggal yang ingin diblokir dari booking.",
+      "tanggal": "Tanggal",
+      "tanggalMulai": "Tanggal Mulai",
+      "tanggalSelesai": "Tanggal Selesai",
+      "pilihTanggal": "Pilih tanggal",
+      "rentang": "Rentang beberapa hari",
+      "alasan": "Alasan (opsional)",
+      "alasanPlaceholder": "Contoh: Libur pribadi, acara keluarga",
+      "save": "Simpan",
+      "saving": "Menyimpan..."
+    },
+    "toast": {
+      "createSuccess": "Tanggal berhasil diblokir.",
+      "deleteSuccess": "Blokir tanggal berhasil dihapus.",
+      "conflict": "Rentang tanggal ini memiliki booking terkonfirmasi. Pindahkan booking tersebut sebelum memblokir tanggal ini."
+    }
+  },
+
+  "calendar": {
+    "title": "Kalender",
+    "description": "Lihat jam kerja, tanggal diblokir, dan booking per bulan.",
+    "loadError": "Gagal memuat kalender. Coba muat ulang halaman.",
+    "prevMonth": "Bulan sebelumnya",
+    "nextMonth": "Bulan berikutnya",
+    "blocked": "Diblokir",
+    "blockedNoReason": "Tanggal ini diblokir.",
+    "moreBookings": "+{{count}} booking lainnya"
+  }
+}

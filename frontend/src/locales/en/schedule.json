@@ -1,0 +1,83 @@
+{
+  "title": "Schedule",
+  "description": "Manage working hours, blocked dates, and view the booking calendar.",
+
+  "tabs": {
+    "calendar": "Calendar",
+    "availability": "Working Hours",
+    "blockedDates": "Blocked Dates"
+  },
+
+  "hari": {
+    "0": "Sunday",
+    "1": "Monday",
+    "2": "Tuesday",
+    "3": "Wednesday",
+    "4": "Thursday",
+    "5": "Friday",
+    "6": "Saturday"
+  },
+
+  "availability": {
+    "title": "Working Hours",
+    "description": "Enable working days and set the time range, slot duration, and capacity for each day.",
+    "loadError": "Failed to load working hours. Try reloading the page.",
+    "jamMulai": "Start Time",
+    "jamSelesai": "End Time",
+    "slotDurasi": "Slot Duration (minutes)",
+    "kapasitas": "Capacity",
+    "save": "Save Working Hours",
+    "saving": "Saving...",
+    "toast": {
+      "saveSuccess": "Working hours saved successfully."
+    }
+  },
+
+  "blockedDates": {
+    "title": "Blocked Dates",
+    "description": "Mark a date or date range as unavailable for booking (holidays, off-system events).",
+    "add": "Add Block",
+    "loadError": "Failed to load blocked dates. Try reloading the page.",
+    "empty": "No blocked dates yet.",
+    "delete": "Delete",
+    "columns": {
+      "tanggal": "Date",
+      "alasan": "Reason",
+      "aksi": "Actions"
+    },
+    "deleteDialog": {
+      "title": "Delete Blocked Date?",
+      "desc": "The block for {{tanggal}} will be removed and the slot on that date will become available again.",
+      "confirm": "Delete"
+    },
+    "formDialog": {
+      "title": "Block Date",
+      "desc": "Choose a date or date range to block from booking.",
+      "tanggal": "Date",
+      "tanggalMulai": "Start Date",
+      "tanggalSelesai": "End Date",
+      "pilihTanggal": "Pick a date",
+      "rentang": "Multi-day range",
+      "alasan": "Reason (optional)",
+      "alasanPlaceholder": "e.g. Personal day off, family event",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "toast": {
+      "createSuccess": "Date blocked successfully.",
+      "deleteSuccess": "Blocked date removed successfully.",
+      "conflict": "This date range has a confirmed booking. Move that booking before blocking this date."
+    }
+  },
+
+  "calendar": {
+    "title": "Calendar",
+    "description": "View working hours, blocked dates, and bookings by month.",
+    "loadError": "Failed to load calendar. Try reloading the page.",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "blocked": "Blocked",
+    "blockedNoReason": "This date is blocked.",
+    "moreBookings": "+{{count}} more"
+  }
+}

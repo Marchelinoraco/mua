@@ -50,7 +50,7 @@ export const sidebarData: SidebarData = {
           icon: CalendarCheck,
         },
         {
-          title: 'Ketersediaan',
+          title: 'Jadwal',
           url: '/availability',
           icon: CalendarClock,
         },
