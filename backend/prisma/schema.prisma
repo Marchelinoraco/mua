@@ -110,7 +110,7 @@ model User {
   email        String   @unique
   phone        String?
   passwordHash String?
-  timezone     String?  // opsional; mis. "Asia/Makassar"
+  timezone     String? // opsional; mis. "Asia/Makassar"
   createdAt    DateTime @default(now())
 
   /// Relasi 1:1 — user memiliki tepat satu tenant (Paket A).
@@ -144,6 +144,8 @@ model Tenant {
   reviews        Review[]
   invoices       Invoice[]
   notifications  Notification[]
+  availabilities Availability[]
+  blockedDates   BlockedDate[]
 
   @@index([ownerUserId])
   @@index([slug])
@@ -175,20 +177,20 @@ model Theme {
 /// Layanan MUA per tenant — dari katalog (F03).
 /// Harga bisa berubah; snapshot tersimpan di BookingItem.hargaSnapshot.
 model Service {
-  id              String      @id @default(cuid())
-  tenantId        String
-  nama            String
-  deskripsi       String?
-  harga           Decimal     @db.Decimal(15, 2)
-  durasi          Int         // durasi layanan dalam menit
-  tipe            ServiceType @default(MAKEUP)
-  dpTipe          DpTipe      @default(PERSEN)
-  dpNilai         Decimal     @db.Decimal(15, 2) @default(0) // persen (0-100) jika dpTipe=PERSEN, atau nominal rupiah jika NOMINAL
-  butuhTransport  Boolean     @default(false)
-  aktif           Boolean     @default(true)
-  urutanTampil    Int         @default(0)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  id             String      @id @default(cuid())
+  tenantId       String
+  nama           String
+  deskripsi      String?
+  harga          Decimal     @db.Decimal(15, 2)
+  durasi         Int // durasi layanan dalam menit
+  tipe           ServiceType @default(MAKEUP)
+  dpTipe         DpTipe      @default(PERSEN)
+  dpNilai        Decimal     @default(0) @db.Decimal(15, 2) // persen (0-100) jika dpTipe=PERSEN, atau nominal rupiah jika NOMINAL
+  butuhTransport Boolean     @default(false)
+  aktif          Boolean     @default(true)
+  urutanTampil   Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   bookingItems BookingItem[]
@@ -199,13 +201,13 @@ model Service {
 /// Aturan transport per tenant (F03) — 1:1 dengan Tenant.
 /// mode=FLAT pakai flatNominal; mode=ZONA pakai zona (array {nama, nominal}).
 model TransportRule {
-  id           String        @id @default(cuid())
-  tenantId     String        @unique // 1:1 ke Tenant
-  mode         TransportMode @default(FLAT)
-  flatNominal  Decimal?      @db.Decimal(15, 2) // dipakai jika mode=FLAT
-  zona         Json?         // array {nama, nominal} dipakai jika mode=ZONA
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  tenantId    String        @unique // 1:1 ke Tenant
+  mode        TransportMode @default(FLAT)
+  flatNominal Decimal?      @db.Decimal(15, 2) // dipakai jika mode=FLAT
+  zona        Json? // array {nama, nominal} dipakai jika mode=ZONA
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -218,8 +220,8 @@ model CustomField {
   id       String  @id @default(cuid())
   tenantId String
   label    String
-  tipe     String  // text | select | checkbox | date | file
-  opsi     Json?   // array opsi untuk tipe "select"
+  tipe     String // text | select | checkbox | date | file
+  opsi     Json? // array opsi untuk tipe "select"
   wajib    Boolean @default(false)
   urutan   Int     @default(0)
 
@@ -232,15 +234,58 @@ model CustomField {
 /// Info rekening MUA untuk instruksi pembayaran klien (F06, RULE-1 non-kustodi).
 /// 1:1 dengan Tenant — satu profil rekening per tenant.
 model PaymentProfile {
-  id                   String   @id @default(cuid())
-  tenantId             String   @unique
-  namaBank             String
-  nomorRekening        String
-  namaPemilik          String
-  instruksiTambahan    String?
-  updatedAt            DateTime @updatedAt
+  id                String   @id @default(cuid())
+  tenantId          String   @unique
+  namaBank          String
+  nomorRekening     String
+  namaPemilik       String
+  instruksiTambahan String?
+  updatedAt         DateTime @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Jadwal & Anti-Bentrok (F05)
+// ---------------------------------------------------------------------------
+
+/// Jam kerja MUA per hari (F05, FR-F05-1) — satu window per hari per tenant di MVP
+/// (multi-window/hari = ekstensi masa depan, lihat @@unique di bawah).
+/// `hari`: Int 0=Minggu .. 6=Sabtu (kompatibel dengan JS `Date#getDay()` di BE/FE).
+/// `jamMulai`/`jamSelesai`: menit sejak tengah malam (0-1439, mis. 09:00 = 540) —
+/// dipilih ketimbang string "HH:mm" agar aritmetika slot (mulai + slotDurasi <= selesai)
+/// dan overlap-check di BE cukup pakai operasi Int, tanpa parsing.
+model Availability {
+  id         String   @id @default(cuid())
+  tenantId   String
+  hari       Int // 0=Minggu .. 6=Sabtu
+  jamMulai   Int // menit sejak 00:00, mis. 540 = 09:00
+  jamSelesai Int // menit sejak 00:00, mis. 1020 = 17:00
+  slotDurasi Int // durasi slot booking dalam menit
+  kapasitas  Int      @default(1) // maks booking aktif (hold+confirmed) per slot
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, hari]) // satu aturan jam kerja per hari per tenant (MVP)
+  @@index([tenantId])
+}
+
+/// Tanggal/rentang yang diblokir MUA — libur, acara luar sistem (F05, FR-F05-2).
+/// Rentang inklusif via tanggalMulai/tanggalSelesai (@db.Date); satu hari = keduanya sama.
+model BlockedDate {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tanggalMulai   DateTime @db.Date
+  tanggalSelesai DateTime @db.Date
+  alasan         String?
+  createdAt      DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, tanggalMulai, tanggalSelesai]) // query overlap rentang tanggal
 }
 
 // ---------------------------------------------------------------------------
@@ -253,7 +298,7 @@ model Client {
   id           String   @id @default(cuid())
   tenantId     String
   nama         String
-  phone        String   // nomor WA klien
+  phone        String // nomor WA klien
   email        String?
   catatan      String?
   totalBooking Int      @default(0) // counter denormalized; diperbarui saat booking CONFIRMED
@@ -271,27 +316,30 @@ model Client {
 /// Anti-bentrok: index @@index([tenantId, tanggalAcara]) untuk query slot.
 /// Slot hold 120 menit via holdUntil; kunci permanen setelah DP CONFIRMED.
 /// kodeBooking format: GB-YYYYMMDD-XXXX (generate di aplikasi, @unique di DB).
+/// Tidak ada kolom jamMulai/jamSelesai di sini secara sengaja: durasi booking
+/// dihitung dari Σ BookingItem.durasi, dan jendela hari kerja berasal dari
+/// Availability(tenantId, hari) — hindari duplikasi/derivasi ganda sumber kebenaran.
 model Booking {
-  id             String        @id @default(cuid())
-  tenantId       String
-  clientId       String
-  kodeBooking    String        @unique // GB-YYYYMMDD-XXXX; human-readable, unik global
-  tanggalAcara   DateTime
-  lokasiAcara    String?
-  statusBooking  BookingStatus @default(AWAITING_DP)
-  catatan        String?
-  totalHarga     Decimal       @db.Decimal(15, 2)
-  dpAmount       Decimal       @db.Decimal(15, 2)
-  holdUntil      DateTime?     // slot hold sampai waktu ini (120 menit dari submit); null = slot dikunci permanen
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  tenantId      String
+  clientId      String
+  kodeBooking   String        @unique // GB-YYYYMMDD-XXXX; human-readable, unik global
+  tanggalAcara  DateTime
+  lokasiAcara   String?
+  statusBooking BookingStatus @default(AWAITING_DP)
+  catatan       String?
+  totalHarga    Decimal       @db.Decimal(15, 2)
+  dpAmount      Decimal       @db.Decimal(15, 2)
+  holdUntil     DateTime? // slot hold sampai waktu ini (120 menit dari submit); null = slot dikunci permanen
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  client      Client             @relation(fields: [clientId], references: [id])
-  items       BookingItem[]
-  payments    Payment[]
-  review      Review?
-  customValues CustomFieldValue[]
+  tenant        Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client        Client             @relation(fields: [clientId], references: [id])
+  items         BookingItem[]
+  payments      Payment[]
+  review        Review?
+  customValues  CustomFieldValue[]
   notifications Notification[]
 
   @@index([tenantId])
@@ -306,10 +354,10 @@ model BookingItem {
   id            String  @id @default(cuid())
   bookingId     String
   serviceId     String
-  namaSnapshot  String  // snapshot nama layanan saat booking dibuat
+  namaSnapshot  String // snapshot nama layanan saat booking dibuat
   qty           Int     @default(1)
   hargaSnapshot Decimal @db.Decimal(15, 2) // snapshot harga saat booking; JANGAN refer ke Service.harga
-  durasi        Int     // durasi dalam menit (snapshot dari Service.durasi)
+  durasi        Int // durasi dalam menit (snapshot dari Service.durasi)
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   service Service @relation(fields: [serviceId], references: [id])
@@ -338,18 +386,18 @@ model CustomFieldValue {
 /// Platform hanya menerima bukti & mencatat status; dana mengalir langsung ke MUA.
 /// tipe: "DP" | "PELUNASAN"
 model Payment {
-  id             String        @id @default(cuid())
-  tenantId       String        // denormalized untuk scoping & index
-  bookingId      String
-  tipe           String        // "DP" | "PELUNASAN"
-  jumlah         Decimal       @db.Decimal(15, 2)
-  status         PaymentStatus @default(PENDING)
-  buktiFotoUrl   String?       // URL bukti transfer yang diunggah klien
-  catatanKlien   String?
-  catatanMua     String?
-  confirmedAt    DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id           String        @id @default(cuid())
+  tenantId     String // denormalized untuk scoping & index
+  bookingId    String
+  tipe         String // "DP" | "PELUNASAN"
+  jumlah       Decimal       @db.Decimal(15, 2)
+  status       PaymentStatus @default(PENDING)
+  buktiFotoUrl String? // URL bukti transfer yang diunggah klien
+  catatanKlien String?
+  catatanMua   String?
+  confirmedAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
@@ -366,9 +414,9 @@ model Payment {
 /// Satu ulasan per booking (@unique bookingId). Anti-ulasan palsu via booking FK.
 model Review {
   id        String       @id @default(cuid())
-  tenantId  String       // denormalized untuk scoping
+  tenantId  String // denormalized untuk scoping
   bookingId String       @unique // satu review per booking
-  rating    Int          // 1–5; validasi di aplikasi: CHECK (rating >= 1 AND rating <= 5)
+  rating    Int // 1–5; validasi di aplikasi: CHECK (rating >= 1 AND rating <= 5)
   komentar  String?
   status    ReviewStatus @default(PUBLISHED)
   createdAt DateTime     @default(now())
@@ -387,15 +435,15 @@ model Review {
 /// Paket langganan platform [global] — tidak ada tenantId (dikelola admin, F12).
 /// tierUrutan @unique menjamin urutan tier tidak duplikat.
 model Plan {
-  id          String       @id @default(cuid())
-  nama        String       // mis. "Basic", "Pro", "Bisnis"
-  harga       Decimal      @db.Decimal(15, 2)
-  interval    PlanInterval @default(MONTHLY)
-  orderQuota  Int?         // null = unlimited (tier Bisnis)
-  tierUrutan  Int          @unique // urutan tampil & upgrade path
-  fitur       Json         // daftar fitur per tier
-  aktif       Boolean      @default(true)
-  createdAt   DateTime     @default(now())
+  id         String       @id @default(cuid())
+  nama       String // mis. "Basic", "Pro", "Bisnis"
+  harga      Decimal      @db.Decimal(15, 2)
+  interval   PlanInterval @default(MONTHLY)
+  orderQuota Int? // null = unlimited (tier Bisnis)
+  tierUrutan Int          @unique // urutan tampil & upgrade path
+  fitur      Json // daftar fitur per tier
+  aktif      Boolean      @default(true)
+  createdAt  DateTime     @default(now())
 
   subscriptions Subscription[]
 }
@@ -425,15 +473,15 @@ model Subscription {
 /// Tagihan langganan per siklus (F07).
 /// midtransOrderId @unique menjamin idempoten webhook.
 model Invoice {
-  id               String        @id @default(cuid())
-  subscriptionId   String
-  tenantId         String        // denormalized untuk scoping & query per tenant
-  amount           Decimal       @db.Decimal(15, 2)
-  status           InvoiceStatus @default(PENDING)
-  midtransOrderId  String?       @unique // idempoten webhook Midtrans
-  paidAt           DateTime?
-  dueAt            DateTime
-  createdAt        DateTime      @default(now())
+  id              String        @id @default(cuid())
+  subscriptionId  String
+  tenantId        String // denormalized untuk scoping & query per tenant
+  amount          Decimal       @db.Decimal(15, 2)
+  status          InvoiceStatus @default(PENDING)
+  midtransOrderId String?       @unique // idempoten webhook Midtrans
+  paidAt          DateTime?
+  dueAt           DateTime
+  createdAt       DateTime      @default(now())
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
   tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -452,9 +500,9 @@ model Invoice {
 model Notification {
   id        String              @id @default(cuid())
   tenantId  String
-  bookingId String?             // nullable: notif billing tidak terkait booking
+  bookingId String? // nullable: notif billing tidak terkait booking
   channel   NotificationChannel
-  tujuan    String              // nomor WA atau alamat email tujuan
+  tujuan    String // nomor WA atau alamat email tujuan
   judul     String
   pesan     String
   status    NotificationStatus  @default(QUEUED)
@@ -477,10 +525,10 @@ model Notification {
 model AuditLog {
   id         String   @id @default(cuid())
   adminEmail String
-  aksi       String   // mis. "SUSPEND_TENANT", "HIDE_REVIEW", "UPDATE_PLAN"
-  targetTipe String   // mis. "Tenant", "Review", "Plan"
+  aksi       String // mis. "SUSPEND_TENANT", "HIDE_REVIEW", "UPDATE_PLAN"
+  targetTipe String // mis. "Tenant", "Review", "Plan"
   targetId   String
-  metadata   Json?    // sebelum/sesudah, alasan, dsb.
+  metadata   Json? // sebelum/sesudah, alasan, dsb.
   createdAt  DateTime @default(now())
 
   @@index([adminEmail])
