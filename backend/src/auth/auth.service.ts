@@ -45,11 +45,12 @@ export class AuthService {
       select: { id: true, tenant: { select: { id: true } } },
     });
     if (existing) {
-      // Guard anti-duplikat tenant (FR-F01-7 / FR-F01-8)
-      if (existing.tenant) {
-        throw new ConflictException('Akun ini sudah memiliki tenant.');
-      }
-      throw new ConflictException('Email sudah terdaftar.');
+      // M-1 (anti-enumeration): pesan generik — JANGAN bedakan "email sudah
+      // terdaftar" vs kondisi lain, supaya penyerang tidak bisa memakai
+      // endpoint ini untuk mengecek email mana yang terdaftar di GlowBook.
+      throw new ConflictException(
+        'Registrasi gagal. Periksa kembali data Anda.',
+      );
     }
 
     const slugTaken = await this.prisma.tenant.findUnique({
@@ -79,56 +80,53 @@ export class AuthService {
     const trialEnd = new Date(now.getTime() + TRIAL_DURATION_MS);
 
     // Buat User + Tenant + Theme + Subscription dalam satu transaksi atomik
-    const { user, tenant } = await this.prisma.$transaction(
-      async (tx) => {
-        const user = await tx.user.create({
-          data: {
-            email: dto.email,
-            phone: dto.phone,
-            passwordHash,
-          },
-        });
+    const { user, tenant } = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email: dto.email,
+          phone: dto.phone,
+          passwordHash,
+        },
+      });
 
-        const tenant = await tx.tenant.create({
-          data: {
-            ownerUserId: user.id,
-            slug: dto.slug,
-            namaBisnis: dto.namaBisnis,
-            kota: dto.kota,
-            // status default = TRIAL (sesuai skema)
-          },
-        });
+      const tenant = await tx.tenant.create({
+        data: {
+          ownerUserId: user.id,
+          slug: dto.slug,
+          namaBisnis: dto.namaBisnis,
+          kota: dto.kota,
+          // status default = TRIAL (sesuai skema)
+        },
+      });
 
-        // Theme default per tenant (F01 / F02)
-        await tx.theme.create({
-          data: {
-            tenantId: tenant.id,
-            warnaPrimer: DEFAULT_THEME.warnaPrimer,
-            warnaSekunder: DEFAULT_THEME.warnaSekunder,
-            font: DEFAULT_THEME.font,
-            template: DEFAULT_THEME.template,
-          },
-        });
+      // Theme default per tenant (F01 / F02)
+      await tx.theme.create({
+        data: {
+          tenantId: tenant.id,
+          warnaPrimer: DEFAULT_THEME.warnaPrimer,
+          warnaSekunder: DEFAULT_THEME.warnaSekunder,
+          font: DEFAULT_THEME.font,
+          template: DEFAULT_THEME.template,
+        },
+      });
 
-        // Subscription TRIALING 14 hari (F07) — planId = Plan tierUrutan terendah aktif.
-        await tx.subscription.create({
-          data: {
-            tenantId: tenant.id,
-            planId: firstPlan.id,
-            status: 'TRIALING',
-            currentPeriodStart: now,
-            currentPeriodEnd: trialEnd,
-            ordersUsedPeriod: 0,
-          },
-        });
+      // Subscription TRIALING 14 hari (F07) — planId = Plan tierUrutan terendah aktif.
+      await tx.subscription.create({
+        data: {
+          tenantId: tenant.id,
+          planId: firstPlan.id,
+          status: 'TRIALING',
+          currentPeriodStart: now,
+          currentPeriodEnd: trialEnd,
+          ordersUsedPeriod: 0,
+        },
+      });
 
-        return { user, tenant };
-      },
-    );
+      return { user, tenant };
+    });
 
     const token = this.signToken({
       sub: user.id,
-      email: user.email,
       tenantId: tenant.id,
     });
 
@@ -247,12 +245,13 @@ export class AuthService {
 
     if (!user.tenant) {
       // Seharusnya tidak terjadi pada Paket A — user selalu punya tenant
-      throw new UnauthorizedException('Tenant tidak ditemukan. Hubungi dukungan.');
+      throw new UnauthorizedException(
+        'Tenant tidak ditemukan. Hubungi dukungan.',
+      );
     }
 
     const token = this.signToken({
       sub: user.id,
-      email: user.email,
       tenantId: user.tenant.id,
     });
 

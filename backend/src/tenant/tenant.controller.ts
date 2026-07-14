@@ -7,6 +7,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentTenant } from '../common/decorators/current-tenant.decorator';
 import { TenantService } from './tenant.service';
@@ -27,9 +28,8 @@ export class TenantController {
    * Response: { available: bool, suggestion?: string }
    */
   @Get('slug-check')
-  async checkSlug(
-    @Query('slug') slug: string,
-  ): Promise<SlugCheckResponseDto> {
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  async checkSlug(@Query('slug') slug: string): Promise<SlugCheckResponseDto> {
     if (!slug) {
       throw new BadRequestException('Parameter slug wajib diisi.');
     }
