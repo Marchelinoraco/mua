@@ -1,0 +1,65 @@
+{
+  "notFound": {
+    "title": "Storefront Tidak Ditemukan",
+    "desc": "Halaman yang Anda cari tidak tersedia. Pastikan tautan yang Anda buka sudah benar."
+  },
+  "inactive": {
+    "desc": "{{namaBisnis}} sedang tidak menerima booking untuk sementara. Silakan coba lagi nanti."
+  },
+  "loadError": {
+    "title": "Gagal Memuat Halaman",
+    "desc": "Terjadi kesalahan saat memuat storefront. Coba muat ulang halaman."
+  },
+  "services": {
+    "title": "Layanan",
+    "empty": "Belum ada layanan yang ditampilkan.",
+    "durasiValue": "{{count}} menit",
+    "butuhTransport": "Perlu transport",
+    "dpLabel": "DP {{nilai}}"
+  },
+  "transport": {
+    "title": "Biaya Transport",
+    "flatDesc": "Dikenakan biaya transport flat sebesar {{nominal}} untuk semua lokasi.",
+    "zona": "Zona",
+    "nominal": "Nominal"
+  },
+  "availability": {
+    "title": "Cek Ketersediaan",
+    "desc": "Pilih tanggal untuk melihat jam yang masih tersedia.",
+    "pilihTanggal": "Pilih tanggal",
+    "hint": "Pilih tanggal untuk melihat slot yang tersedia.",
+    "empty": "Tidak ada slot tersedia pada tanggal ini.",
+    "loadError": "Gagal memuat ketersediaan. Coba pilih tanggal lain."
+  },
+  "cta": {
+    "booking": "Booking Sekarang"
+  },
+  "booking": {
+    "title": "Booking Online Segera Hadir",
+    "desc": "Fitur booking online sedang kami siapkan. Untuk sementara, silakan hubungi MUA langsung melalui kontak yang tertera di media sosialnya untuk membuat janji.",
+    "close": "Tutup"
+  },
+  "footer": {
+    "report": "Laporkan halaman ini",
+    "poweredBy": "Didukung oleh GlowBook"
+  },
+  "report": {
+    "title": "Laporkan Halaman Ini",
+    "desc": "Beri tahu kami jika halaman ini melanggar ketentuan (konten tidak pantas, penipuan, dsb).",
+    "alasan": "Alasan",
+    "alasanPlaceholder": "Jelaskan alasan laporan Anda (minimal 10 karakter)",
+    "kontak": "Kontak (opsional)",
+    "kontakPlaceholder": "Email atau nomor WhatsApp Anda",
+    "submit": "Kirim Laporan",
+    "sending": "Mengirim...",
+    "toastSuccess": "Laporan berhasil dikirim. Terima kasih.",
+    "toastThrottle": "Terlalu banyak percobaan. Coba lagi beberapa saat lagi.",
+    "toastError": "Gagal mengirim laporan. Coba lagi."
+  },
+  "tipeOptions": {
+    "MAKEUP": "Makeup",
+    "HAIR": "Rambut",
+    "NAIL": "Nail Art",
+    "OTHER": "Lainnya"
+  }
+}
