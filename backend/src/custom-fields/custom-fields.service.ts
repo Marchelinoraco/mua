@@ -56,7 +56,10 @@ export class CustomFieldsService {
         tenantId,
         label: dto.label,
         tipe: dto.tipe,
-        opsi: dto.tipe === 'select' ? (dto.opsi as Prisma.InputJsonValue) : Prisma.JsonNull,
+        opsi:
+          dto.tipe === 'select'
+            ? (dto.opsi as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
         wajib: dto.wajib ?? false,
         urutan: dto.urutan ?? 0,
       },

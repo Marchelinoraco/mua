@@ -36,9 +36,9 @@ describe('computeTransportFee', () => {
   });
 
   it('mengembalikan 0 untuk mode FLAT jika flatNominal null', () => {
-    expect(computeTransportFee({ mode: 'FLAT', flatNominal: null, zona: null })).toBe(
-      0,
-    );
+    expect(
+      computeTransportFee({ mode: 'FLAT', flatNominal: null, zona: null }),
+    ).toBe(0);
   });
 
   it('mencari nominal zona sesuai nama untuk mode ZONA', () => {
