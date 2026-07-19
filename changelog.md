@@ -7,6 +7,13 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-07-19 — Rilis: promosi `dev` → `main` (F05 kalender & anti-bentrok + F02 storefront publik)
+
+#### Diubah
+- Branch `main` (production) di-fast-forward-kan ke commit `dev` terbaru (`7f3bf8b`), mempromosikan milestone **F05** (jam kerja, tanggal diblokir, kalender bulanan, slot engine anti-bentrok, hardening keamanan: rate-limit, verify-otp 501, anti-enumeration register, JWT tanpa email, cookie `SameSite=Lax`+`Secure`) dan **F02** (storefront publik `/s/:slug` + endpoint report pelanggaran, model `StorefrontReport`) ke production.
+- Sebelum push, `origin/main` ternyata sudah maju dengan PR #2 (`fix(frontend): update logo component title text`, merge commit `e454fe0`) yang tidak ada di riwayat lokal — push awal ditolak (non-fast-forward). Diselesaikan dengan `git pull --rebase origin main` (tanpa konflik, file berbeda) lalu `git push origin main` sebagai fast-forward murni (bukan force-push). SHA `main` setelah push: `2141516`.
+- Push ke `main` memicu Vercel Production build + `prisma migrate deploy` ke Neon production, menerapkan migrasi `20260714141740_f05_availability_blocked_date` dan `20260714170534_f02_storefront_report`.
+
 ### 2026-07-15 — F02 Frontend: Halaman Storefront Publik `/s/$slug`
 
 #### Ditambahkan
