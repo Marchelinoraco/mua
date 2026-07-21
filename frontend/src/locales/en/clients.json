@@ -1,0 +1,45 @@
+{
+  "title": "Clients",
+  "description": "Your clients' profiles & booking history.",
+  "searchPlaceholder": "Search name, phone, or email...",
+  "noResults": "No clients yet.",
+  "loadError": "Failed to load clients. Please try again.",
+  "totalLabel": "{{count}} clients",
+  "rowAriaLabel": "Open client details {{nama}}",
+  "columns": {
+    "nama": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "totalBooking": "Total Bookings",
+    "bookingAktif": "Active Bookings",
+    "terdaftar": "Registered Since"
+  },
+  "status": {
+    "AWAITING_DP": "Awaiting Deposit",
+    "CONFIRMED": "Confirmed",
+    "PAID": "Paid",
+    "COMPLETED": "Completed",
+    "CANCELED": "Canceled",
+    "EXPIRED": "Expired"
+  },
+  "detail": {
+    "loadError": "Failed to load client details.",
+    "terdaftarSejak": "Registered since {{tanggal}}",
+    "phone": "Phone",
+    "email": "Email",
+    "totalBooking": "Total bookings",
+    "catatan": "Notes",
+    "catatanPlaceholder": "Preferences, allergies, other special notes...",
+    "simpanCatatan": "Save Notes",
+    "saving": "Saving...",
+    "riwayat": "Booking History",
+    "riwayatKosong": "No booking history yet.",
+    "kode": "Code",
+    "tanggal": "Date",
+    "status": "Status",
+    "total": "Total"
+  },
+  "toast": {
+    "notesSaveSuccess": "Client notes saved successfully."
+  }
+}

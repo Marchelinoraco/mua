@@ -1,0 +1,45 @@
+{
+  "title": "Klien",
+  "description": "Profil & riwayat booking klien Anda.",
+  "searchPlaceholder": "Cari nama, nomor WA, atau email...",
+  "noResults": "Belum ada klien.",
+  "loadError": "Gagal memuat daftar klien. Coba lagi.",
+  "totalLabel": "{{count}} klien",
+  "rowAriaLabel": "Buka detail klien {{nama}}",
+  "columns": {
+    "nama": "Nama",
+    "phone": "No. WA",
+    "email": "Email",
+    "totalBooking": "Total Booking",
+    "bookingAktif": "Booking Aktif",
+    "terdaftar": "Terdaftar Sejak"
+  },
+  "status": {
+    "AWAITING_DP": "Menunggu DP",
+    "CONFIRMED": "Terkonfirmasi",
+    "PAID": "Lunas",
+    "COMPLETED": "Selesai",
+    "CANCELED": "Dibatalkan",
+    "EXPIRED": "Kedaluwarsa"
+  },
+  "detail": {
+    "loadError": "Gagal memuat detail klien.",
+    "terdaftarSejak": "Terdaftar sejak {{tanggal}}",
+    "phone": "No. WA",
+    "email": "Email",
+    "totalBooking": "Total booking",
+    "catatan": "Catatan",
+    "catatanPlaceholder": "Preferensi, alergi, catatan khusus lainnya...",
+    "simpanCatatan": "Simpan Catatan",
+    "saving": "Menyimpan...",
+    "riwayat": "Riwayat Booking",
+    "riwayatKosong": "Belum ada riwayat booking.",
+    "kode": "Kode",
+    "tanggal": "Tanggal",
+    "status": "Status",
+    "total": "Total"
+  },
+  "toast": {
+    "notesSaveSuccess": "Catatan klien berhasil disimpan."
+  }
+}
