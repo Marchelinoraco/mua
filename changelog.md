@@ -7,6 +7,14 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-07-22 — Rilis: promosi `dev` → `main` (F04 booking mandiri klien + F09 manajemen order & klien)
+
+#### Diubah
+- Branch `main` (production) di-merge dengan `dev` (`7c13690`), mempromosikan milestone **F04** (booking mandiri klien di storefront publik, form multi-step, hold slot 120 menit, halaman status booking publik) dan **F09** (manajemen order & data klien di dashboard: filter/list order, konfirmasi/selesai/batal/reschedule dengan state machine status, agregasi klien) ke production.
+- `main` dan `dev` sudah divergen sejak commit `682aa35` — `main` menyimpan salinan hasil rebase F05+F02 dengan hash commit berbeda dari commit asli di `dev` (rilis sebelumnya, lihat entri `2026-07-19` di bawah), ditambah satu commit kosmetik PR test `fix/bugs-1` (`f5c833e`, ubah teks judul SVG logo). `git merge dev` di `main` karena itu menghasilkan konflik pada ~24 file — **diverifikasi satu per satu** (`schema.prisma`, `app.module.ts`, `slots.service.ts`, `storefront.service.ts`, `changelog.md`, dan seluruh file `storefront-public`/`booking-status`) bahwa setiap perbedaan murni aditif: sisi `dev` selalu superset dari sisi `main`, tidak ada baris unik `main` yang hilang. Diselesaikan dengan `git merge -X theirs dev` (mengambil versi `dev` pada tiap konflik), lalu dikonfirmasi pohon kerja hasil merge identik dengan `dev` (satu-satunya beda: teks kosmetik judul logo dari PR test tsb, tidak berdampak fungsional). SHA `main` setelah push: `a0aa7eb` (merge commit, BUKAN fast-forward, BUKAN force-push).
+- Push ke `main` memicu Vercel Production build + `prisma migrate deploy` ke Neon production, menerapkan migrasi `20260721164405_f09_booking_cancel_fields` (kolom `Booking.alasanBatal`, `Booking.canceledAt`, keduanya nullable/aditif) beserta migrasi F04 sebelumnya bila belum berjalan.
+- `dev` disinkronkan kembali dengan `git merge main` (merge commit `a22c3c1`) supaya kedua branch tidak divergen — satu-satunya perubahan yang masuk ke `dev`: teks kosmetik judul logo dari PR `fix/bugs-1` di atas.
+
 ### 2026-07-22 — F09 Backend: Manajemen Order & Data Klien (dashboard MUA)
 
 #### Ditambahkan
