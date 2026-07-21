@@ -3,9 +3,10 @@ import { api } from '@/lib/api'
 import type { StorefrontSlotsResponse } from '../data/types'
 
 /**
- * `GET /api/s/:slug/slots?date=YYYY-MM-DD` (dari F05) — preview read-only,
- * dipakai untuk chip "jam tersedia" di storefront. Bukan bagian dari alur
- * booking (F04 belum ada).
+ * `GET /api/s/:slug/slots?date=YYYY-MM-DD` (dari F05) — dipakai untuk chip
+ * "jam tersedia" di preview ketersediaan (`storefront-availability.tsx`) DAN
+ * di-REUSE oleh step jadwal form booking mandiri (F04,
+ * `storefront-booking-step-schedule.tsx`) — jangan duplikasi query slot.
  */
 export function useStorefrontSlots(slug: string, date: string | undefined) {
   return useQuery({

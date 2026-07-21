@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { useStorefrontDialogs } from './storefront-provider'
 
-/** Tombol sticky-bottom di mobile — F04 belum ada, arahkan ke placeholder. */
+/** Tombol sticky-bottom di mobile — membuka form booking mandiri (F04). */
 export function StorefrontBookingCta() {
   const { t } = useTranslation('storefront')
   const { setOpen } = useStorefrontDialogs()

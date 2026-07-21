@@ -10,7 +10,7 @@ interface StorefrontContextValue {
 
 const StorefrontContext = createContext<StorefrontContextValue | null>(null)
 
-/** Context state dialog untuk storefront publik (report + booking placeholder). */
+/** Context state dialog untuk storefront publik (report + booking mandiri F04). */
 export function StorefrontProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useDialogState<StorefrontDialogType>()
 

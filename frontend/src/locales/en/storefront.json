@@ -35,9 +35,86 @@
     "booking": "Book Now"
   },
   "booking": {
-    "title": "Online Booking Coming Soon",
-    "desc": "Online booking is on its way. For now, please contact the MUA directly through their social media contact to make an appointment.",
-    "close": "Close"
+    "stepIndicator": "Step {{current}} of {{total}}",
+    "steps": {
+      "services": "Choose Services",
+      "schedule": "Pick Date & Time",
+      "details": "Your Details",
+      "summary": "Summary & Confirm"
+    },
+    "servicesStep": {
+      "title": "Choose the services you'd like to book",
+      "empty": "No services available to book yet.",
+      "subtotal": "Subtotal",
+      "transportFlat": "Travel fee",
+      "transportZone": "Choose the event location zone",
+      "transportZoneEmpty": "Travel zones haven't been set up by the MUA yet. Please contact the MUA directly for travel fee info.",
+      "validationZone": "Please choose a travel zone first.",
+      "total": "Total",
+      "dpEstimate": "Estimated deposit"
+    },
+    "scheduleStep": {
+      "title": "Pick the event date & time",
+      "durasiInfo": "Total duration of selected services: {{durasi}} minutes",
+      "hint": "Pick a date to see the available slots.",
+      "empty": "No available slots on this date. Try another date.",
+      "loadError": "Failed to load availability. Try another date.",
+      "recommended": "Fits your duration"
+    },
+    "detailsStep": {
+      "title": "Complete your details",
+      "nama": "Full Name",
+      "namaPlaceholder": "Your name",
+      "phone": "WhatsApp Number",
+      "phonePlaceholder": "08xxxxxxxxxx",
+      "email": "Email (optional)",
+      "emailPlaceholder": "name@email.com",
+      "lokasiAcara": "Event Location (optional)",
+      "lokasiAcaraPlaceholder": "Full address of the event location",
+      "catatan": "Notes (optional)",
+      "catatanPlaceholder": "Special requests, etc.",
+      "customFieldSelectPlaceholder": "Choose {{label}}",
+      "customFieldDatePlaceholder": "Pick a date",
+      "customFieldFilePlaceholder": "File upload coming soon",
+      "customFieldFileNote": "File upload coming soon — please contact the MUA directly if needed."
+    },
+    "summaryStep": {
+      "title": "Booking Summary",
+      "layanan": "Services",
+      "tanggalJam": "Date & Time",
+      "kontak": "Contact",
+      "lokasi": "Location",
+      "catatan": "Notes",
+      "infoTambahan": "Additional Info",
+      "subtotal": "Services Subtotal",
+      "transport": "Travel Fee",
+      "total": "Estimated Total",
+      "dp": "Deposit Due",
+      "dpNote": "The final amount will be recalculated by the system on submit.",
+      "submit": "Book Now",
+      "submitting": "Processing booking..."
+    },
+    "errors": {
+      "notFound": "Storefront not found or currently not accepting bookings.",
+      "conflict": "The selected slot was just taken. Please choose another slot.",
+      "throttle": "Too many attempts, please try again later.",
+      "generic": "Failed to create booking. Please try again."
+    },
+    "success": {
+      "title": "Booking Created Successfully!",
+      "kodeLabel": "Booking Code",
+      "copy": "Copy booking code",
+      "copied": "Booking code copied.",
+      "holdNotice": "Your slot is held until",
+      "paymentTitle": "Deposit Payment Instructions",
+      "paymentMissing": "The MUA hasn't set up payment info yet. Please contact the MUA directly for payment instructions.",
+      "bank": "Bank",
+      "noRek": "Account Number",
+      "pemilik": "Account Holder",
+      "totalAmount": "Total Price",
+      "dpAmount": "Deposit Amount",
+      "viewStatus": "View booking status →"
+    }
   },
   "footer": {
     "report": "Report this page",

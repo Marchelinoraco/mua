@@ -47,9 +47,26 @@ function StorefrontActivePage({ data }: { data: StorefrontActiveResponse }) {
   // overlay phishing, exfiltrasi via `background: url(...)`, dsb).
   // Menunggu keputusan tech-lead soal sanitizer sebelum fitur ini diaktifkan.
 
+  // `--sf-primary`/`--sf-secondary` WAJIB di-set di `:root` (document-level),
+  // BUKAN hanya lewat inline `style` di div lokal di bawah. Alasan: sejak F04,
+  // `StorefrontDialogs` (Sheet booking) merender kontennya via Radix Portal ke
+  // `document.body` — CSS custom property hanya mengalir lewat ancestry DOM
+  // NYATA, bukan lewat React tree, jadi konten yang di-portal-kan TIDAK akan
+  // pernah mewarisi variable yang di-scope ke div lokal ini (ditemukan saat
+  // uji manual F04: chip slot terpilih tampil putih-di-atas-putih/transparan
+  // karena `var(--sf-primary)` invalid di luar subtree div ini). Di-set/lepas
+  // via effect supaya tidak bocor ke halaman lain setelah unmount.
+  useEffect(() => {
+    const root = document.documentElement
+    root.style.setProperty('--sf-primary', primary)
+    root.style.setProperty('--sf-secondary', secondary)
+    return () => {
+      root.style.removeProperty('--sf-primary')
+      root.style.removeProperty('--sf-secondary')
+    }
+  }, [primary, secondary])
+
   const themeStyle = {
-    '--sf-primary': primary,
-    '--sf-secondary': secondary,
     ...(fontFamily ? { fontFamily } : {}),
   } as CSSProperties
 
@@ -68,7 +85,12 @@ function StorefrontActivePage({ data }: { data: StorefrontActiveResponse }) {
         </div>
         <StorefrontBookingCta />
       </div>
-      <StorefrontDialogs slug={data.slug} />
+      <StorefrontDialogs
+        slug={data.slug}
+        services={data.services}
+        transport={data.transport}
+        customFields={data.customFields ?? []}
+      />
     </StorefrontProvider>
   )
 }
