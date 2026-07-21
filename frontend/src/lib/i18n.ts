@@ -1,4 +1,5 @@
 import enAuth from '@/locales/en/auth.json'
+import enBookingStatus from '@/locales/en/booking-status.json'
 // EN
 import enCommon from '@/locales/en/common.json'
 import enDashboard from '@/locales/en/dashboard.json'
@@ -11,6 +12,7 @@ import enStorefront from '@/locales/en/storefront.json'
 import enTasks from '@/locales/en/tasks.json'
 import enUsers from '@/locales/en/users.json'
 import idAuth from '@/locales/id/auth.json'
+import idBookingStatus from '@/locales/id/booking-status.json'
 // ID
 import idCommon from '@/locales/id/common.json'
 import idDashboard from '@/locales/id/dashboard.json'
@@ -32,6 +34,7 @@ export const resources = {
   en: {
     common: enCommon,
     auth: enAuth,
+    bookingStatus: enBookingStatus,
     dashboard: enDashboard,
     errors: enErrors,
     navigation: enNavigation,
@@ -45,6 +48,7 @@ export const resources = {
   id: {
     common: idCommon,
     auth: idAuth,
+    bookingStatus: idBookingStatus,
     dashboard: idDashboard,
     errors: idErrors,
     navigation: idNavigation,

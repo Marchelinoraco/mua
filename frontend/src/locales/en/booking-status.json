@@ -1,0 +1,40 @@
+{
+  "notFound": {
+    "title": "Booking Not Found",
+    "desc": "The booking code you entered wasn't found. Double-check the link or the booking code."
+  },
+  "loadErrorTitle": "Failed to Load Page",
+  "loadError": "Failed to load booking status. Try reloading the page.",
+  "verify": {
+    "title": "Verify Your Booking",
+    "desc": "Enter the WhatsApp number you used when booking to see the full details.",
+    "phoneLabel": "WhatsApp Number",
+    "phonePlaceholder": "08xxxxxxxxxx",
+    "submit": "Verify",
+    "disclaimer": "Full WhatsApp verification is coming soon.",
+    "mismatch": "The number doesn't match this booking's data. Please check your WhatsApp number again."
+  },
+  "detail": {
+    "layanan": "Services",
+    "total": "Total Price",
+    "dp": "Deposit",
+    "lokasi": "Event Location",
+    "catatan": "Notes",
+    "payment": {
+      "title": "Deposit Payment Instructions",
+      "missing": "The MUA hasn't set up payment info yet. Please contact the MUA directly.",
+      "bank": "Bank",
+      "noRek": "Account Number",
+      "pemilik": "Account Holder"
+    },
+    "otpNotice": "Full WhatsApp verification is coming soon (F08)."
+  },
+  "status": {
+    "AWAITING_DP": "Awaiting Deposit",
+    "CONFIRMED": "Confirmed",
+    "PAID": "Paid",
+    "COMPLETED": "Completed",
+    "CANCELED": "Canceled",
+    "EXPIRED": "Expired"
+  }
+}
