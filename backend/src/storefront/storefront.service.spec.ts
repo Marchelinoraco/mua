@@ -19,11 +19,17 @@ function createPrismaMock() {
     tenant: {
       findUnique: jest.fn(),
     },
+    customField: {
+      // Default [] — kebanyakan test tidak peduli custom field; test yang
+      // peduli meng-override resolved value ini secara eksplisit.
+      findMany: jest.fn().mockResolvedValue([]),
+    },
     storefrontReport: {
       create: jest.fn(),
     },
   } as unknown as PrismaService & {
     tenant: { findUnique: jest.Mock };
+    customField: { findMany: jest.Mock };
     storefrontReport: { create: jest.Mock };
   };
 }
@@ -176,6 +182,80 @@ describe('StorefrontService.getProfile (F02)', () => {
     const result = await service.getProfile('sari-mua');
 
     expect(result.status === 'ACTIVE' && result.transport).toBeNull();
+  });
+
+  it('mengembalikan customFields (ACTIVE) terurut sesuai urutan (F03 → F04)', async () => {
+    const prisma = createPrismaMock();
+    prisma.tenant.findUnique.mockResolvedValue(BASE_TENANT);
+    prisma.customField.findMany.mockResolvedValue([
+      {
+        id: 'cf-1',
+        label: 'Adat Pernikahan',
+        tipe: 'select',
+        opsi: ['Jawa', 'Sunda', 'Batak'],
+        wajib: true,
+        urutan: 0,
+      },
+      {
+        id: 'cf-2',
+        label: 'Catatan Tambahan',
+        tipe: 'text',
+        opsi: null,
+        wajib: false,
+        urutan: 1,
+      },
+    ]);
+    const service = new StorefrontService(prisma);
+
+    const result = await service.getProfile('sari-mua');
+
+    expect(result.status === 'ACTIVE' && result.customFields).toEqual([
+      {
+        id: 'cf-1',
+        label: 'Adat Pernikahan',
+        tipe: 'select',
+        opsi: ['Jawa', 'Sunda', 'Batak'],
+        wajib: true,
+        urutan: 0,
+      },
+      {
+        id: 'cf-2',
+        label: 'Catatan Tambahan',
+        tipe: 'text',
+        opsi: null,
+        wajib: false,
+        urutan: 1,
+      },
+    ]);
+    // Urutan pengambilan WAJIB dari DB (orderBy urutan asc), bukan disortir
+    // ulang di aplikasi.
+    expect(prisma.customField.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: { urutan: 'asc' } }),
+    );
+  });
+
+  it('response INACTIVE (tenant RESTRICTED) TIDAK memiliki key customFields sama sekali', async () => {
+    const prisma = createPrismaMock();
+    prisma.tenant.findUnique.mockResolvedValue({
+      ...BASE_TENANT,
+      status: TenantStatus.RESTRICTED,
+    });
+    prisma.customField.findMany.mockResolvedValue([
+      {
+        id: 'cf-1',
+        label: 'Adat Pernikahan',
+        tipe: 'select',
+        opsi: ['Jawa'],
+        wajib: true,
+        urutan: 0,
+      },
+    ]);
+    const service = new StorefrontService(prisma);
+
+    const result = await service.getProfile('sari-mua');
+
+    expect(result).toEqual({ status: 'INACTIVE', namaBisnis: 'Sari MUA' });
+    expect(Object.keys(result)).not.toContain('customFields');
   });
 });
 

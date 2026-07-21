@@ -42,7 +42,7 @@ erDiagram
 - **BlockedDate** `id, tenant_id, tanggal_mulai(Date), tanggal_selesai(Date), alasan?` — rentang inklusif; satu hari = `tanggal_mulai = tanggal_selesai`. Index `(tenant_id, tanggal_mulai, tanggal_selesai)` untuk query overlap.
 
 ### Booking & Klien
-- **Booking** `id, tenant_id, kode, client_id, tanggal_acara, status(AWAITING_DP|CONFIRMED|PAID|COMPLETED|CANCELED|EXPIRED), subtotal, transport_fee, total, dp_amount, sisa_amount, lokasi, custom_values{}, hold_expires_at, created_at` — **tidak menyimpan jam_mulai/jam_selesai sendiri**: jendela hari kerja berasal dari `Availability(tenant_id, hari)`, durasi dihitung dari Σ `BookingItem.durasi`.
+- **Booking** `id, tenant_id, kode, client_id, tanggal_acara, status(AWAITING_DP|CONFIRMED|PAID|COMPLETED|CANCELED|EXPIRED), subtotal, transport_fee, total, dp_amount, sisa_amount, lokasi, custom_values{}, hold_expires_at, alasan_batal?, canceled_at?, created_at` — **tidak menyimpan jam_mulai/jam_selesai sendiri**: jendela hari kerja berasal dari `Availability(tenant_id, hari)`, durasi dihitung dari Σ `BookingItem.durasi`. `alasan_batal`/`canceled_at` (nullable) diisi saat status → `CANCELED` (F09, FR-F09-3) — dipakai untuk audit & metrik rasio batal (F09 §12).
 - **BookingItem** `id, booking_id, service_id, qty, harga_snapshot`
 - **Client** `id, tenant_id, nama, phone, email, catatan, total_booking, created_at`
 

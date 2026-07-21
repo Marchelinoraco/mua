@@ -338,6 +338,8 @@ model Booking {
   totalHarga    Decimal       @db.Decimal(15, 2)
   dpAmount      Decimal       @db.Decimal(15, 2)
   holdUntil     DateTime? // slot hold sampai waktu ini (120 menit dari submit); null = slot dikunci permanen
+  alasanBatal   String? // alasan pembatalan + catatan refund manual (F09, FR-F09-3); diisi saat statusBooking -> CANCELED
+  canceledAt    DateTime? // timestamp pembatalan; untuk audit & metrik rasio batal (F09 §12)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 

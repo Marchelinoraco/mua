@@ -149,3 +149,156 @@ describeIfDb(
     }, 30_000);
   },
 );
+
+/**
+ * Integration test F09 (AC-F09-2 + bug fix self-conflict reschedule):
+ * "booking jam 09:00 durasi 120m, reschedule ke 10:00 tanggal sama, kapasitas
+ * 1 -> harus BERHASIL". Tanpa `excludeBookingId`, booking yang di-reschedule
+ * bentrok dengan DIRINYA SENDIRI (rentang lama 09:00-11:00 beririsan dengan
+ * rentang baru 10:00-12:00) — false conflict. Dengan `excludeBookingId`
+ * terisi id booking tsb, baris itu dikecualikan dari kandidat okupansi
+ * sehingga reservasi ke slot baru berhasil walau kapasitas hanya 1.
+ *
+ * Sama seperti suite di atas: butuh Postgres asli (Neon dev via
+ * DATABASE_URL) karena reserveSlotOrThrow memakai pg_advisory_xact_lock.
+ */
+describeIfDb(
+  'SlotsService.reserveSlotOrThrow — self-conflict reschedule (F09, AC-F09-2)',
+  () => {
+    let prisma: PrismaService;
+    let slotsService: SlotsService;
+    let tenantId: string;
+    let userId: string;
+    let clientId: string;
+    let serviceId: string;
+    let bookingId: string;
+
+    // Tanggal jauh di masa depan, beda dari suite race condition di atas.
+    const testDate = new Date('2027-04-20T09:00:00.000Z'); // 09:00 UTC
+
+    beforeAll(async () => {
+      prisma = new PrismaService();
+      slotsService = new SlotsService(prisma);
+      await prisma.$connect();
+
+      const suffix = `f09reschedule${Date.now()}`;
+
+      const user = await prisma.user.create({
+        data: { email: `${suffix}@test.local`, passwordHash: 'x' },
+      });
+      userId = user.id;
+
+      const tenant = await prisma.tenant.create({
+        data: {
+          ownerUserId: user.id,
+          slug: suffix.slice(0, 30),
+          namaBisnis: 'Test F09 Reschedule Self-Conflict',
+        },
+      });
+      tenantId = tenant.id;
+
+      const hari = testDate.getUTCDay();
+      await prisma.availability.create({
+        data: {
+          tenantId,
+          hari,
+          jamMulai: 0,
+          jamSelesai: 1440,
+          slotDurasi: 60,
+          kapasitas: 1, // kapasitas 1 -> tanpa fix, reschedule ke slot beririsan pasti "bentrok"
+        },
+      });
+
+      const client = await prisma.client.create({
+        data: {
+          tenantId,
+          nama: 'Klien Test Reschedule',
+          phone: `08${Date.now()}`,
+        },
+      });
+      clientId = client.id;
+
+      const service = await prisma.service.create({
+        data: {
+          tenantId,
+          nama: 'Layanan Test Reschedule',
+          harga: 100_000,
+          durasi: 120,
+          tipe: ServiceType.MAKEUP,
+          dpNilai: 30,
+        },
+      });
+      serviceId = service.id;
+
+      // Booking existing jam 09:00, durasi 120m (09:00-11:00).
+      const booking = await prisma.booking.create({
+        data: {
+          tenantId,
+          clientId,
+          kodeBooking: 'GB-RESCHEDULE-0001',
+          tanggalAcara: testDate,
+          totalHarga: 100_000,
+          dpAmount: 30_000,
+          statusBooking: BookingStatus.CONFIRMED, // kunci permanen, holdUntil null
+          items: {
+            create: [
+              {
+                serviceId,
+                namaSnapshot: 'Layanan Test Reschedule',
+                hargaSnapshot: 100_000,
+                durasi: 120,
+              },
+            ],
+          },
+        },
+      });
+      bookingId = booking.id;
+    }, 30_000);
+
+    afterAll(async () => {
+      await prisma.booking.deleteMany({ where: { tenantId } });
+      await prisma.tenant.delete({ where: { id: tenantId } });
+      await prisma.user.delete({ where: { id: userId } });
+      await prisma.$disconnect();
+    }, 30_000);
+
+    it('TANPA excludeBookingId -> false conflict (bentrok dengan dirinya sendiri)', async () => {
+      const targetTanggal = new Date('2027-04-20T10:00:00.000Z'); // 10:00, beririsan dgn 09:00-11:00 lama
+
+      await expect(
+        prisma.$transaction(async (tx) => {
+          await slotsService.reserveSlotOrThrow(
+            tx,
+            tenantId,
+            targetTanggal,
+            120,
+          );
+        }),
+      ).rejects.toThrow('Slot baru saja terisi.');
+    }, 30_000);
+
+    it('DENGAN excludeBookingId=id booking ini -> reschedule ke 10:00 tanggal sama BERHASIL', async () => {
+      const targetTanggal = new Date('2027-04-20T10:00:00.000Z');
+
+      await prisma.$transaction(async (tx) => {
+        await slotsService.reserveSlotOrThrow(
+          tx,
+          tenantId,
+          targetTanggal,
+          120,
+          bookingId, // exclude diri sendiri dari perhitungan okupansi
+        );
+        await tx.booking.update({
+          where: { id: bookingId },
+          data: { tanggalAcara: targetTanggal },
+        });
+      });
+
+      const updated = await prisma.booking.findUniqueOrThrow({
+        where: { id: bookingId },
+        select: { tanggalAcara: true },
+      });
+      expect(updated.tanggalAcara).toEqual(targetTanggal);
+    }, 30_000);
+  },
+);

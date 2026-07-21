@@ -35,9 +35,86 @@
     "booking": "Booking Sekarang"
   },
   "booking": {
-    "title": "Booking Online Segera Hadir",
-    "desc": "Fitur booking online sedang kami siapkan. Untuk sementara, silakan hubungi MUA langsung melalui kontak yang tertera di media sosialnya untuk membuat janji.",
-    "close": "Tutup"
+    "stepIndicator": "Langkah {{current}} dari {{total}}",
+    "steps": {
+      "services": "Pilih Layanan",
+      "schedule": "Pilih Tanggal & Jam",
+      "details": "Data Diri",
+      "summary": "Ringkasan & Konfirmasi"
+    },
+    "servicesStep": {
+      "title": "Pilih layanan yang ingin dipesan",
+      "empty": "Belum ada layanan yang bisa dipesan.",
+      "subtotal": "Subtotal",
+      "transportFlat": "Biaya transport",
+      "transportZone": "Pilih zona lokasi acara",
+      "transportZoneEmpty": "Zona transport belum diatur MUA. Hubungi MUA langsung untuk info biaya transport.",
+      "validationZone": "Pilih zona transport terlebih dahulu.",
+      "total": "Total",
+      "dpEstimate": "Estimasi DP"
+    },
+    "scheduleStep": {
+      "title": "Pilih tanggal & jam acara",
+      "durasiInfo": "Total durasi layanan terpilih: {{durasi}} menit",
+      "hint": "Pilih tanggal untuk melihat slot yang tersedia.",
+      "empty": "Tidak ada slot tersedia pada tanggal ini. Coba tanggal lain.",
+      "loadError": "Gagal memuat ketersediaan. Coba pilih tanggal lain.",
+      "recommended": "Cukup untuk durasi Anda"
+    },
+    "detailsStep": {
+      "title": "Lengkapi data diri Anda",
+      "nama": "Nama Lengkap",
+      "namaPlaceholder": "Nama Anda",
+      "phone": "Nomor WhatsApp",
+      "phonePlaceholder": "08xxxxxxxxxx",
+      "email": "Email (opsional)",
+      "emailPlaceholder": "nama@email.com",
+      "lokasiAcara": "Lokasi Acara (opsional)",
+      "lokasiAcaraPlaceholder": "Alamat lengkap lokasi acara",
+      "catatan": "Catatan (opsional)",
+      "catatanPlaceholder": "Permintaan khusus, dll.",
+      "customFieldSelectPlaceholder": "Pilih {{label}}",
+      "customFieldDatePlaceholder": "Pilih tanggal",
+      "customFieldFilePlaceholder": "Fitur unggah file menyusul",
+      "customFieldFileNote": "Fitur unggah file menyusul — hubungi MUA langsung bila diperlukan."
+    },
+    "summaryStep": {
+      "title": "Ringkasan Booking",
+      "layanan": "Layanan",
+      "tanggalJam": "Tanggal & Jam",
+      "kontak": "Kontak",
+      "lokasi": "Lokasi",
+      "catatan": "Catatan",
+      "infoTambahan": "Info Tambahan",
+      "subtotal": "Subtotal Layanan",
+      "transport": "Biaya Transport",
+      "total": "Total Estimasi",
+      "dp": "DP yang Harus Dibayar",
+      "dpNote": "Nilai final akan dihitung ulang oleh sistem saat submit.",
+      "submit": "Booking Sekarang",
+      "submitting": "Memproses booking..."
+    },
+    "errors": {
+      "notFound": "Storefront tidak ditemukan atau sedang tidak menerima booking.",
+      "conflict": "Slot yang dipilih baru saja terisi. Silakan pilih slot lain.",
+      "throttle": "Terlalu banyak percobaan, coba lagi nanti.",
+      "generic": "Gagal membuat booking. Coba lagi."
+    },
+    "success": {
+      "title": "Booking Berhasil Dibuat!",
+      "kodeLabel": "Kode Booking",
+      "copy": "Salin kode booking",
+      "copied": "Kode booking disalin.",
+      "holdNotice": "Slot Anda diamankan sampai",
+      "paymentTitle": "Instruksi Pembayaran DP",
+      "paymentMissing": "MUA belum mengatur info pembayaran. Silakan hubungi MUA langsung untuk instruksi pembayaran.",
+      "bank": "Bank",
+      "noRek": "No. Rekening",
+      "pemilik": "Atas Nama",
+      "totalAmount": "Total Harga",
+      "dpAmount": "Jumlah DP",
+      "viewStatus": "Lihat status booking →"
+    }
   },
   "footer": {
     "report": "Laporkan halaman ini",

@@ -3,6 +3,7 @@ import { Prisma, TenantStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStorefrontReportDto } from './dto/create-storefront-report.dto';
 import {
+  StorefrontCustomFieldDto,
   StorefrontProfileResponseDto,
   StorefrontServiceDto,
   StorefrontThemeDto,
@@ -66,6 +67,19 @@ type StorefrontTenantRow = Prisma.TenantGetPayload<{
   select: typeof STOREFRONT_TENANT_SELECT;
 }>;
 
+const CUSTOM_FIELD_SELECT = {
+  id: true,
+  label: true,
+  tipe: true,
+  opsi: true,
+  wajib: true,
+  urutan: true,
+} satisfies Prisma.CustomFieldSelect;
+
+type StorefrontCustomFieldRow = Prisma.CustomFieldGetPayload<{
+  select: typeof CUSTOM_FIELD_SELECT;
+}>;
+
 /**
  * StorefrontService — halaman publik per tenant (F02). TANPA AUTH.
  * Resolusi tenant dari slug adalah satu-satunya query lintas-tenant yang sah
@@ -79,10 +93,21 @@ export class StorefrontService {
 
   /** GET /s/:slug — 404 bila slug tak ada atau tenant CANCELED. */
   async getProfile(slug: string): Promise<StorefrontProfileResponseDto> {
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { slug },
-      select: STOREFRONT_TENANT_SELECT,
-    });
+    // Query tenant (dengan services/theme/transport ternested) dan custom
+    // field dijalankan paralel — customField difilter lewat relasi `tenant.slug`
+    // (bukan `tenant.id` yang belum diketahui) supaya benar-benar satu
+    // round-trip Promise.all, bukan berurutan.
+    const [tenant, customFields] = await Promise.all([
+      this.prisma.tenant.findUnique({
+        where: { slug },
+        select: STOREFRONT_TENANT_SELECT,
+      }),
+      this.prisma.customField.findMany({
+        where: { tenant: { slug } },
+        orderBy: { urutan: 'asc' },
+        select: CUSTOM_FIELD_SELECT,
+      }),
+    ]);
 
     if (!tenant || tenant.status === TenantStatus.CANCELED) {
       throw new NotFoundException('Storefront tidak ditemukan.');
@@ -90,7 +115,7 @@ export class StorefrontService {
 
     if (tenant.status === TenantStatus.RESTRICTED) {
       // AC-F02-3: halaman nonaktif, bukan error — dan TIDAK ADA field lain
-      // yang disertakan (tidak boleh bocor tema/layanan/dsb).
+      // yang disertakan (tidak boleh bocor tema/layanan/customField/dsb).
       return { status: 'INACTIVE', namaBisnis: tenant.namaBisnis };
     }
 
@@ -102,6 +127,7 @@ export class StorefrontService {
       theme: this.toThemeDto(tenant),
       services: tenant.services.map((service) => this.toServiceDto(service)),
       transport: this.toTransportDto(tenant),
+      customFields: customFields.map((field) => this.toCustomFieldDto(field)),
     };
   }
 
@@ -178,6 +204,19 @@ export class StorefrontService {
           nama: string;
           nominal: number;
         }[] | null) ?? null,
+    };
+  }
+
+  private toCustomFieldDto(
+    field: StorefrontCustomFieldRow,
+  ): StorefrontCustomFieldDto {
+    return {
+      id: field.id,
+      label: field.label,
+      tipe: field.tipe,
+      opsi: (field.opsi as string[] | null) ?? null,
+      wajib: field.wajib,
+      urutan: field.urutan,
     };
   }
 }

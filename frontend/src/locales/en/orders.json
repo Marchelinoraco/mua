@@ -1,0 +1,101 @@
+{
+  "title": "Bookings & Orders",
+  "description": "Manage all orders — confirm, reschedule, cancel.",
+  "searchPlaceholder": "Search booking code, name, or phone...",
+  "noResults": "No orders yet.",
+  "loadError": "Failed to load orders. Please try again.",
+  "totalLabel": "{{count}} orders",
+  "rowAriaLabel": "Open order details {{kode}}",
+  "columns": {
+    "kodeBooking": "Booking Code",
+    "tanggalAcara": "Event Date",
+    "klien": "Client",
+    "layanan": "Services",
+    "jumlahItem": "{{count}} services",
+    "durasi": "{{minutes}} min",
+    "total": "Total",
+    "dp": "Deposit",
+    "status": "Status"
+  },
+  "filters": {
+    "status": "Status",
+    "from": "From date",
+    "to": "To date"
+  },
+  "status": {
+    "AWAITING_DP": "Awaiting Deposit",
+    "CONFIRMED": "Confirmed",
+    "PAID": "Paid",
+    "COMPLETED": "Completed",
+    "CANCELED": "Canceled",
+    "EXPIRED": "Expired"
+  },
+  "holdRemaining": {
+    "minutes": "{{minutes}}m left",
+    "hoursMinutes": "{{hours}}h {{minutes}}m left",
+    "expired": "Hold expired"
+  },
+  "detail": {
+    "loadError": "Failed to load order details.",
+    "klien": "Client Info",
+    "nama": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "catatanKlien": "Client notes",
+    "layanan": "Services & Cost",
+    "total": "Total",
+    "dp": "Deposit",
+    "customValues": "Additional Details",
+    "lokasi": "Event location",
+    "catatan": "Booking notes",
+    "pembatalan": "Cancellation Info",
+    "canceledAt": "Canceled at",
+    "alasanBatal": "Reason",
+    "confirmNote": "Automatic deposit confirmation is coming soon (F06). For now, confirmation is done manually by the MUA."
+  },
+  "actions": {
+    "confirm": "Confirm",
+    "complete": "Mark Complete",
+    "reschedule": "Reschedule",
+    "cancel": "Cancel"
+  },
+  "confirmDialog": {
+    "title": "Confirm this order?",
+    "desc": "Order {{kode}} will be marked as \"Confirmed\".",
+    "f06Note": "Automatic deposit confirmation is coming soon (F06) — for now confirmation is done manually."
+  },
+  "completeDialog": {
+    "title": "Mark order as complete?",
+    "desc": "Order {{kode}} will be marked as \"Completed\". This action cannot be undone."
+  },
+  "cancelDialog": {
+    "title": "Cancel order",
+    "desc": "Order {{kode}} will be marked as \"Canceled\". Manual refund notes (off-platform) are recorded here.",
+    "alasan": "Cancellation reason",
+    "alasanPlaceholder": "E.g. client canceled themselves, refund already transferred manually...",
+    "tutup": "Close",
+    "confirm": "Cancel Order",
+    "saving": "Canceling..."
+  },
+  "rescheduleDialog": {
+    "title": "Reschedule order",
+    "desc": "Pick a new date & time for order {{kode}}. The slot will be re-validated by the server.",
+    "tanggal": "New date",
+    "pilihTanggal": "Pick a date",
+    "jam": "New start time",
+    "conflictNote": "If the chosen slot is already taken, the server will reject it and show a message — please pick another time.",
+    "tutup": "Close",
+    "confirm": "Save New Schedule",
+    "saving": "Saving..."
+  },
+  "toast": {
+    "confirmSuccess": "Order confirmed successfully.",
+    "confirmConflict": "Order status changed before it could be confirmed.",
+    "completeSuccess": "Order marked as complete.",
+    "completeConflict": "Order status changed before it could be marked complete.",
+    "cancelSuccess": "Order canceled successfully.",
+    "cancelConflict": "Order status changed before it could be canceled.",
+    "rescheduleSuccess": "Order schedule updated successfully.",
+    "rescheduleConflict": "The slot was just taken."
+  }
+}

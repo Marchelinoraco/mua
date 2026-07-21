@@ -1,0 +1,101 @@
+{
+  "title": "Booking & Order",
+  "description": "Kelola semua order — konfirmasi, reschedule, batalkan.",
+  "searchPlaceholder": "Cari kode booking, nama, atau nomor WA...",
+  "noResults": "Belum ada order.",
+  "loadError": "Gagal memuat daftar order. Coba lagi.",
+  "totalLabel": "{{count}} order",
+  "rowAriaLabel": "Buka detail order {{kode}}",
+  "columns": {
+    "kodeBooking": "Kode Booking",
+    "tanggalAcara": "Tanggal Acara",
+    "klien": "Klien",
+    "layanan": "Layanan",
+    "jumlahItem": "{{count}} layanan",
+    "durasi": "{{minutes}} menit",
+    "total": "Total",
+    "dp": "DP",
+    "status": "Status"
+  },
+  "filters": {
+    "status": "Status",
+    "from": "Dari tanggal",
+    "to": "Sampai tanggal"
+  },
+  "status": {
+    "AWAITING_DP": "Menunggu DP",
+    "CONFIRMED": "Terkonfirmasi",
+    "PAID": "Lunas",
+    "COMPLETED": "Selesai",
+    "CANCELED": "Dibatalkan",
+    "EXPIRED": "Kedaluwarsa"
+  },
+  "holdRemaining": {
+    "minutes": "{{minutes}} menit lagi",
+    "hoursMinutes": "{{hours}}j {{minutes}}m lagi",
+    "expired": "Hold berakhir"
+  },
+  "detail": {
+    "loadError": "Gagal memuat detail order.",
+    "klien": "Info Klien",
+    "nama": "Nama",
+    "phone": "No. WA",
+    "email": "Email",
+    "catatanKlien": "Catatan klien",
+    "layanan": "Layanan & Biaya",
+    "total": "Total",
+    "dp": "DP",
+    "customValues": "Detail Tambahan",
+    "lokasi": "Lokasi acara",
+    "catatan": "Catatan booking",
+    "pembatalan": "Info Pembatalan",
+    "canceledAt": "Dibatalkan pada",
+    "alasanBatal": "Alasan",
+    "confirmNote": "Konfirmasi DP otomatis akan menyusul (F06). Untuk saat ini, konfirmasi dilakukan manual oleh MUA."
+  },
+  "actions": {
+    "confirm": "Konfirmasi",
+    "complete": "Tandai Selesai",
+    "reschedule": "Reschedule",
+    "cancel": "Batalkan"
+  },
+  "confirmDialog": {
+    "title": "Konfirmasi order ini?",
+    "desc": "Order {{kode}} akan berstatus \"Terkonfirmasi\".",
+    "f06Note": "Konfirmasi DP otomatis akan menyusul (F06) — untuk saat ini konfirmasi dilakukan manual."
+  },
+  "completeDialog": {
+    "title": "Tandai order selesai?",
+    "desc": "Order {{kode}} akan berstatus \"Selesai\". Tindakan ini tidak dapat dibatalkan."
+  },
+  "cancelDialog": {
+    "title": "Batalkan order",
+    "desc": "Order {{kode}} akan berstatus \"Dibatalkan\". Catatan refund manual (di luar platform) dicatat di sini.",
+    "alasan": "Alasan pembatalan",
+    "alasanPlaceholder": "Mis. klien membatalkan sendiri, refund sudah ditransfer manual...",
+    "tutup": "Tutup",
+    "confirm": "Batalkan Order",
+    "saving": "Membatalkan..."
+  },
+  "rescheduleDialog": {
+    "title": "Reschedule order",
+    "desc": "Pilih tanggal & jam baru untuk order {{kode}}. Slot akan divalidasi ulang oleh server.",
+    "tanggal": "Tanggal baru",
+    "pilihTanggal": "Pilih tanggal",
+    "jam": "Jam mulai baru",
+    "conflictNote": "Bila slot yang dipilih sudah terisi, server akan menolak dan menampilkan pesan — silakan pilih jam lain.",
+    "tutup": "Tutup",
+    "confirm": "Simpan Jadwal Baru",
+    "saving": "Menyimpan..."
+  },
+  "toast": {
+    "confirmSuccess": "Order berhasil dikonfirmasi.",
+    "confirmConflict": "Order sudah berubah status sebelum dikonfirmasi.",
+    "completeSuccess": "Order ditandai selesai.",
+    "completeConflict": "Order sudah berubah status sebelum ditandai selesai.",
+    "cancelSuccess": "Order berhasil dibatalkan.",
+    "cancelConflict": "Order sudah berubah status sebelum dibatalkan.",
+    "rescheduleSuccess": "Jadwal order berhasil diperbarui.",
+    "rescheduleConflict": "Slot baru saja terisi."
+  }
+}

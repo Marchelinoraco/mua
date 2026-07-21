@@ -35,6 +35,19 @@ export class StorefrontTransportDto {
 }
 
 /**
+ * Metadata custom field tenant (F03) — dipakai FE untuk me-render form booking
+ * dinamis (F04). Nilai isian klien TIDAK ada di sini (itu urusan booking).
+ */
+export class StorefrontCustomFieldDto {
+  id: string;
+  label: string;
+  tipe: string; // "text" | "select" | "checkbox" | "date" | "file"
+  opsi: string[] | null;
+  wajib: boolean;
+  urutan: number;
+}
+
+/**
  * status "INACTIVE" (tenant RESTRICTED, AC-F02-3): HANYA status+namaBisnis,
  * field lain sengaja tidak dikirim (tidak `undefined` di objek, tidak ada
  * di JSON sama sekali) supaya tidak ada indikasi data lain bocor.
@@ -49,4 +62,5 @@ export type StorefrontProfileResponseDto =
       theme: StorefrontThemeDto;
       services: StorefrontServiceDto[];
       transport: StorefrontTransportDto | null;
+      customFields: StorefrontCustomFieldDto[];
     };

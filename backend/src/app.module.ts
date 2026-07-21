@@ -15,6 +15,8 @@ import { AvailabilityModule } from './availability/availability.module';
 import { BlockedDatesModule } from './blocked-dates/blocked-dates.module';
 import { SlotsModule } from './slots/slots.module';
 import { StorefrontModule } from './storefront/storefront.module';
+import { BookingModule } from './booking/booking.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { StorefrontModule } from './storefront/storefront.module';
     BlockedDatesModule,
     SlotsModule,
     StorefrontModule,
+    BookingModule,
+    OrdersModule,
   ],
   providers: [
     {

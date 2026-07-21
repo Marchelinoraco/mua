@@ -1,0 +1,40 @@
+{
+  "notFound": {
+    "title": "Booking Tidak Ditemukan",
+    "desc": "Kode booking yang Anda masukkan tidak ditemukan. Periksa kembali tautan atau kode booking Anda."
+  },
+  "loadErrorTitle": "Gagal Memuat Halaman",
+  "loadError": "Gagal memuat status booking. Coba muat ulang halaman.",
+  "verify": {
+    "title": "Verifikasi Booking Anda",
+    "desc": "Masukkan nomor WhatsApp yang Anda gunakan saat booking untuk melihat detail lengkap.",
+    "phoneLabel": "Nomor WhatsApp",
+    "phonePlaceholder": "08xxxxxxxxxx",
+    "submit": "Verifikasi",
+    "disclaimer": "Verifikasi lengkap via WhatsApp menyusul.",
+    "mismatch": "Nomor tidak cocok dengan data booking. Periksa kembali nomor WA Anda."
+  },
+  "detail": {
+    "layanan": "Layanan",
+    "total": "Total Harga",
+    "dp": "DP",
+    "lokasi": "Lokasi Acara",
+    "catatan": "Catatan",
+    "payment": {
+      "title": "Instruksi Pembayaran DP",
+      "missing": "MUA belum mengatur info pembayaran. Silakan hubungi MUA langsung.",
+      "bank": "Bank",
+      "noRek": "No. Rekening",
+      "pemilik": "Atas Nama"
+    },
+    "otpNotice": "Verifikasi WA penuh menyusul (F08)."
+  },
+  "status": {
+    "AWAITING_DP": "Menunggu DP",
+    "CONFIRMED": "Terkonfirmasi",
+    "PAID": "Lunas",
+    "COMPLETED": "Selesai",
+    "CANCELED": "Dibatalkan",
+    "EXPIRED": "Kedaluwarsa"
+  }
+}

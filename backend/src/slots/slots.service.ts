@@ -228,12 +228,21 @@ export class SlotsService {
    * Setelah lock didapat, method ini RE-CEK okupansi slot (defense-in-depth
    * terhadap request yang lolos validasi awal sebelum lock diperoleh);
    * jika penuh → throw ConflictException("Slot baru saja terisi.").
+   *
+   * `excludeBookingId` (F09, opsional — default undefined, TIDAK mengubah
+   * perilaku pemanggil lama seperti BookingService.createBooking): dipakai
+   * OrdersService.reschedule supaya booking yang SEDANG di-reschedule tidak
+   * dihitung sebagai okupansi terhadap dirinya sendiri. BUG yang diperbaiki:
+   * tanpa exclude ini, reschedule ke jam lain di tanggal yang SAMA dengan
+   * rentang lama yang beririsan akan false-conflict (booking bentrok dengan
+   * baris dirinya sendiri yang masih berstatus aktif di DB).
    */
   async reserveSlotOrThrow(
     tx: Prisma.TransactionClient,
     tenantId: string,
     tanggalAcara: Date,
     durasiMenit: number,
+    excludeBookingId?: string,
   ): Promise<void> {
     const dateOnly = truncateToDateUtc(tanggalAcara);
     const lockKey = `${tenantId}:${toDateOnlyString(dateOnly)}`;
@@ -273,6 +282,7 @@ export class SlotsService {
       tx,
       tenantId,
       dateOnly,
+      excludeBookingId,
     );
     const now = new Date();
     const occupancy = bookings
@@ -287,17 +297,24 @@ export class SlotsService {
     }
   }
 
-  /** Query booking kandidat (status hidup) pada satu tanggal kalender — dipakai baca & lock. */
+  /**
+   * Query booking kandidat (status hidup) pada satu tanggal kalender — dipakai
+   * baca & lock. `excludeBookingId` (F09, opsional): kecualikan satu booking
+   * dari kandidat okupansi — dipakai reschedule agar booking tidak bentrok
+   * dengan dirinya sendiri (lihat komentar reserveSlotOrThrow).
+   */
   private findActiveBookingCandidates(
     client: PrismaService | Prisma.TransactionClient,
     tenantId: string,
     dateOnly: Date,
+    excludeBookingId?: string,
   ): Promise<BookingOccupancyRow[]> {
     return client.booking.findMany({
       where: {
         tenantId,
         tanggalAcara: { gte: dateOnly, lt: addDaysUtc(dateOnly, 1) },
         statusBooking: { in: LIVE_BOOKING_STATUSES },
+        ...(excludeBookingId ? { id: { not: excludeBookingId } } : {}),
       },
       select: {
         statusBooking: true,

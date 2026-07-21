@@ -1,14 +1,14 @@
+import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
+import { Clients } from '@/features/clients'
 
-function ClientsPage() {
-  return (
-    <div className='p-6'>
-      <h1 className='text-2xl font-bold'>Klien</h1>
-      <p className='text-muted-foreground mt-2'>Segera hadir.</p>
-    </div>
-  )
-}
+const clientsSearchSchema = z.object({
+  page: z.number().optional().catch(1),
+  pageSize: z.number().optional().catch(20),
+  q: z.string().optional().catch(''),
+})
 
 export const Route = createFileRoute('/_authenticated/clients/')({
-  component: ClientsPage,
+  validateSearch: clientsSearchSchema,
+  component: Clients,
 })
