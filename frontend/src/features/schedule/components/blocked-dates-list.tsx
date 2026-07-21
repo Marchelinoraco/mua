@@ -1,7 +1,7 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatDate } from '@/lib/date'
-import { ConfirmDialog } from '@/components/confirm-dialog'
+import { toNaiveLocalDate } from '@/lib/naive-datetime'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -20,11 +20,29 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import {
   useBlockedDates,
   useDeleteBlockedDate,
 } from '../hooks/use-blocked-dates'
 import { useScheduleDialogs } from './schedule-provider'
+
+/**
+ * `BlockedDate.tanggalMulai`/`tanggalSelesai` adalah kolom Prisma `@db.Date`
+ * (tanpa komponen jam) yang diserialisasi sbg ISO datetime jam 00:00:00 UTC.
+ * `toNaiveLocalDate` WAJIB dipanggil dulu sebelum `formatDate` — memformat
+ * string ISO ini langsung akan menggeser tanggal mundur satu hari di
+ * timezone browser DI BELAKANG UTC (lihat catatan bug di `naive-datetime.ts`).
+ */
+function formatBlockedDate(value: string): string {
+  return formatDate(toNaiveLocalDate(value), 'd MMM yyyy')
+}
+
+function formatBlockedDateRange(tanggalMulai: string, tanggalSelesai: string) {
+  return tanggalMulai === tanggalSelesai
+    ? formatBlockedDate(tanggalMulai)
+    : `${formatBlockedDate(tanggalMulai)} – ${formatBlockedDate(tanggalSelesai)}`
+}
 
 function BlockedDatesSkeleton() {
   return (
@@ -94,9 +112,10 @@ export function BlockedDatesList() {
                 {data.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className='font-medium whitespace-nowrap'>
-                      {row.tanggalMulai === row.tanggalSelesai
-                        ? formatDate(row.tanggalMulai, 'd MMM yyyy')
-                        : `${formatDate(row.tanggalMulai, 'd MMM yyyy')} – ${formatDate(row.tanggalSelesai, 'd MMM yyyy')}`}
+                      {formatBlockedDateRange(
+                        row.tanggalMulai,
+                        row.tanggalSelesai
+                      )}
                     </TableCell>
                     <TableCell className='text-muted-foreground'>
                       {row.alasan || '—'}
@@ -134,12 +153,12 @@ export function BlockedDatesList() {
         }}
         title={t('blockedDates.deleteDialog.title')}
         desc={t('blockedDates.deleteDialog.desc', {
-          tanggal:
-            currentRow && currentRow.tanggalMulai === currentRow.tanggalSelesai
-              ? formatDate(currentRow.tanggalMulai, 'd MMM yyyy')
-              : currentRow
-                ? `${formatDate(currentRow.tanggalMulai, 'd MMM yyyy')} – ${formatDate(currentRow.tanggalSelesai, 'd MMM yyyy')}`
-                : '',
+          tanggal: currentRow
+            ? formatBlockedDateRange(
+                currentRow.tanggalMulai,
+                currentRow.tanggalSelesai
+              )
+            : '',
         })}
         confirmText={t('blockedDates.deleteDialog.confirm')}
         handleConfirm={handleConfirmDelete}
