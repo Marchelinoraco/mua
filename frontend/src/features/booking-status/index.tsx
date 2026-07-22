@@ -26,7 +26,7 @@ export function BookingStatusPage({ kode }: BookingStatusPageProps) {
   )
 
   useEffect(() => {
-    document.title = `Booking ${kode} — GlowBook`
+    document.title = `Booking ${kode} — MuaGlow`
   }, [kode])
 
   if (isLoading && !data) return <BookingStatusSkeleton />

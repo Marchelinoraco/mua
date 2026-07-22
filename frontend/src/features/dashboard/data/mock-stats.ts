@@ -114,7 +114,7 @@ export const mockDashboardStats: DashboardStats = {
       serviceName: 'Makeup Party',
       tanggal: '2026-07-10',
       jamMulai: '16:00',
-      lokasi: 'Studio GlowBook, Kemang, Jakarta Selatan',
+      lokasi: 'Studio MuaGlow, Kemang, Jakarta Selatan',
     },
     {
       id: 'up-4',

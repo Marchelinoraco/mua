@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
 
+// Nama cookie adalah pengenal teknis internal, bukan branding produk —
+// SENGAJA tidak diubah saat rebrand GlowBook → MuaGlow. Mengganti nilai ini
+// akan membuat cookie lama tidak terbaca lagi dan otomatis me-logout semua
+// user yang sedang login (butuh migrasi sesi terpisah jika ingin diganti).
 const COOKIE_KEY = 'glowbook_access_token'
 
 // ── Domain types ────────────────────────────────────────────────────────────
@@ -85,8 +89,7 @@ export const useAuthStore = create<AuthState>()((set) => {
 
       // ── user ───────────────────────────────────────────────────────────
       user: null,
-      setUser: (user) =>
-        set((state) => ({ auth: { ...state.auth, user } })),
+      setUser: (user) => set((state) => ({ auth: { ...state.auth, user } })),
 
       // ── tenant / subscription ──────────────────────────────────────────
       tenant: null,

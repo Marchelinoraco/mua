@@ -29,7 +29,7 @@ const DEFAULT_SECONDARY = 'oklch(0.9514 0.025 236.8242)'
 
 function StorefrontActivePage({ data }: { data: StorefrontActiveResponse }) {
   useEffect(() => {
-    document.title = `${data.namaBisnis} — GlowBook`
+    document.title = `${data.namaBisnis} — MuaGlow`
   }, [data.namaBisnis])
 
   const primary = isSafeCssColor(data.theme.warnaPrimer)

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AtChar123slugChar125IndexRouteImport } from './routes/@{$slug}/index'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
@@ -49,6 +50,12 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AtChar123slugChar125IndexRoute =
+  AtChar123slugChar125IndexRouteImport.update({
+    id: '/@{$slug}/',
+    path: '/@{$slug}/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const errors503Route = errors503RouteImport.update({
   id: '/(errors)/503',
   path: '/503',
@@ -217,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/@{$slug}/': typeof AtChar123slugChar125IndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -246,6 +254,7 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/@{$slug}': typeof AtChar123slugChar125IndexRoute
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -279,6 +288,7 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
+  '/@{$slug}/': typeof AtChar123slugChar125IndexRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/@{$slug}/'
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/@{$slug}'
     | '/'
     | '/errors/$error'
     | '/settings/account'
@@ -374,6 +386,7 @@ export interface FileRouteTypes {
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
+    | '/@{$slug}/'
     | '/_authenticated/'
     | '/_authenticated/errors/$error'
     | '/_authenticated/settings/account'
@@ -406,6 +419,7 @@ export interface RootRouteChildren {
   errors404Route: typeof errors404Route
   errors500Route: typeof errors500Route
   errors503Route: typeof errors503Route
+  AtChar123slugChar125IndexRoute: typeof AtChar123slugChar125IndexRoute
   BookingStatusKodeIndexRoute: typeof BookingStatusKodeIndexRoute
   SSlugIndexRoute: typeof SSlugIndexRoute
 }
@@ -425,6 +439,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/@{$slug}/': {
+      id: '/@{$slug}/'
+      path: '/@{$slug}'
+      fullPath: '/@{$slug}/'
+      preLoaderRoute: typeof AtChar123slugChar125IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(errors)/503': {
       id: '/(errors)/503'
@@ -694,6 +715,7 @@ const rootRouteChildren: RootRouteChildren = {
   errors404Route: errors404Route,
   errors500Route: errors500Route,
   errors503Route: errors503Route,
+  AtChar123slugChar125IndexRoute: AtChar123slugChar125IndexRoute,
   BookingStatusKodeIndexRoute: BookingStatusKodeIndexRoute,
   SSlugIndexRoute: SSlugIndexRoute,
 }

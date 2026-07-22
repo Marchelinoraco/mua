@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { handleServerError } from '@/lib/handle-server-error'
@@ -27,7 +27,9 @@ interface OnboardingPaymentStepProps {
   onSuccess: () => void
 }
 
-export function OnboardingPaymentStep({ onSuccess }: OnboardingPaymentStepProps) {
+export function OnboardingPaymentStep({
+  onSuccess,
+}: OnboardingPaymentStepProps) {
   const { t } = useTranslation('auth')
   const queryClient = useQueryClient()
 
@@ -45,7 +47,9 @@ export function OnboardingPaymentStep({ onSuccess }: OnboardingPaymentStepProps)
     mutationFn: (values: PaymentProfileFormValues) =>
       api.put('/payment-profile', values).then((r) => r.data),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['onboarding', 'checklist'] })
+      void queryClient.invalidateQueries({
+        queryKey: ['onboarding', 'checklist'],
+      })
       toast.success(t('onboarding.step2.saved'))
       onSuccess()
     },
@@ -60,7 +64,7 @@ export function OnboardingPaymentStep({ onSuccess }: OnboardingPaymentStepProps)
 
   return (
     <div className='space-y-4'>
-      {/* Disclaimer — dana tidak melewati GlowBook */}
+      {/* Disclaimer — dana tidak melewati MuaGlow */}
       <Alert className='border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950'>
         <ShieldCheck className='h-4 w-4 text-amber-600 dark:text-amber-400' />
         <AlertDescription className='text-amber-800 dark:text-amber-200'>
@@ -94,9 +98,7 @@ export function OnboardingPaymentStep({ onSuccess }: OnboardingPaymentStepProps)
                 <FormLabel>{t('onboarding.step2.nomorRekening')}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t(
-                      'onboarding.step2.nomorRekeningPlaceholder'
-                    )}
+                    placeholder={t('onboarding.step2.nomorRekeningPlaceholder')}
                     inputMode='numeric'
                     {...field}
                   />
@@ -126,9 +128,7 @@ export function OnboardingPaymentStep({ onSuccess }: OnboardingPaymentStepProps)
             name='instruksiTambahan'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  {t('onboarding.step2.instruksiTambahan')}
-                </FormLabel>
+                <FormLabel>{t('onboarding.step2.instruksiTambahan')}</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder={t(
