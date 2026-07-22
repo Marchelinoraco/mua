@@ -49,6 +49,14 @@
       "languageRequired": "Harap pilih bahasa."
     }
   },
+  "payment": {
+    "title": "Pembayaran",
+    "description": "Atur rekening bank yang ditampilkan kepada klien untuk transfer DP & pelunasan.",
+    "loadError": "Gagal memuat instruksi pembayaran. Coba muat ulang halaman.",
+    "toast": {
+      "saveSuccess": "Instruksi pembayaran berhasil disimpan."
+    }
+  },
   "appearance": {
     "title": "Tampilan",
     "description": "Sesuaikan tampilan aplikasi. Otomatis beralih antara tema siang dan malam.",

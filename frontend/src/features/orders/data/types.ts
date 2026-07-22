@@ -4,9 +4,14 @@
  * `backend/src/orders/dto/order-response.dto.ts`. `BookingStatus` di-REUSE
  * dari dashboard (satu sumber kebenaran enum status booking di seluruh FE).
  */
-import type { BookingStatus } from '@/features/dashboard/data/types'
+import type {
+  BookingStatus,
+  Payment,
+  PaymentStatus,
+  PaymentTipe,
+} from '@/features/dashboard/data/types'
 
-export type { BookingStatus }
+export type { BookingStatus, Payment, PaymentStatus, PaymentTipe }
 
 export interface OrderClientSummary {
   id: string
@@ -74,6 +79,8 @@ export interface OrderDetail {
   client: OrderClientDetail
   items: OrderItemDetail[]
   customValues: OrderCustomValue[]
+  /** Riwayat pembayaran, urut createdAt asc (F06). */
+  payments: Payment[]
 }
 
 /** Parameter `GET /orders?status=&from=&to=&q=&page=&limit=`. */

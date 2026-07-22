@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { BOOKING_STATUS_BADGE_CLASS } from '@/features/dashboard/data/status'
 import type { BookingStatus } from '../data/types'
 import { useOrderDetail } from '../hooks/use-orders'
+import { OrderPaymentSection } from './order-payment-section'
 import { useOrders } from './orders-provider'
 
 const ACTIONABLE_STATUSES: BookingStatus[] = ['AWAITING_DP', 'CONFIRMED', 'PAID']
@@ -198,22 +199,14 @@ export function OrderDetailSheet() {
                 </section>
               )}
 
-              {status === 'AWAITING_DP' && (
-                <p className='text-xs text-muted-foreground'>
-                  {t('detail.confirmNote')}
-                </p>
-              )}
+              {/* Pembayaran (F06) */}
+              <OrderPaymentSection order={data} />
             </>
           )}
         </div>
 
         {canAct && data && (
           <div className='flex flex-wrap gap-2 border-t p-4'>
-            {status === 'AWAITING_DP' && (
-              <Button size='sm' onClick={() => setActionOpen('confirm')}>
-                {t('actions.confirm')}
-              </Button>
-            )}
             {(status === 'CONFIRMED' || status === 'PAID') && (
               <Button size='sm' onClick={() => setActionOpen('complete')}>
                 {t('actions.complete')}

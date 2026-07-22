@@ -36,5 +36,41 @@
     "COMPLETED": "Completed",
     "CANCELED": "Canceled",
     "EXPIRED": "Expired"
+  },
+  "payments": {
+    "title": "Payment History",
+    "empty": "No payments yet.",
+    "status": {
+      "PENDING": "Pending",
+      "SUBMITTED": "Submitted",
+      "CONFIRMED": "Confirmed",
+      "REJECTED": "Rejected"
+    },
+    "tipe": {
+      "DP": "Deposit",
+      "PELUNASAN": "Final Payment"
+    },
+    "viewPdf": "View PDF",
+    "proofAlt": "Transfer proof",
+    "rejectReason": "Rejection reason"
+  },
+  "uploadForm": {
+    "titleDp": "Upload Deposit Transfer Proof",
+    "titlePelunasan": "Upload Final Payment Proof",
+    "reuploadNote": "Your previous proof was rejected by the MUA. Please double-check and re-upload.",
+    "suggestedAmount": "Amount to transfer: {{jumlah}}",
+    "amountLabel": "Amount Transferred",
+    "fileLabel": "Transfer Proof (JPG, PNG, WEBP, or PDF, max 5MB)",
+    "catatanLabel": "Note (optional)",
+    "catatanPlaceholder": "E.g. transferred from account under...",
+    "submit": "Upload Proof",
+    "submitting": "Uploading...",
+    "success": "Payment proof uploaded successfully. Waiting for MUA verification.",
+    "errors": {
+      "notFound": "Booking not found or the WhatsApp number doesn't match. Try verifying again.",
+      "conflict": "The booking status has changed, upload can't continue.",
+      "throttle": "Too many upload attempts. Please try again shortly.",
+      "generic": "Failed to upload payment proof. Please try again."
+    }
   }
 }

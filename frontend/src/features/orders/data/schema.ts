@@ -60,3 +60,40 @@ export const rescheduleOrderFormSchema = z
 
 export type RescheduleOrderFormInput = z.input<typeof rescheduleOrderFormSchema>
 export type RescheduleOrderFormValues = z.infer<typeof rescheduleOrderFormSchema>
+
+// ── Pembayaran (F06) ─────────────────────────────────────────────────────────
+
+/**
+ * DTO POST /orders/:id/payments/:paymentId/reject — `alasan` 5-500 karakter,
+ * sama persis dengan batas backend (`backend/src/payments/dto/reject-payment.dto.ts`).
+ */
+export const rejectPaymentFormSchema = z.object({
+  alasan: z
+    .string()
+    .trim()
+    .min(5, 'Alasan tolak minimal 5 karakter.')
+    .max(500, 'Alasan tolak maksimal 500 karakter.'),
+})
+
+export type RejectPaymentFormInput = z.input<typeof rejectPaymentFormSchema>
+export type RejectPaymentFormValues = z.infer<typeof rejectPaymentFormSchema>
+
+/**
+ * DTO POST /orders/:id/payments/mark-cash — `jumlah` positif, `catatanMua`
+ * opsional (maks 500 karakter), sama dengan
+ * `backend/src/payments/dto/mark-cash-payment.dto.ts`. `tipe` TIDAK ada di
+ * form (implisit dari `statusBooking` saat ini — lihat order-mark-cash-dialog.tsx).
+ */
+export const markCashPaymentFormSchema = z.object({
+  jumlah: z.coerce
+    .number({ error: 'Jumlah wajib diisi.' })
+    .positive('Jumlah harus lebih besar dari 0.'),
+  catatanMua: z
+    .string()
+    .trim()
+    .max(500, 'Catatan maksimal 500 karakter.')
+    .optional(),
+})
+
+export type MarkCashPaymentFormInput = z.input<typeof markCashPaymentFormSchema>
+export type MarkCashPaymentFormValues = z.infer<typeof markCashPaymentFormSchema>

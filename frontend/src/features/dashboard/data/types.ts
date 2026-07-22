@@ -16,6 +16,34 @@ export type BookingStatus =
   | 'CANCELED'
   | 'EXPIRED'
 
+/**
+ * `Payment.status` (F06) — mengikuti enum Prisma `PaymentStatus`. Satu
+ * sumber kebenaran dipakai bersama oleh `orders` (dashboard, JWT) dan
+ * `booking-status` (publik) — kedua fitur menerima bentuk `Payment` yang
+ * identik dari backend (`OrderPaymentDto` / `BookingPaymentResponseDto`).
+ */
+export type PaymentStatus = 'PENDING' | 'SUBMITTED' | 'CONFIRMED' | 'REJECTED'
+
+/** `Payment.tipe` — string bebas di Prisma (bukan enum), tapi FE membatasi ke 2 nilai yang dikenal backend. */
+export type PaymentTipe = 'DP' | 'PELUNASAN'
+
+/** Satu baris riwayat pembayaran (F06) — bentuk sama persis di `OrderDetail.payments` & `BookingStatusDetail.payments`. */
+export interface Payment {
+  id: string
+  tipe: PaymentTipe
+  jumlah: number
+  status: PaymentStatus
+  /** `null` bila "tandai tunai" (FR-F06-7, tanpa bukti unggahan). */
+  buktiFotoUrl: string | null
+  catatanKlien: string | null
+  /** Alasan tolak MUA, atau catatan tandai-tunai. */
+  catatanMua: string | null
+  /** ISO datetime — instant UTC ASLI (`new Date()` di server), BUKAN naive — jangan lewatkan `toNaiveLocalDate`. */
+  confirmedAt: string | null
+  /** ISO datetime — instant UTC ASLI (`@default(now())`), BUKAN naive. */
+  createdAt: string
+}
+
 /** Metrik dengan perbandingan ke periode sebelumnya (mis. bulan lalu). */
 export interface DashboardStatMetric {
   total: number

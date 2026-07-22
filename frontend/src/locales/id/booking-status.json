@@ -36,5 +36,41 @@
     "COMPLETED": "Selesai",
     "CANCELED": "Dibatalkan",
     "EXPIRED": "Kedaluwarsa"
+  },
+  "payments": {
+    "title": "Riwayat Pembayaran",
+    "empty": "Belum ada pembayaran.",
+    "status": {
+      "PENDING": "Menunggu",
+      "SUBMITTED": "Diajukan",
+      "CONFIRMED": "Dikonfirmasi",
+      "REJECTED": "Ditolak"
+    },
+    "tipe": {
+      "DP": "DP",
+      "PELUNASAN": "Pelunasan"
+    },
+    "viewPdf": "Lihat PDF",
+    "proofAlt": "Bukti transfer",
+    "rejectReason": "Alasan ditolak"
+  },
+  "uploadForm": {
+    "titleDp": "Unggah Bukti Transfer DP",
+    "titlePelunasan": "Unggah Bukti Pelunasan",
+    "reuploadNote": "Bukti sebelumnya ditolak MUA. Silakan periksa kembali lalu unggah ulang.",
+    "suggestedAmount": "Jumlah yang perlu ditransfer: {{jumlah}}",
+    "amountLabel": "Jumlah Ditransfer",
+    "fileLabel": "Bukti Transfer (JPG, PNG, WEBP, atau PDF, maks 5MB)",
+    "catatanLabel": "Catatan (opsional)",
+    "catatanPlaceholder": "Mis. transfer dari rekening a.n. ...",
+    "submit": "Unggah Bukti",
+    "submitting": "Mengunggah...",
+    "success": "Bukti pembayaran berhasil diunggah. Menunggu verifikasi MUA.",
+    "errors": {
+      "notFound": "Booking tidak ditemukan atau nomor WA tidak cocok. Coba verifikasi ulang.",
+      "conflict": "Status booking sudah berubah, unggah bukti tidak bisa dilanjutkan.",
+      "throttle": "Terlalu banyak percobaan unggah. Coba lagi beberapa saat lagi.",
+      "generic": "Gagal mengunggah bukti pembayaran. Coba lagi."
+    }
   }
 }

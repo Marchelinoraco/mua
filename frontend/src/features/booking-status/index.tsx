@@ -49,5 +49,8 @@ export function BookingStatusPage({ kode }: BookingStatusPageProps) {
     )
   }
 
-  return <BookingStatusDetail data={data} />
+  // `phone` dijamin terisi di sini — satu-satunya jalan mencapai
+  // `requiresOtp: false` adalah lewat `BookingStatusVerifyForm.onVerify`
+  // (yang memanggil `setPhone`) diikuti backend mencocokkan nomornya.
+  return <BookingStatusDetail data={data} phone={phone ?? ''} />
 }

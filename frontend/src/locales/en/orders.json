@@ -50,19 +50,12 @@
     "catatan": "Booking notes",
     "pembatalan": "Cancellation Info",
     "canceledAt": "Canceled at",
-    "alasanBatal": "Reason",
-    "confirmNote": "Automatic deposit confirmation is coming soon (F06). For now, confirmation is done manually by the MUA."
+    "alasanBatal": "Reason"
   },
   "actions": {
-    "confirm": "Confirm",
     "complete": "Mark Complete",
     "reschedule": "Reschedule",
     "cancel": "Cancel"
-  },
-  "confirmDialog": {
-    "title": "Confirm this order?",
-    "desc": "Order {{kode}} will be marked as \"Confirmed\".",
-    "f06Note": "Automatic deposit confirmation is coming soon (F06) — for now confirmation is done manually."
   },
   "completeDialog": {
     "title": "Mark order as complete?",
@@ -89,13 +82,69 @@
     "saving": "Saving..."
   },
   "toast": {
-    "confirmSuccess": "Order confirmed successfully.",
-    "confirmConflict": "Order status changed before it could be confirmed.",
     "completeSuccess": "Order marked as complete.",
     "completeConflict": "Order status changed before it could be marked complete.",
     "cancelSuccess": "Order canceled successfully.",
     "cancelConflict": "Order status changed before it could be canceled.",
     "rescheduleSuccess": "Order schedule updated successfully.",
     "rescheduleConflict": "The slot was just taken."
+  },
+  "payments": {
+    "title": "Payments",
+    "empty": "No payments yet.",
+    "status": {
+      "PENDING": "Pending",
+      "SUBMITTED": "Submitted",
+      "CONFIRMED": "Confirmed",
+      "REJECTED": "Rejected"
+    },
+    "tipe": {
+      "DP": "Deposit",
+      "PELUNASAN": "Final Payment"
+    },
+    "viewPdf": "View PDF",
+    "proofAlt": "Transfer proof",
+    "rejectReason": "Rejection reason",
+    "catatanKlien": "Client note",
+    "actions": {
+      "confirm": "Confirm",
+      "reject": "Reject"
+    },
+    "confirmDialog": {
+      "title": "Confirm this payment?",
+      "desc": "The payment of {{jumlah}} will be confirmed and the booking status updated automatically."
+    },
+    "rejectDialog": {
+      "title": "Reject payment proof",
+      "desc": "Explain the rejection reason — the client can re-upload proof after this.",
+      "alasan": "Rejection reason",
+      "alasanPlaceholder": "E.g. amount doesn't match, proof is unreadable...",
+      "tutup": "Close",
+      "confirm": "Reject Payment",
+      "saving": "Processing..."
+    },
+    "markCash": {
+      "button": "Mark as Paid in Cash",
+      "title": "Mark as Paid in Cash",
+      "desc": {
+        "DP": "Record the deposit as paid in cash on-site (no uploaded proof). The booking status will change to \"Confirmed\".",
+        "PELUNASAN": "Record the final payment as paid in cash on-site (no uploaded proof). The booking status will change to \"Paid\"."
+      },
+      "descFallback": "The current booking status doesn't allow cash payment.",
+      "jumlah": "Amount",
+      "catatan": "Note (optional)",
+      "catatanPlaceholder": "E.g. paid in cash during the makeup session",
+      "tutup": "Close",
+      "confirm": "Save",
+      "saving": "Saving..."
+    },
+    "toast": {
+      "confirmSuccess": "Payment confirmed successfully.",
+      "confirmConflict": "Payment status changed before it could be confirmed.",
+      "rejectSuccess": "Payment rejected successfully.",
+      "rejectConflict": "Payment status changed before it could be rejected.",
+      "markCashSuccess": "Cash payment recorded successfully.",
+      "markCashConflict": "Booking status changed before it could be marked as cash."
+    }
   }
 }

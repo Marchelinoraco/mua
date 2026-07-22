@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { formatDate } from '@/lib/date'
 import { toNaiveLocalDate } from '@/lib/naive-datetime'
 import { formatCurrencyIDR } from '@/lib/utils'
+import { NonCustodialDisclaimer } from '@/components/non-custodial-disclaimer'
 import { Badge } from '@/components/ui/badge'
 import {
   Card,
@@ -13,14 +14,24 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { BOOKING_STATUS_BADGE_CLASS } from '@/features/dashboard/data/status'
 import type { BookingStatusDetail as BookingStatusDetailData } from '../data/types'
+import { resolvePaymentFormState } from '../lib/payment-form-state'
+import { BookingStatusPaymentHistory } from './booking-status-payment-history'
+import { BookingStatusPaymentUploadForm } from './booking-status-payment-upload-form'
 
 type BookingStatusDetailProps = {
   data: BookingStatusDetailData
+  phone: string
 }
 
 /** Detail penuh booking — hanya ditampilkan setelah verifikasi nomor WA cocok. */
-export function BookingStatusDetail({ data }: BookingStatusDetailProps) {
+export function BookingStatusDetail({ data, phone }: BookingStatusDetailProps) {
   const { t } = useTranslation('bookingStatus')
+  const paymentFormState = resolvePaymentFormState(
+    data.statusBooking,
+    data.totalHarga,
+    data.dpAmount,
+    data.payments
+  )
 
   return (
     <div className='mx-auto max-w-xl space-y-4 px-4 py-8 sm:px-6'>
@@ -123,6 +134,30 @@ export function BookingStatusDetail({ data }: BookingStatusDetailProps) {
             <p className='text-muted-foreground'>
               {t('detail.payment.missing')}
             </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <NonCustodialDisclaimer />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('payments.title')}</CardTitle>
+        </CardHeader>
+        <CardContent className='space-y-4'>
+          <BookingStatusPaymentHistory payments={data.payments} />
+
+          {paymentFormState.visible && (
+            <>
+              <Separator />
+              <BookingStatusPaymentUploadForm
+                kode={data.kodeBooking}
+                phone={phone}
+                tipe={paymentFormState.tipe}
+                suggestedAmount={paymentFormState.suggestedAmount}
+                isReupload={paymentFormState.isReupload}
+              />
+            </>
           )}
         </CardContent>
       </Card>

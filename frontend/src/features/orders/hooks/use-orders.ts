@@ -55,12 +55,14 @@ export function useOrderDetail(id: string | undefined) {
 }
 
 /**
- * Ekstrak pesan 409 (state machine F09: transisi tidak sah/slot bentrok)
- * dari respons NestJS default (`{ statusCode, message, error }`) — pola sama
- * dengan `useDeleteCustomField`/`useCreateBlockedDate`. Untuk error lain,
- * jatuhkan ke `handleServerError` generik.
+ * Ekstrak pesan 409 (state machine F09: transisi tidak sah/slot bentrok, atau
+ * F06: status pembayaran/booking tidak sesuai) dari respons NestJS default
+ * (`{ statusCode, message, error }`) — pola sama dengan
+ * `useDeleteCustomField`/`useCreateBlockedDate`. Untuk error lain, jatuhkan
+ * ke `handleServerError` generik. Diekspor supaya dipakai bersama oleh
+ * `use-payments.ts` (F06).
  */
-function handleOrderMutationError(
+export function handleOrderMutationError(
   error: unknown,
   fallbackMessage: string
 ): void {
@@ -74,7 +76,8 @@ function handleOrderMutationError(
   handleServerError(error)
 }
 
-function useInvalidateAfterMutation() {
+/** Diekspor supaya dipakai bersama oleh `use-payments.ts` (F06) — satu pola invalidasi cache order. */
+export function useInvalidateAfterMutation() {
   const queryClient = useQueryClient()
   return (id: string, alsoInvalidateClients = false) => {
     void queryClient.invalidateQueries({ queryKey: ORDERS_DETAIL_QUERY_KEY(id) })
@@ -83,23 +86,6 @@ function useInvalidateAfterMutation() {
       void queryClient.invalidateQueries({ queryKey: CLIENTS_QUERY_KEY })
     }
   }
-}
-
-/** `POST /orders/:id/confirm` — hanya sah dari AWAITING_DP. Jembatan manual sampai F06. */
-export function useConfirmOrder() {
-  const invalidate = useInvalidateAfterMutation()
-  const { t } = useTranslation('orders')
-
-  return useMutation({
-    mutationFn: (id: string) =>
-      api.post<OrderDetail>(`/orders/${id}/confirm`).then((r) => r.data),
-    onSuccess: (data) => {
-      invalidate(data.id, true)
-      toast.success(t('toast.confirmSuccess'))
-    },
-    onError: (error) =>
-      handleOrderMutationError(error, t('toast.confirmConflict')),
-  })
 }
 
 /** `POST /orders/:id/complete` — hanya sah dari CONFIRMED/PAID. */

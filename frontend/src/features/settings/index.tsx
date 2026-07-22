@@ -1,5 +1,5 @@
 import { Outlet } from '@tanstack/react-router'
-import { Monitor, Bell, Palette, Wrench, UserCog } from 'lucide-react'
+import { Monitor, Bell, Palette, Wrench, UserCog, Wallet } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Separator } from '@/components/ui/separator'
 import { ConfigDrawer } from '@/components/config-drawer'
@@ -24,6 +24,11 @@ export function Settings() {
       title: t('navigation:account'),
       href: '/settings/account',
       icon: <Wrench size={18} />,
+    },
+    {
+      title: t('navigation:payment'),
+      href: '/settings/payment',
+      icon: <Wallet size={18} />,
     },
     {
       title: t('navigation:appearance'),

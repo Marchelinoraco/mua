@@ -49,6 +49,14 @@
       "languageRequired": "Please select a language."
     }
   },
+  "payment": {
+    "title": "Payment",
+    "description": "Set the bank account shown to clients for deposit & final payment transfers.",
+    "loadError": "Failed to load payment instructions. Try reloading the page.",
+    "toast": {
+      "saveSuccess": "Payment instructions saved successfully."
+    }
+  },
   "appearance": {
     "title": "Appearance",
     "description": "Customize the appearance of the app. Automatically switch between day and night themes.",

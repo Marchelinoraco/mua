@@ -50,19 +50,12 @@
     "catatan": "Catatan booking",
     "pembatalan": "Info Pembatalan",
     "canceledAt": "Dibatalkan pada",
-    "alasanBatal": "Alasan",
-    "confirmNote": "Konfirmasi DP otomatis akan menyusul (F06). Untuk saat ini, konfirmasi dilakukan manual oleh MUA."
+    "alasanBatal": "Alasan"
   },
   "actions": {
-    "confirm": "Konfirmasi",
     "complete": "Tandai Selesai",
     "reschedule": "Reschedule",
     "cancel": "Batalkan"
-  },
-  "confirmDialog": {
-    "title": "Konfirmasi order ini?",
-    "desc": "Order {{kode}} akan berstatus \"Terkonfirmasi\".",
-    "f06Note": "Konfirmasi DP otomatis akan menyusul (F06) — untuk saat ini konfirmasi dilakukan manual."
   },
   "completeDialog": {
     "title": "Tandai order selesai?",
@@ -89,13 +82,69 @@
     "saving": "Menyimpan..."
   },
   "toast": {
-    "confirmSuccess": "Order berhasil dikonfirmasi.",
-    "confirmConflict": "Order sudah berubah status sebelum dikonfirmasi.",
     "completeSuccess": "Order ditandai selesai.",
     "completeConflict": "Order sudah berubah status sebelum ditandai selesai.",
     "cancelSuccess": "Order berhasil dibatalkan.",
     "cancelConflict": "Order sudah berubah status sebelum dibatalkan.",
     "rescheduleSuccess": "Jadwal order berhasil diperbarui.",
     "rescheduleConflict": "Slot baru saja terisi."
+  },
+  "payments": {
+    "title": "Pembayaran",
+    "empty": "Belum ada pembayaran.",
+    "status": {
+      "PENDING": "Menunggu",
+      "SUBMITTED": "Diajukan",
+      "CONFIRMED": "Dikonfirmasi",
+      "REJECTED": "Ditolak"
+    },
+    "tipe": {
+      "DP": "DP",
+      "PELUNASAN": "Pelunasan"
+    },
+    "viewPdf": "Lihat PDF",
+    "proofAlt": "Bukti transfer",
+    "rejectReason": "Alasan ditolak",
+    "catatanKlien": "Catatan klien",
+    "actions": {
+      "confirm": "Konfirmasi",
+      "reject": "Tolak"
+    },
+    "confirmDialog": {
+      "title": "Konfirmasi pembayaran ini?",
+      "desc": "Pembayaran sebesar {{jumlah}} akan dikonfirmasi dan status booking diperbarui otomatis."
+    },
+    "rejectDialog": {
+      "title": "Tolak bukti pembayaran",
+      "desc": "Jelaskan alasan penolakan — klien dapat mengunggah ulang bukti setelah ini.",
+      "alasan": "Alasan penolakan",
+      "alasanPlaceholder": "Mis. nominal tidak sesuai, bukti tidak terbaca...",
+      "tutup": "Tutup",
+      "confirm": "Tolak Pembayaran",
+      "saving": "Memproses..."
+    },
+    "markCash": {
+      "button": "Tandai Bayar Tunai",
+      "title": "Tandai Bayar Tunai",
+      "desc": {
+        "DP": "Catat DP sebagai dibayar tunai di lokasi (tanpa bukti unggahan). Status booking akan berubah menjadi \"Terkonfirmasi\".",
+        "PELUNASAN": "Catat pelunasan sebagai dibayar tunai di lokasi (tanpa bukti unggahan). Status booking akan berubah menjadi \"Lunas\"."
+      },
+      "descFallback": "Status booking saat ini tidak mengizinkan pembayaran tunai.",
+      "jumlah": "Jumlah",
+      "catatan": "Catatan (opsional)",
+      "catatanPlaceholder": "Mis. dibayar tunai saat sesi make up",
+      "tutup": "Tutup",
+      "confirm": "Simpan",
+      "saving": "Menyimpan..."
+    },
+    "toast": {
+      "confirmSuccess": "Pembayaran berhasil dikonfirmasi.",
+      "confirmConflict": "Pembayaran sudah berubah status sebelum dikonfirmasi.",
+      "rejectSuccess": "Pembayaran berhasil ditolak.",
+      "rejectConflict": "Pembayaran sudah berubah status sebelum ditolak.",
+      "markCashSuccess": "Pembayaran tunai berhasil dicatat.",
+      "markCashConflict": "Booking sudah berubah status sebelum ditandai tunai."
+    }
   }
 }

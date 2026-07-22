@@ -1,4 +1,4 @@
-import type { BookingStatus } from './types'
+import type { BookingStatus, PaymentStatus } from './types'
 
 /** Urutan tampil status booking di seluruh dashboard (badge, tabel, donut). */
 export const BOOKING_STATUS_ORDER: BookingStatus[] = [
@@ -20,6 +20,17 @@ export const BOOKING_STATUS_BADGE_CLASS: Record<BookingStatus, string> = {
   COMPLETED: 'border-transparent bg-primary/15 text-primary dark:bg-primary/25',
   CANCELED: 'border-transparent bg-destructive/15 text-destructive',
   EXPIRED: 'border-transparent bg-muted text-muted-foreground',
+}
+
+/** Kelas Tailwind untuk `<Badge>` per `Payment.status` (F06) — theme-aware. */
+export const PAYMENT_STATUS_BADGE_CLASS: Record<PaymentStatus, string> = {
+  PENDING:
+    'border-transparent bg-muted text-muted-foreground',
+  SUBMITTED:
+    'border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+  CONFIRMED:
+    'border-transparent bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+  REJECTED: 'border-transparent bg-destructive/15 text-destructive',
 }
 
 /**
