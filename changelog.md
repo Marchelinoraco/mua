@@ -7,6 +7,13 @@ Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.1.0/): en
 
 ## [Belum Dirilis]
 
+### 2026-07-23 — Rilis: promosi `dev` → `main` (Data Wilayah Indonesia — Province/Regency)
+
+#### Diubah
+- Branch `main` (production) di-fast-forward-kan ke commit `dev` terbaru (`af75108`), mempromosikan milestone **Data Wilayah Indonesia**: skema `Province`/`Regency`, migrasi additive `Tenant.regencyId` (kolom `kota` lama dipertahankan sebagai fallback), endpoint publik `GET /api/wilayah/provinces` & `GET /api/wilayah/regencies`, dan dropdown Provinsi→Kota/Kabupaten berkaskade di form sign-up FE (menggantikan input kota teks bebas). Lolos QA (backend 187/187 test, 18 suite hijau).
+- `origin/main` tidak maju sejak rilis F06 sebelumnya (`80b5063`) — merge murni fast-forward, nol konflik, nol force-push. SHA `main` setelah push: `af75108`.
+- Push ke `main` memicu Vercel Production build + `prisma migrate deploy` ke Neon production, menerapkan migrasi `20260722180759_add_wilayah_reference` (create table `Province`/`Regency` + kolom `Tenant.regencyId`, tanpa `DROP COLUMN kota`). **Seed data wilayah (`seed-wilayah.ts`) sengaja TIDAK dijalankan pada task ini** — tabel `Province`/`Regency` production akan kosong sampai tech-lead mengisinya secara terpisah setelah build Vercel dikonfirmasi hijau.
+
 ### 2026-07-23 — QA: validasi milestone "Data Wilayah Indonesia" (Province/Regency) sebelum commit
 
 #### Ditambahkan
