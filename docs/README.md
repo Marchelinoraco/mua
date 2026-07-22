@@ -1,6 +1,6 @@
-# GlowBook — Dokumentasi Fitur
+# MuaGlow — Dokumentasi Fitur
 
-Peta detail fitur GlowBook, diturunkan dari [PRD-MUA-SaaS.md](../PRD-MUA-SaaS.md) dan [BRD-MUA-SaaS.md](../BRD-MUA-SaaS.md).
+Peta detail fitur MuaGlow, diturunkan dari [PRD-MUA-SaaS.md](../PRD-MUA-SaaS.md) dan [BRD-MUA-SaaS.md](../BRD-MUA-SaaS.md).
 
 Setiap fitur punya satu dokumen detail di [`features/`](features/) dengan format seragam (lihat [conventions.md](conventions.md)).
 

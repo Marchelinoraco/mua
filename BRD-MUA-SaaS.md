@@ -1,5 +1,5 @@
 # BRD — SaaS Booking & Manajemen Bisnis untuk MUA
-### Working name: **GlowBook** *(placeholder, silakan ganti)*
+### Working name: **MuaGlow** *(placeholder, silakan ganti)*
 **Jenis dokumen:** Business Requirements Document (BRD) · **Versi:** 1.0 · **Tanggal:** 30 Juni 2026 · **Status:** Draft untuk disetujui sebelum PRD
 
 > BRD ini mendefinisikan **kebutuhan bisnis tingkat tinggi**: tujuan, pasar, lingkup, proses, aturan, dan kriteria sukses. Detail produk/fitur, UX, dan teknis dibahas terpisah di **PRD** (tahap berikutnya).
@@ -8,7 +8,7 @@
 
 ## 1. Ringkasan Eksekutif
 
-GlowBook adalah **SaaS multi-tenant** untuk Make-Up Artist (MUA) di Indonesia. Setiap MUA (tenant) mendapat **form/storefront booking publik** yang bisa dibagikan di bio Instagram/WhatsApp; kliennya memesan sendiri 24/7, dan MUA mengelola jadwal, layanan, pembayaran (DP/pelunasan), serta data klien dari satu dashboard.
+MuaGlow adalah **SaaS multi-tenant** untuk Make-Up Artist (MUA) di Indonesia. Setiap MUA (tenant) mendapat **form/storefront booking publik** yang bisa dibagikan di bio Instagram/WhatsApp; kliennya memesan sendiri 24/7, dan MUA mengelola jadwal, layanan, pembayaran (DP/pelunasan), serta data klien dari satu dashboard.
 
 Prinsip bisnis pembeda: **platform tidak pernah menahan dana klien.** Pembayaran mengalir langsung antara klien dan MUA. Platform memonetisasi lewat **langganan bulanan (subscription)**, bukan komisi transaksi. Ke depan, kumpulan storefront tenant dapat diangkat menjadi **marketplace** (direktori MUA yang bisa dicari klien baru) sebagai fase ekspansi.
 
@@ -171,7 +171,7 @@ Indikator pendukung: trial→paid conversion, churn bulanan, jumlah booking publ
 
 ```mermaid
 flowchart TD
-    subgraph Platform[GlowBook SaaS - Multi-Tenant]
+    subgraph Platform[MuaGlow SaaS - Multi-Tenant]
       direction TB
       T1[Tenant: MUA A<br/>storefront/form + data terisolasi]
       T2[Tenant: MUA B<br/>storefront/form + data terisolasi]

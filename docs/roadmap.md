@@ -1,10 +1,10 @@
-# Roadmap Implementasi — GlowBook
+# Roadmap Implementasi — MuaGlow
 
 Peta jalan dari **dokumen** (BRD/PRD/docs) menuju **implementasi**. Selaras dengan fase rilis R1–R4 ([conventions.md](conventions.md)) dan dokumen fitur [F01–F12](README.md).
 
 ## Status Sekarang
 - ✅ BRD, PRD, model bisnis, arsitektur, model data, 12 dokumen fitur — selesai.
-- ✅ **Fase 0 SELESAI** (2026-06-30) — `frontend/` shell GlowBook, `backend/` NestJS + Auth + tenant-scoping guard, skema Prisma domain lengkap (17 model, 10 enum). Semua di-push ke `main`.
+- ✅ **Fase 0 SELESAI** (2026-06-30) — `frontend/` shell MuaGlow, `backend/` NestJS + Auth + tenant-scoping guard, skema Prisma domain lengkap (17 model, 10 enum). Semua di-push ke `main`.
 - ⏳ **Fase 1 — siap dimulai:** F01 Onboarding → F03 Katalog → F05 Kalender/Anti-bentrok → F02 Storefront → F04 Booking → F09 Order → F08 Notifikasi.
 
 ### Handoff Fase 0 → Fase 1

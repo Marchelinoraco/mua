@@ -1,5 +1,5 @@
 # PRD — SaaS Booking & Manajemen Bisnis untuk MUA
-### Working name: **GlowBook** *(mengikuti BRD; silakan ganti)*
+### Working name: **MuaGlow** *(mengikuti BRD; silakan ganti)*
 **Jenis dokumen:** Product Requirements Document (PRD) · **Versi:** 1.0 · **Tanggal:** 30 Juni 2026 · **Status:** Draft
 **Turunan dari:** [BRD-MUA-SaaS.md](BRD-MUA-SaaS.md) v1.0
 
@@ -12,7 +12,7 @@
 ## 1. Pendahuluan
 
 ### 1.1 Tujuan Dokumen
-Mendefinisikan apa yang harus dibangun pada **MVP** GlowBook dan bagaimana perilakunya, cukup detail untuk desain UX, implementasi engineering, dan QA.
+Mendefinisikan apa yang harus dibangun pada **MVP** MuaGlow dan bagaimana perilakunya, cukup detail untuk desain UX, implementasi engineering, dan QA.
 
 ### 1.2 Keputusan yang Sudah Difinalkan (resolusi BRD §16)
 | # | Keputusan Terbuka (BRD) | Keputusan PRD |
@@ -67,7 +67,7 @@ Marketplace/discovery lintas tenant, chat in-app real-time, PWA/push native, vou
 
 - **Model tenancy:** shared database, **tenant_id pada setiap row** + row-level enforcement di seluruh query/layanan. Setiap permintaan terikat ke `tenant_id` dari **tenant aktif** (sesi) atau host/slug (publik).
 - **Kepemilikan (Paket A):** **1 user : 1 tenant** (User & Tenant terpisah, relasi 1:1 via `owner_user_id`). Multi-tenant per user = paket masa depan. Billing & kuota per tenant. Lihat [docs/business-model.md](docs/business-model.md).
-- **Routing storefront:** subdomain atau path unik per tenant (mis. `glowbook.id/@namamua` atau `namamua.glowbook.id`).
+- **Routing storefront:** subdomain atau path unik per tenant (mis. `muaglow.com/@namamua` atau `namamua.muaglow.com`).
 - **Isolasi data:** tidak ada endpoint yang mengembalikan data lintas tenant kecuali konsol admin (di-audit).
 - **Pemisahan dana:**
   - **Dana klien (DP/pelunasan):** TIDAK pernah masuk sistem/rekening platform. Platform hanya **menampilkan instruksi pembayaran MUA** dan **mencatat status** berbasis bukti + konfirmasi MUA.
@@ -77,13 +77,13 @@ Marketplace/discovery lintas tenant, chat in-app real-time, PWA/push native, vou
 flowchart LR
   subgraph KLIEN[Aliran Dana Klien -> MUA  - NON kustodi]
     K[Klien] -- transfer/QRIS langsung --> RM[(Rekening / QRIS MUA)]
-    K -- unggah bukti --> GB1[GlowBook: hanya catat status]
+    K -- unggah bukti --> GB1[MuaGlow: hanya catat status]
     MUA -- konfirmasi bukti --> GB1
   end
   subgraph LANGGANAN[Aliran Langganan MUA -> Platform - via Midtrans]
     MUA2[MUA] -- auto-charge --> MT[Midtrans]
     MT -- settle --> RP[(Rekening Platform)]
-    MT -- webhook --> GB2[GlowBook: update status langganan]
+    MT -- webhook --> GB2[MuaGlow: update status langganan]
   end
 ```
 
@@ -181,7 +181,7 @@ Alur: pilih layanan → pilih tanggal & slot **kosong** → isi data + custom fi
 ## 7. BAB MENDALAM A — Pembayaran Klien → MUA (Manual, Non-Kustodi)
 
 ### 7.1 Prinsip
-Platform **tidak menerima, menahan, atau menyalurkan** dana klien. Dana ditransfer **langsung** ke rekening/QRIS MUA. GlowBook hanya:
+Platform **tidak menerima, menahan, atau menyalurkan** dana klien. Dana ditransfer **langsung** ke rekening/QRIS MUA. MuaGlow hanya:
 1. **Menampilkan instruksi pembayaran** MUA (dari `PaymentProfile`).
 2. **Menerima unggahan bukti** dari klien.
 3. **Mencatat status** berdasarkan **konfirmasi manual MUA**.
@@ -221,7 +221,7 @@ stateDiagram-v2
 | Sengketa | Platform **tidak menengahi dana** (no-custody); hanya menyediakan log bukti & komunikasi. |
 
 ### 7.6 Kebijakan Anti-Penyalahgunaan
-- Platform menampilkan disclaimer: "Pembayaran langsung ke MUA; GlowBook tidak menyimpan dana Anda."
+- Platform menampilkan disclaimer: "Pembayaran langsung ke MUA; MuaGlow tidak menyimpan dana Anda."
 - Rate-limit unggahan bukti & deteksi spam booking.
 
 ### 7.7 Kriteria Penerimaan (Bab A)
@@ -275,7 +275,7 @@ Midtrans tidak semua metode mendukung auto-charge. Strategi dua jalur:
 - **Idempotensi:** proses berdasarkan `order_id`/`transaction_id`; abaikan duplikat.
 - **Sumber kebenaran:** status final diambil/dikonfirmasi via **Get Status API** Midtrans, bukan hanya payload webhook.
 - **Anti-replay & TLS:** hanya HTTPS; tolak payload tanpa signature valid.
-- **PCI:** GlowBook **tidak menyimpan PAN**; hanya `saved_token_id` dari Midtrans (tokenization di sisi Midtrans/Snap).
+- **PCI:** MuaGlow **tidak menyimpan PAN**; hanya `saved_token_id` dari Midtrans (tokenization di sisi Midtrans/Snap).
 
 ### 8.6 Pemetaan Status Transaksi Midtrans → Internal
 | Midtrans `transaction_status` | `fraud_status` | Tindakan Internal |
@@ -328,7 +328,7 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
   participant M as MUA
-  participant GB as GlowBook
+  participant GB as MuaGlow
   participant SN as Midtrans Snap
   participant MT as Midtrans Core/Sub API
   GB->>M: Reminder H-3 trial habis (WA/email)

@@ -1,29 +1,29 @@
 # Arsitektur Tingkat Tinggi
 
-Ringkasan arsitektur GlowBook untuk MVP. Detail teknis final di desain engineering.
+Ringkasan arsitektur MuaGlow untuk MVP. Detail teknis final di desain engineering.
 
 ## 1. Multi-Tenancy
 - **Model:** shared database, `tenant_id` pada setiap row + penegakan row-level di seluruh layer query.
 - **Kepemilikan (Paket A, MVP):** **1 user : 1 tenant** via `Tenant.owner_user_id`. Multi-tenant per user = paket masa depan (tabel `Membership` + tenant switcher). Lihat [business-model.md](business-model.md).
 - **Pengikatan tenant:** setiap request terikat `tenant_id` dari tenant milik user (dashboard) atau dari host/slug storefront (publik).
 - **Isolasi:** user hanya mengakses tenant miliknya; tidak ada endpoint lintas tenant kecuali konsol admin (di-audit).
-- **Routing storefront:** path/subdomain unik per tenant, mis. `glowbook.id/@namamua` atau `namamua.glowbook.id`.
+- **Routing storefront:** path/subdomain unik per tenant, mis. `muaglow.com/@namamua` atau `namamua.muaglow.com`.
 - **Billing per tenant:** langganan, kuota order, & status `RESTRICTED` dihitung **per tenant** (lihat [F07](features/F07-langganan-midtrans.md)).
 
 ## 2. Pemisahan Dana (prinsip inti)
-GlowBook memisahkan dua aliran uang secara tegas:
+MuaGlow memisahkan dua aliran uang secara tegas:
 
 ```mermaid
 flowchart LR
   subgraph A[Dana Klien -> MUA  - NON-KUSTODI]
     K[Klien] -- transfer/QRIS langsung --> RM[(Rekening / QRIS MUA)]
-    K -- unggah bukti --> GB1[GlowBook: catat status saja]
+    K -- unggah bukti --> GB1[MuaGlow: catat status saja]
     M1[MUA] -- konfirmasi --> GB1
   end
   subgraph B[Langganan MUA -> Platform  - via MIDTRANS]
     M2[MUA] -- auto-charge --> MT[Midtrans]
     MT -- settle --> RP[(Rekening Platform)]
-    MT -- webhook --> GB2[GlowBook: update langganan]
+    MT -- webhook --> GB2[MuaGlow: update langganan]
   end
 ```
 

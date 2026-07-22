@@ -1,6 +1,6 @@
 # Model Data
 
-Entitas inti GlowBook (MVP). Semua entitas **tenant-scoped** kecuali ditandai **[global]**. Tipe & index final di desain teknis.
+Entitas inti MuaGlow (MVP). Semua entitas **tenant-scoped** kecuali ditandai **[global]**. Tipe & index final di desain teknis.
 
 ## 1. Diagram Relasi (ringkas)
 ```mermaid
