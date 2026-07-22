@@ -4,7 +4,11 @@ import {
   computeDpAmount,
   type DpTipeValue,
 } from '../common/pricing/pricing.util';
-import { parseDateOnlyUtc, toDateOnlyString, truncateToDateUtc } from '../slots/slots.util';
+import {
+  parseDateOnlyUtc,
+  toDateOnlyString,
+  truncateToDateUtc,
+} from '../slots/slots.util';
 
 /**
  * Util murni untuk BookingService (F04) — tanpa dependensi Prisma/NestJS DI,
@@ -82,8 +86,7 @@ export function computeBookingTotals(
 ): { totalHarga: number; dpAmount: number } {
   const subtotal = items.reduce((sum, item) => sum + item.harga, 0);
   const dpAmount = items.reduce(
-    (sum, item) =>
-      sum + computeDpAmount(item.harga, item.dpTipe, item.dpNilai),
+    (sum, item) => sum + computeDpAmount(item.harga, item.dpTipe, item.dpNilai),
     0,
   );
   return { totalHarga: subtotal + transportFee, dpAmount };
@@ -111,7 +114,9 @@ export function validateWajibCustomFields(
   customFields: CustomFieldDefinition[],
   values: CustomValueInput[] | undefined,
 ): void {
-  const provided = new Map((values ?? []).map((v) => [v.customFieldId, v.nilai]));
+  const provided = new Map(
+    (values ?? []).map((v) => [v.customFieldId, v.nilai]),
+  );
   const validIds = new Set(customFields.map((f) => f.id));
 
   for (const customFieldId of provided.keys()) {

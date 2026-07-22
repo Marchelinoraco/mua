@@ -1,4 +1,4 @@
-import { BookingStatus } from '@prisma/client';
+import { BookingStatus, PaymentStatus } from '@prisma/client';
 
 /**
  * Response DTO F09 — dashboard order. tenantId TIDAK disertakan di mana pun
@@ -54,7 +54,27 @@ export class OrderClientDetailDto {
   catatan: string | null;
 }
 
-/** GET /orders/:id — detail lengkap; juga response confirm/complete/cancel/reschedule. */
+/** F06 — satu baris riwayat pembayaran (DP/pelunasan) milik booking. */
+export class OrderPaymentDto {
+  id: string;
+  /** "DP" | "PELUNASAN" — string bukan enum Prisma, lihat catatan schema.prisma. */
+  tipe: string;
+  jumlah: number;
+  status: PaymentStatus;
+  /** null bila "tandai tunai" (FR-F06-7, tanpa bukti unggahan). */
+  buktiFotoUrl: string | null;
+  catatanKlien: string | null;
+  /** Alasan tolak MUA, atau catatan tandai-tunai. */
+  catatanMua: string | null;
+  confirmedAt: Date | null;
+  createdAt: Date;
+}
+
+/**
+ * GET /orders/:id — detail lengkap; juga response confirm/complete/cancel/
+ * reschedule (F09) DAN payments/confirm|reject|mark-cash (F06) — satu bentuk
+ * respons konsisten untuk semua aksi yang memutasi order.
+ */
 export class OrderDetailResponseDto {
   id: string;
   kodeBooking: string;
@@ -73,4 +93,6 @@ export class OrderDetailResponseDto {
   client: OrderClientDetailDto;
   items: OrderItemDetailDto[];
   customValues: OrderCustomValueDto[];
+  /** Riwayat pembayaran, urut createdAt asc (F06). */
+  payments: OrderPaymentDto[];
 }

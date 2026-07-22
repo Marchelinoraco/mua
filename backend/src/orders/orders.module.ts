@@ -4,6 +4,7 @@ import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { ClientsController } from './clients.controller';
 import { ClientsService } from './clients.service';
+import { BookingTransitionsService } from './booking-transitions.service';
 
 /**
  * OrdersModule — F09 Manajemen Order & Data Klien (dashboard MUA).
@@ -26,10 +27,19 @@ import { ClientsService } from './clients.service';
  *
  * Import SlotsModule untuk menginjeksi SlotsService.reserveSlotOrThrow
  * (anti-bentrok F05, dipakai OrdersService.reschedule — AC-F09-2).
+ *
+ * BookingTransitionsService & OrdersService diekspor supaya PaymentsModule
+ * (F06) bisa menginjeksinya — PaymentsService memicu transisi status Booking
+ * yang sama (DP->CONFIRMED, CONFIRMED->PAID) dan mengembalikan bentuk respons
+ * order yang sama (OrdersService.detail) setelah konfirmasi/tolak/tandai-tunai
+ * pembayaran. Arah dependensi SATU ARAH (PaymentsModule -> OrdersModule) —
+ * OrdersModule TIDAK mengimpor apa pun dari PaymentsModule, jadi tidak ada
+ * circular dependency.
  */
 @Module({
   imports: [SlotsModule],
   controllers: [OrdersController, ClientsController],
-  providers: [OrdersService, ClientsService],
+  providers: [OrdersService, ClientsService, BookingTransitionsService],
+  exports: [OrdersService, BookingTransitionsService],
 })
 export class OrdersModule {}

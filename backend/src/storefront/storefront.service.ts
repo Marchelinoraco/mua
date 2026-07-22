@@ -200,10 +200,12 @@ export class StorefrontService {
           ? null
           : Number(tenant.transportRule.flatNominal),
       zona:
-        (tenant.transportRule.zona as {
-          nama: string;
-          nominal: number;
-        }[] | null) ?? null,
+        (tenant.transportRule.zona as
+          | {
+              nama: string;
+              nominal: number;
+            }[]
+          | null) ?? null,
     };
   }
 

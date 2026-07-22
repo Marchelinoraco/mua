@@ -1,4 +1,4 @@
-import { BookingStatus } from '@prisma/client';
+import { BookingStatus, PaymentStatus } from '@prisma/client';
 
 /**
  * Response DTO F04 — booking publik. JANGAN PERNAH menambah field yang
@@ -44,6 +44,21 @@ export class BookingStatusMinimalResponseDto {
   tanggalAcara: Date;
 }
 
+/** F06 — satu baris riwayat pembayaran (DP/pelunasan), tampil hanya saat phone cocok. */
+export class BookingPaymentResponseDto {
+  id: string;
+  /** "DP" | "PELUNASAN" — string bukan enum Prisma, lihat catatan schema.prisma. */
+  tipe: string;
+  jumlah: number;
+  status: PaymentStatus;
+  /** null bila "tandai tunai" (FR-F06-7, tanpa bukti unggahan). */
+  buktiFotoUrl: string | null;
+  catatanKlien: string | null;
+  catatanMua: string | null;
+  confirmedAt: Date | null;
+  createdAt: Date;
+}
+
 /**
  * Response GET /bookings/:kode dengan `?phone=` yang cocok dengan
  * booking.client.phone — workaround sementara (lihat TODO F08 di
@@ -62,8 +77,9 @@ export class BookingStatusDetailResponseDto {
   client: { nama: string; phone: string; email: string | null };
   items: BookingItemResponseDto[];
   paymentProfile: BookingPaymentProfileResponseDto | null;
+  /** Riwayat pembayaran, urut createdAt asc (F06) — HANYA muncul setelah phone match. */
+  payments: BookingPaymentResponseDto[];
 }
 
 export type BookingStatusResponseDto =
-  | BookingStatusMinimalResponseDto
-  | BookingStatusDetailResponseDto;
+  BookingStatusMinimalResponseDto | BookingStatusDetailResponseDto;

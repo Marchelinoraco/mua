@@ -103,7 +103,9 @@ describe('validateWajibCustomFields (FR-F04-4)', () => {
 
   it('lolos bila field wajib terisi non-kosong', () => {
     expect(() =>
-      validateWajibCustomFields(fields, [{ customFieldId: 'cf-1', nilai: 'Batak' }]),
+      validateWajibCustomFields(fields, [
+        { customFieldId: 'cf-1', nilai: 'Batak' },
+      ]),
     ).not.toThrow();
   });
 
@@ -121,13 +123,17 @@ describe('validateWajibCustomFields (FR-F04-4)', () => {
       validateWajibCustomFields(fields, [{ customFieldId: 'cf-1', nilai: '' }]),
     ).toThrow(BadRequestException);
     expect(() =>
-      validateWajibCustomFields(fields, [{ customFieldId: 'cf-1', nilai: '   ' }]),
+      validateWajibCustomFields(fields, [
+        { customFieldId: 'cf-1', nilai: '   ' },
+      ]),
     ).toThrow(BadRequestException);
   });
 
   it('tidak menolak bila field opsional tidak diisi', () => {
     expect(() =>
-      validateWajibCustomFields(fields, [{ customFieldId: 'cf-1', nilai: 'Batak' }]),
+      validateWajibCustomFields(fields, [
+        { customFieldId: 'cf-1', nilai: 'Batak' },
+      ]),
     ).not.toThrow();
   });
 
@@ -142,7 +148,10 @@ describe('validateWajibCustomFields (FR-F04-4)', () => {
 
   it('tidak ada field wajib sama sekali -> payload kosong lolos', () => {
     expect(() =>
-      validateWajibCustomFields([{ id: 'cf-2', label: 'Opsional', wajib: false }], []),
+      validateWajibCustomFields(
+        [{ id: 'cf-2', label: 'Opsional', wajib: false }],
+        [],
+      ),
     ).not.toThrow();
   });
 });

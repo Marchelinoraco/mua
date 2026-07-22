@@ -128,8 +128,7 @@ export class BookingService {
                     : Number(tenant.transportRule.flatNominal),
                 zona:
                   (tenant.transportRule.zona as
-                    | { nama: string; nominal: number }[]
-                    | null) ?? null,
+                    { nama: string; nominal: number }[] | null) ?? null,
               }
             : null,
           dto.zonaNama,
@@ -297,6 +296,23 @@ export class BookingService {
         dpAmount: true,
         client: { select: { nama: true, phone: true, email: true } },
         items: { select: BOOKING_ITEM_SELECT },
+        // F06 — hanya dipetakan ke response saat phone match (lihat di bawah);
+        // tetap di-select di sini (satu query, hindari N+1) supaya path
+        // "phone cocok" tidak perlu round-trip Prisma tambahan.
+        payments: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            tipe: true,
+            jumlah: true,
+            status: true,
+            buktiFotoUrl: true,
+            catatanKlien: true,
+            catatanMua: true,
+            confirmedAt: true,
+            createdAt: true,
+          },
+        },
       },
     });
     if (!booking) {
@@ -339,6 +355,17 @@ export class BookingService {
         durasi: item.durasi,
       })),
       paymentProfile: paymentProfile ?? null,
+      payments: booking.payments.map((p) => ({
+        id: p.id,
+        tipe: p.tipe,
+        jumlah: Number(p.jumlah),
+        status: p.status,
+        buktiFotoUrl: p.buktiFotoUrl,
+        catatanKlien: p.catatanKlien,
+        catatanMua: p.catatanMua,
+        confirmedAt: p.confirmedAt,
+        createdAt: p.createdAt,
+      })),
     };
     return detail;
   }

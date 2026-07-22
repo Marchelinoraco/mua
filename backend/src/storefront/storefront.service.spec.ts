@@ -292,7 +292,9 @@ describe('StorefrontService.createReport (F02, FR-F02-5)', () => {
     });
 
     expect(prisma.storefrontReport.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ kontak: null }) }),
+      expect.objectContaining({
+        data: expect.objectContaining({ kontak: null }),
+      }),
     );
   });
 
@@ -302,7 +304,9 @@ describe('StorefrontService.createReport (F02, FR-F02-5)', () => {
     const service = new StorefrontService(prisma);
 
     await expect(
-      service.createReport('tidak-ada', { alasan: 'Alasan valid minimal 10 karakter.' }),
+      service.createReport('tidak-ada', {
+        alasan: 'Alasan valid minimal 10 karakter.',
+      }),
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(prisma.storefrontReport.create).not.toHaveBeenCalled();
   });

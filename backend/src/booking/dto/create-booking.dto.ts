@@ -25,7 +25,8 @@ export class BookingClientInputDto {
 
   @IsString()
   @Matches(PHONE_PATTERN, {
-    message: 'Nomor WA tidak valid (hanya digit, 8-20 karakter, boleh diawali +).',
+    message:
+      'Nomor WA tidak valid (hanya digit, 8-20 karakter, boleh diawali +).',
   })
   phone: string;
 
@@ -53,7 +54,9 @@ export class CreateBookingDto {
   serviceIds: string[];
 
   @IsString()
-  @Matches(DATE_ONLY_PATTERN, { message: 'Format tanggalAcara harus YYYY-MM-DD.' })
+  @Matches(DATE_ONLY_PATTERN, {
+    message: 'Format tanggalAcara harus YYYY-MM-DD.',
+  })
   tanggalAcara: string;
 
   @IsInt({ message: 'jamMulai harus bilangan bulat (menit sejak 00:00).' })

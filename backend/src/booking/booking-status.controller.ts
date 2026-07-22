@@ -34,9 +34,9 @@ export class BookingStatusController {
     @Param('kode') kode: string,
     @Query('phone') phone?: string,
   ): Promise<BookingStatusResponseDto> {
-    return this.bookingService.getBookingStatus(kode, phone);   
+    return this.bookingService.getBookingStatus(kode, phone);
   }
- 
+
   /**
    * POST /bookings/:kode/verify-otp — verifikasi OTP WhatsApp.
    *
