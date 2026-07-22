@@ -130,12 +130,19 @@ model Tenant {
   ownerUserId String       @unique // FK 1:1 ke User; @unique menegakkan Paket A
   slug        String       @unique // URL-friendly identifier, mis. "sari-mua"
   namaBisnis  String
+  /// @deprecated — teks bebas lama sebelum rujukan wilayah terstruktur ada.
+  /// DIPERTAHANKAN (migrasi additive, bukan destruktif) sebagai fallback baca
+  /// selama transisi; kolom tulis baru = `regencyId`. Jangan hapus kolom ini
+  /// sampai migrasi data ke `regencyId` dikonfirmasi aman oleh tech-lead.
   kota        String?
+  regencyId   String? // FK opsional ke Regency — rujukan wilayah terstruktur (kabupaten/kota), menggantikan `kota` teks bebas
   status      TenantStatus @default(TRIAL)
   createdAt   DateTime     @default(now())
 
   /// Relasi balik ke User
-  owner User @relation(fields: [ownerUserId], references: [id])
+  owner   User     @relation(fields: [ownerUserId], references: [id])
+  /// Rujukan wilayah opsional — SetNull bila Regency dihapus (region hilang != tenant hilang integritas)
+  regency Regency? @relation(fields: [regencyId], references: [id], onDelete: SetNull)
 
   /// Relasi ke entitas tenant-scoped (cascade delete: hapus Tenant → hapus semua data)
   theme             Theme?
@@ -156,6 +163,38 @@ model Tenant {
 
   @@index([ownerUserId])
   @@index([slug])
+  @@index([regencyId])
+}
+
+// ---------------------------------------------------------------------------
+// Wilayah (Referensi) [global]
+// ---------------------------------------------------------------------------
+// Data referensi Provinsi/Kabupaten-Kota Indonesia (kode Kemendagri). Bukan
+// tenant-scoped — tabel referensi read-only bersama seluruh tenant, dipakai
+// FE untuk dropdown wilayah (GET /api/wilayah/*, lihat src/wilayah/).
+// Diimpor SEKALI via `prisma/seed-wilayah.ts` (39 provinsi + ~514 kab/kota),
+// TIDAK pernah dipanggil dari API pihak ketiga saat runtime.
+
+/// Provinsi Indonesia [global].
+model Province {
+  id   String @id @default(cuid())
+  kode String @unique // kode Kemendagri 2 digit, mis. "32" = Jawa Barat
+  nama String
+
+  regencies Regency[]
+}
+
+/// Kabupaten/Kota Indonesia [global] — dirujuk oleh Tenant.regencyId.
+model Regency {
+  id         String @id @default(cuid())
+  kode       String @unique // kode Kemendagri 4 digit, mis. "3273" = Kota Bandung
+  nama       String
+  provinceId String
+
+  province Province @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  tenants  Tenant[]
+
+  @@index([provinceId])
 }
 
 // ---------------------------------------------------------------------------

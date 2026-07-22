@@ -20,6 +20,8 @@ erDiagram
   SUBSCRIPTION ||--o{ INVOICE : menghasilkan
   SUBSCRIPTION }o--|| PLAN : memakai
   BOOKING ||--o{ REVIEW : memicu
+  TENANT }o--o| REGENCY : "kota (opsional, referensi)"
+  PROVINCE ||--o{ REGENCY : punya
 ```
 
 ## 2. Entitas
@@ -27,7 +29,12 @@ erDiagram
 ### Akun & Tenant *(Paket A: 1 user : 1 tenant)*
 > **Paket A (MVP): 1 user memiliki tepat 1 tenant** (relasi 1:1 via `owner_user_id`). Multi-tenant per user = paket masa depan (tabel `Membership`, di luar MVP). Lihat [business-model.md](business-model.md).
 - **User** `id, email, phone, auth_*, timezone?, created_at` — identitas akun login (aktor = MUA). `timezone` **opsional/nullable** untuk sekarang (mis. `Asia/Makassar`); jadwal default mengikuti kota tenant (lihat [F05](features/F05-kalender-anti-bentrok.md)).
-- **Tenant** `id, owner_user_id, slug, nama_bisnis, kota, status(ACTIVE|TRIAL|PAST_DUE|RESTRICTED|CANCELED), created_at`
+- **Tenant** `id, owner_user_id, slug, nama_bisnis, kota?, regency_id?, status(ACTIVE|TRIAL|PAST_DUE|RESTRICTED|CANCELED), created_at` — `kota` (teks bebas) **deprecated**, dipertahankan sebagai fallback baca; `regency_id` (FK opsional → `Regency`, `ON DELETE SET NULL`) = rujukan wilayah terstruktur, sumber kebenaran baru untuk kota tenant.
+
+### Wilayah *(referensi, [global], read-only)*
+- **Province** `id, kode(unik, kode Kemendagri 2 digit), nama` — 38 provinsi.
+- **Regency** `id, kode(unik, kode Kemendagri 4 digit), nama, province_id(FK Province, ON DELETE CASCADE)` — ~514 kabupaten/kota. Index `(province_id)`.
+- Diimpor **sekali** via `backend/prisma/seed-wilayah.ts` dari snapshot statis `backend/prisma/seed-data/wilayah-indonesia.json` (di-fetch 22 Jul 2026 dari API pihak ketiga `api-wilayah-indonesia-v1.vercel.app`, endpoint `GET /api/provinces` & `GET /api/cities?province_code=`) — **tidak pernah** dipanggil live dari runtime backend. Endpoint publik baca: `GET /api/wilayah/provinces`, `GET /api/wilayah/regencies?provinceId=` (lihat `src/wilayah/`).
 
 ### Storefront & Katalog
 - **Theme** `id, tenant_id, logo_url, banner_url, warna_primer, warna_sekunder, font, template(layout), custom_css?, updated_at` — **tampilan storefront, 1 per tenant** (lihat [F02](features/F02-storefront-publik.md)).
