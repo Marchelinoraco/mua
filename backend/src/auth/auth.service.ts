@@ -47,7 +47,7 @@ export class AuthService {
     if (existing) {
       // M-1 (anti-enumeration): pesan generik — JANGAN bedakan "email sudah
       // terdaftar" vs kondisi lain, supaya penyerang tidak bisa memakai
-      // endpoint ini untuk mengecek email mana yang terdaftar di GlowBook.
+      // endpoint ini untuk mengecek email mana yang terdaftar di MuaGlow.
       throw new ConflictException(
         'Registrasi gagal. Periksa kembali data Anda.',
       );

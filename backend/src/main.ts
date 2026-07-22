@@ -9,6 +9,6 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  console.log(`GlowBook API berjalan di: http://localhost:${port}/api`);
+  console.log(`MuaGlow API berjalan di: http://localhost:${port}/api`);
 }
 bootstrap();
