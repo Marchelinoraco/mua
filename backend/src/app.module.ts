@@ -18,6 +18,7 @@ import { StorefrontModule } from './storefront/storefront.module';
 import { BookingModule } from './booking/booking.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
+import { WilayahModule } from './wilayah/wilayah.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { PaymentsModule } from './payments/payments.module';
     BookingModule,
     OrdersModule,
     PaymentsModule,
+    WilayahModule,
   ],
   providers: [
     {

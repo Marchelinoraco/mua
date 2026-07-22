@@ -14,7 +14,10 @@ export class MeResponseDto {
     id: string;
     slug: string;
     namaBisnis: string;
+    regencyId: string | null;
     kota: string | null;
+    provinceId: string | null;
+    provinsi: string | null;
     status: string;
   };
 

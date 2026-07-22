@@ -171,6 +171,34 @@ describe('StorefrontService.getProfile (F02)', () => {
     expect(selectArg).not.toHaveProperty('bookings');
   });
 
+  it('kota memakai nama Regency (join) bila tenant sudah ter-mapping — bukan teks kota lama', async () => {
+    const prisma = createPrismaMock();
+    prisma.tenant.findUnique.mockResolvedValue({
+      ...BASE_TENANT,
+      kota: 'Manado', // teks lama — harus diabaikan karena regency ada
+      regency: { nama: 'Kota Manado' },
+    });
+    const service = new StorefrontService(prisma);
+
+    const result = await service.getProfile('sari-mua');
+
+    expect(result.status === 'ACTIVE' && result.kota).toBe('Kota Manado');
+  });
+
+  it('kota fallback ke teks bebas lama bila tenant belum ter-mapping ke Regency', async () => {
+    const prisma = createPrismaMock();
+    prisma.tenant.findUnique.mockResolvedValue({
+      ...BASE_TENANT,
+      kota: 'Manado',
+      regency: null,
+    });
+    const service = new StorefrontService(prisma);
+
+    const result = await service.getProfile('sari-mua');
+
+    expect(result.status === 'ACTIVE' && result.kota).toBe('Manado');
+  });
+
   it('transport null bila tenant belum mengatur TransportRule', async () => {
     const prisma = createPrismaMock();
     prisma.tenant.findUnique.mockResolvedValue({

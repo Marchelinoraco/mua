@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, TenantStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { toKotaDisplayName } from '../common/wilayah/tenant-kota.util';
 import { CreateStorefrontReportDto } from './dto/create-storefront-report.dto';
 import {
   StorefrontCustomFieldDto,
@@ -25,7 +26,8 @@ const DEFAULT_THEME: StorefrontThemeDto = {
 
 const STOREFRONT_TENANT_SELECT = {
   namaBisnis: true,
-  kota: true,
+  kota: true, // fallback teks bebas lama — lihat toKotaDisplayName
+  regency: { select: { nama: true } },
   slug: true,
   status: true,
   theme: {
@@ -122,7 +124,7 @@ export class StorefrontService {
     return {
       status: 'ACTIVE',
       namaBisnis: tenant.namaBisnis,
-      kota: tenant.kota,
+      kota: toKotaDisplayName(tenant),
       slug: tenant.slug,
       theme: this.toThemeDto(tenant),
       services: tenant.services.map((service) => this.toServiceDto(service)),

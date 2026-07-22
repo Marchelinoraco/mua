@@ -48,7 +48,7 @@ export class TenantController {
     return this.tenantService.getMyTenant(tenantId);
   }
 
-  /** PATCH /tenants/me — perbarui nama bisnis atau kota. */
+  /** PATCH /tenants/me — perbarui nama bisnis atau regencyId (kota). */
   @Patch('me')
   @UseGuards(JwtAuthGuard)
   updateMyTenant(

@@ -1,17 +1,51 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtPayload } from '../common/decorators/current-user.decorator';
+import { toTenantKotaDisplay } from '../common/wilayah/tenant-kota.util';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { MeResponseDto } from './dto/me-response.dto';
+
+/** Select tenant bersama register/getMe/login — join Regency+Province untuk tampilan kota (lihat tenant-kota.util). */
+const AUTH_TENANT_SELECT = {
+  id: true,
+  slug: true,
+  namaBisnis: true,
+  kota: true,
+  regencyId: true,
+  regency: {
+    select: {
+      nama: true,
+      provinceId: true,
+      province: { select: { nama: true } },
+    },
+  },
+  status: true,
+} satisfies Prisma.TenantSelect;
+
+type AuthTenantRow = Prisma.TenantGetPayload<{
+  select: typeof AUTH_TENANT_SELECT;
+}>;
+
+function toAuthTenantDto(tenant: AuthTenantRow) {
+  return {
+    id: tenant.id,
+    slug: tenant.slug,
+    namaBisnis: tenant.namaBisnis,
+    status: tenant.status,
+    ...toTenantKotaDisplay(tenant),
+  };
+}
 
 const BCRYPT_ROUNDS = 12;
 
@@ -61,6 +95,16 @@ export class AuthService {
       throw new ConflictException('Slug sudah digunakan, pilih yang lain.');
     }
 
+    if (dto.regencyId !== undefined) {
+      const regency = await this.prisma.regency.findUnique({
+        where: { id: dto.regencyId },
+        select: { id: true },
+      });
+      if (!regency) {
+        throw new BadRequestException('regencyId tidak valid.');
+      }
+    }
+
     // Query Plan pertama (tierUrutan=1) di luar transaksi — data global, bukan tenant-scoped
     const firstPlan = await this.prisma.plan.findFirst({
       where: { aktif: true },
@@ -94,9 +138,10 @@ export class AuthService {
           ownerUserId: user.id,
           slug: dto.slug,
           namaBisnis: dto.namaBisnis,
-          kota: dto.kota,
+          regencyId: dto.regencyId,
           // status default = TRIAL (sesuai skema)
         },
+        select: AUTH_TENANT_SELECT,
       });
 
       // Theme default per tenant (F01 / F02)
@@ -133,13 +178,7 @@ export class AuthService {
     return {
       accessToken: token,
       user: { id: user.id, email: user.email, phone: user.phone },
-      tenant: {
-        id: tenant.id,
-        slug: tenant.slug,
-        namaBisnis: tenant.namaBisnis,
-        kota: tenant.kota,
-        status: tenant.status,
-      },
+      tenant: toAuthTenantDto(tenant),
     };
   }
 
@@ -164,11 +203,7 @@ export class AuthService {
       this.prisma.tenant.findUnique({
         where: { id: tenantId },
         select: {
-          id: true,
-          slug: true,
-          namaBisnis: true,
-          kota: true,
-          status: true,
+          ...AUTH_TENANT_SELECT,
           subscription: {
             select: {
               status: true,
@@ -193,13 +228,7 @@ export class AuthService {
         phone: user.phone ?? null,
         timezone: user.timezone ?? null,
       },
-      tenant: {
-        id: tenant.id,
-        slug: tenant.slug,
-        namaBisnis: tenant.namaBisnis,
-        kota: tenant.kota ?? null,
-        status: tenant.status,
-      },
+      tenant: toAuthTenantDto(tenant),
       subscription: subscription
         ? {
             status: subscription.status,
@@ -223,13 +252,7 @@ export class AuthService {
         phone: true,
         passwordHash: true,
         tenant: {
-          select: {
-            id: true,
-            slug: true,
-            namaBisnis: true,
-            kota: true,
-            status: true,
-          },
+          select: AUTH_TENANT_SELECT,
         },
       },
     });
@@ -258,7 +281,7 @@ export class AuthService {
     return {
       accessToken: token,
       user: { id: user.id, email: user.email, phone: user.phone },
-      tenant: user.tenant,
+      tenant: toAuthTenantDto(user.tenant),
     };
   }
 
