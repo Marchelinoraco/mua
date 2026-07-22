@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
 import { CheckCircle2, Loader2, UserPlus, XCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import {
+  useAuthStore,
+  type AuthSubscription,
+  type AuthTenant,
+  type AuthUser,
+} from '@/stores/auth-store'
 import { api } from '@/lib/api'
 import { handleServerError } from '@/lib/handle-server-error'
 import { cn } from '@/lib/utils'
-import type { AuthSubscription, AuthTenant, AuthUser } from '@/stores/auth-store'
-import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -22,6 +26,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
+import { SelectDropdown } from '@/components/select-dropdown'
+import { useProvinces } from '@/features/wilayah/hooks/use-provinces'
+import { useRegencies } from '@/features/wilayah/hooks/use-regencies'
 
 // ── Response type from POST /auth/register ───────────────────────────────────
 
@@ -62,7 +69,11 @@ const step2Schema = z.object({
       /^[a-z0-9-]{3,30}$/,
       'Hanya huruf kecil, angka, dan tanda hubung (3–30 karakter).'
     ),
-  kota: z.string().min(1, 'Kota wajib diisi.'),
+  // `provinceId` hanya state UI perantara untuk memfilter dropdown
+  // Kota/Kabupaten — TIDAK dikirim ke API (backend hanya butuh `regencyId`,
+  // provinsi bisa di-derive dari relasi Regency → Province).
+  provinceId: z.string().min(1, 'Provinsi wajib dipilih.'),
+  regencyId: z.string().min(1, 'Kota/Kabupaten wajib dipilih.'),
 })
 
 const fullSchema = step1Schema.and(step2Schema)
@@ -93,10 +104,17 @@ export function SignUpForm({
       confirmPassword: '',
       namaBisnis: '',
       slug: '',
-      kota: '',
+      provinceId: '',
+      regencyId: '',
     },
     mode: 'onTouched',
   })
+
+  // ── Wilayah: dropdown Provinsi → Kota/Kabupaten (kaskade) ────────────────
+
+  const provinceId = useWatch({ control: form.control, name: 'provinceId' })
+  const provincesQuery = useProvinces()
+  const regenciesQuery = useRegencies(provinceId || undefined)
 
   // ── Slug real-time check (debounced 500 ms) ─────────────────────────────
 
@@ -170,7 +188,9 @@ export function SignUpForm({
         password: data.password,
         namaBisnis: data.namaBisnis,
         slug: data.slug,
-        kota: data.kota,
+        // `provinceId` sengaja TIDAK dikirim — hanya state UI untuk
+        // memfilter dropdown kota, backend cukup butuh `regencyId`.
+        regencyId: data.regencyId,
       })
       .then((res) => {
         const { accessToken, user, tenant, subscription } = res.data
@@ -367,8 +387,7 @@ export function SignUpForm({
                     </div>
                   </FormControl>
                   <p className='text-xs text-muted-foreground'>
-                    {slugStatus === 'checking' &&
-                      t('auth:signUp.slugChecking')}
+                    {slugStatus === 'checking' && t('auth:signUp.slugChecking')}
                     {slugStatus === 'available' && (
                       <span className='text-green-600'>
                         {t('auth:signUp.slugAvailable')}
@@ -394,16 +413,77 @@ export function SignUpForm({
             />
             <FormField
               control={form.control}
-              name='kota'
+              name='provinceId'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('auth:signUp.provinsi')}</FormLabel>
+                  <SelectDropdown
+                    isControlled
+                    defaultValue={field.value}
+                    onValueChange={(value) => {
+                      field.onChange(value)
+                      // Reset kota/kabupaten setiap kali provinsi diganti —
+                      // pilihan kota lama sudah tidak relevan.
+                      form.setValue('regencyId', '', { shouldValidate: false })
+                    }}
+                    isPending={provincesQuery.isLoading}
+                    disabled={provincesQuery.isLoading}
+                    placeholder={t('auth:signUp.provinsiPlaceholder')}
+                    items={(provincesQuery.data ?? []).map((p) => ({
+                      label: p.nama,
+                      value: p.id,
+                    }))}
+                  />
+                  {provincesQuery.isError && (
+                    <p className='text-xs text-destructive'>
+                      {t('auth:signUp.provinsiError')}{' '}
+                      <button
+                        type='button'
+                        className='underline underline-offset-2'
+                        onClick={() => void provincesQuery.refetch()}
+                      >
+                        {t('auth:signUp.retry')}
+                      </button>
+                    </p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='regencyId'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('auth:signUp.kota')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={t('auth:signUp.kotaPlaceholder')}
-                      {...field}
-                    />
-                  </FormControl>
+                  <SelectDropdown
+                    isControlled
+                    defaultValue={field.value}
+                    onValueChange={field.onChange}
+                    isPending={regenciesQuery.isFetching}
+                    disabled={!provinceId || regenciesQuery.isFetching}
+                    placeholder={
+                      provinceId
+                        ? t('auth:signUp.kotaPlaceholder')
+                        : t('auth:signUp.kotaHintPilihProvinsi')
+                    }
+                    items={(regenciesQuery.data ?? []).map((r) => ({
+                      label: r.nama,
+                      value: r.id,
+                    }))}
+                  />
+                  {provinceId && regenciesQuery.isError && (
+                    <p className='text-xs text-destructive'>
+                      {t('auth:signUp.kotaError')}{' '}
+                      <button
+                        type='button'
+                        className='underline underline-offset-2'
+                        onClick={() => void regenciesQuery.refetch()}
+                      >
+                        {t('auth:signUp.retry')}
+                      </button>
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -422,7 +502,11 @@ export function SignUpForm({
               <Button
                 type='submit'
                 className='flex-1'
-                disabled={isLoading || slugStatus === 'taken' || slugStatus === 'checking'}
+                disabled={
+                  isLoading ||
+                  slugStatus === 'taken' ||
+                  slugStatus === 'checking'
+                }
               >
                 {isLoading ? (
                   <Loader2 className='animate-spin' />

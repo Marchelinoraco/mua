@@ -20,7 +20,14 @@ export interface AuthTenant {
   id: string
   slug: string
   namaBisnis: string
-  kota: string
+  /** FK ke Regency (rujukan wilayah terstruktur) — null bila belum ter-mapping. */
+  regencyId?: string | null
+  /** Nama kota/kabupaten tampilan — di-derive dari join Regency, fallback ke teks lama. */
+  kota?: string | null
+  /** FK ke Province — dipakai untuk pre-fill dropdown Provinsi saat form diedit ulang. */
+  provinceId?: string | null
+  /** Nama provinsi tampilan — di-derive dari join Province. */
+  provinsi?: string | null
   status: string
 }
 
