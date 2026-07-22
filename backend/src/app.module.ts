@@ -17,6 +17,7 @@ import { SlotsModule } from './slots/slots.module';
 import { StorefrontModule } from './storefront/storefront.module';
 import { BookingModule } from './booking/booking.module';
 import { OrdersModule } from './orders/orders.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { OrdersModule } from './orders/orders.module';
     StorefrontModule,
     BookingModule,
     OrdersModule,
+    PaymentsModule,
   ],
   providers: [
     {
