@@ -9,6 +9,7 @@ import { SlotsService } from '../slots/slots.service';
 import { buildTanggalAcaraUtc } from '../booking/booking.util';
 import { addDaysUtc, parseDateOnlyUtc } from '../slots/slots.util';
 import { parsePagination, parseStatusFilter } from './orders.util';
+import { BookingTransitionsService } from './booking-transitions.service';
 import { CancelOrderDto } from './dto/cancel-order.dto';
 import { RescheduleOrderDto } from './dto/reschedule-order.dto';
 import {
@@ -67,6 +68,23 @@ const ORDER_DETAIL_SELECT = {
       customField: { select: { label: true } },
     },
   },
+  // F06 — riwayat pembayaran DP/pelunasan, urut lama->baru (kronologis, jadi
+  // jejak audit yang gampang dibaca; lihat keputusan "tanpa model AuditLog"
+  // di F06-pembayaran-klien-manual.md).
+  payments: {
+    orderBy: { createdAt: 'asc' },
+    select: {
+      id: true,
+      tipe: true,
+      jumlah: true,
+      status: true,
+      buktiFotoUrl: true,
+      catatanKlien: true,
+      catatanMua: true,
+      confirmedAt: true,
+      createdAt: true,
+    },
+  },
 } satisfies Prisma.BookingSelect;
 
 type OrderListRow = Prisma.BookingGetPayload<{
@@ -98,6 +116,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly slotsService: SlotsService,
+    private readonly bookingTransitions: BookingTransitionsService,
   ) {}
 
   /** GET /orders?status=&from=&to=&q=&page=&limit= — daftar order, urut tanggalAcara desc. */
@@ -158,52 +177,6 @@ export class OrdersService {
       throw new NotFoundException('Order tidak ditemukan.');
     }
     return this.toDetail(booking);
-  }
-
-  /**
-   * POST /orders/:id/confirm — konfirmasi booking (FR-F09-3). Hanya valid
-   * dari AWAITING_DP.
-   *
-   * TODO(F06): Normalnya transisi AWAITING_DP -> CONFIRMED dipicu OTOMATIS
-   * saat MUA mengonfirmasi bukti pembayaran DP klien (lihat F06 — belum
-   * dibangun; PaymentsService.confirmPayment akan memanggil transisi setara
-   * ini secara internal). Endpoint ini adalah JEMBATAN MANUAL sampai F06
-   * tersedia — MUA menekan "Konfirmasi" langsung dari dashboard order tanpa
-   * verifikasi payment eksplisit. Ketika F06 selesai, evaluasi ulang apakah
-   * endpoint publik ini tetap diperlukan (mis. untuk DP tunai/luar sistem)
-   * atau digantikan sepenuhnya oleh alur konfirmasi pembayaran.
-   */
-  async confirm(tenantId: string, id: string): Promise<OrderDetailResponseDto> {
-    const existing = await this.findOwnedOrThrow(tenantId, id);
-    this.assertTransition('dikonfirmasi', existing.statusBooking, [
-      BookingStatus.AWAITING_DP,
-    ]);
-
-    await this.prisma.$transaction(async (tx) => {
-      // Update kondisional (bukan update polos) — WHERE menyertakan status
-      // asal sebagai guard atomik terhadap race (mis. dua klik konfirmasi
-      // bersamaan, atau status berubah di antara findOwnedOrThrow & tx ini).
-      const result = await tx.booking.updateMany({
-        where: { id, tenantId, statusBooking: BookingStatus.AWAITING_DP },
-        data: { statusBooking: BookingStatus.CONFIRMED, holdUntil: null },
-      });
-      if (result.count === 0) {
-        throw new ConflictException(
-          'Booking sudah berubah status sebelum konfirmasi diproses.',
-        );
-      }
-
-      // Increment ATOMIK (bukan baca-lalu-tulis) — item wajib roadmap handoff.
-      // Client.totalBooking adalah counter LIFETIME booking yang PERNAH
-      // dikonfirmasi, bukan jumlah booking aktif saat ini — karena itu
-      // TIDAK di-decrement saat cancel (lihat cancel() di bawah).
-      await tx.client.update({
-        where: { id: existing.clientId },
-        data: { totalBooking: { increment: 1 } },
-      });
-    });
-
-    return this.detail(tenantId, id);
   }
 
   /** POST /orders/:id/complete — tandai selesai. Hanya valid dari CONFIRMED/PAID. */
@@ -428,6 +401,17 @@ export class OrdersService {
         customFieldId: cv.customFieldId,
         label: cv.customField.label,
         nilai: cv.nilai,
+      })),
+      payments: booking.payments.map((p) => ({
+        id: p.id,
+        tipe: p.tipe,
+        jumlah: Number(p.jumlah),
+        status: p.status,
+        buktiFotoUrl: p.buktiFotoUrl,
+        catatanKlien: p.catatanKlien,
+        catatanMua: p.catatanMua,
+        confirmedAt: p.confirmedAt,
+        createdAt: p.createdAt,
       })),
     };
   }

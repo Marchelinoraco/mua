@@ -3,8 +3,22 @@ import { BookingStatus } from '@prisma/client';
 import { OrdersService } from './orders.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SlotsService } from '../slots/slots.service';
+import { BookingTransitionsService } from './booking-transitions.service';
 import { CancelOrderDto } from './dto/cancel-order.dto';
 import { RescheduleOrderDto } from './dto/reschedule-order.dto';
+
+/**
+ * BookingTransitionsService dipakai APA ADANYA (bukan mock) — tanpa
+ * dependency Prisma di constructor-nya, method-nya hanya mengoperasikan
+ * `tx` yang dioper (di sini mockTx). Ini membuat assertion terhadap
+ * mockTx.booking.updateMany / mockTx.client.update di bawah tetap valid
+ * persis seperti sebelum logikanya diekstrak (lihat booking-transitions.service.ts).
+ * Cakupan unit test khusus BookingTransitionsService (guard race, pesan 409
+ * per transisi) ada di booking-transitions.service.spec.ts.
+ */
+function createBookingTransitions(): BookingTransitionsService {
+  return new BookingTransitionsService();
+}
 
 /**
  * Unit test OrdersService (F09) — Prisma & SlotsService di-mock, pola sama
@@ -78,6 +92,7 @@ const DETAIL_ROW = {
     },
   ],
   customValues: [],
+  payments: [],
 };
 
 describe('OrdersService.list (F09, FR-F09-1)', () => {
@@ -98,7 +113,8 @@ describe('OrdersService.list (F09, FR-F09-1)', () => {
         items: [{ durasi: 60 }, { durasi: 60 }],
       },
     ]);
-    const service = new OrdersService(prisma, slots);
+    const transitions = createBookingTransitions();
+    const service = new OrdersService(prisma, slots, transitions);
 
     const result = await service.list(TENANT_ID, {
       status: 'CONFIRMED,PAID',
@@ -143,7 +159,8 @@ describe('OrdersService.list (F09, FR-F09-1)', () => {
     const slots = createSlotsServiceMock();
     rawPrisma.booking.count.mockResolvedValue(0);
     rawPrisma.booking.findMany.mockResolvedValue([]);
-    const service = new OrdersService(prisma, slots);
+    const transitions = createBookingTransitions();
+    const service = new OrdersService(prisma, slots, transitions);
 
     const result = await service.list(TENANT_ID, {});
 
@@ -157,7 +174,8 @@ describe('OrdersService.list (F09, FR-F09-1)', () => {
   it('400 bila status tidak valid', async () => {
     const { prisma, rawPrisma } = createPrismaMock();
     const slots = createSlotsServiceMock();
-    const service = new OrdersService(prisma, slots);
+    const transitions = createBookingTransitions();
+    const service = new OrdersService(prisma, slots, transitions);
 
     await expect(
       service.list(TENANT_ID, { status: 'BUKAN_STATUS' }),
@@ -171,7 +189,8 @@ describe('OrdersService.detail (F09, isolasi tenant)', () => {
     const { prisma, rawPrisma } = createPrismaMock();
     const slots = createSlotsServiceMock();
     rawPrisma.booking.findFirst.mockResolvedValue(null);
-    const service = new OrdersService(prisma, slots);
+    const transitions = createBookingTransitions();
+    const service = new OrdersService(prisma, slots, transitions);
 
     await expect(
       service.detail(TENANT_ID, 'booking-milik-tenant-lain'),
@@ -197,7 +216,8 @@ describe('OrdersService.detail (F09, isolasi tenant)', () => {
         },
       ],
     });
-    const service = new OrdersService(prisma, slots);
+    const transitions = createBookingTransitions();
+    const service = new OrdersService(prisma, slots, transitions);
 
     const result = await service.detail(TENANT_ID, BOOKING_ID);
 
@@ -208,91 +228,12 @@ describe('OrdersService.detail (F09, isolasi tenant)', () => {
   });
 });
 
-describe('OrdersService.confirm (F09, FR-F09-3)', () => {
-  it('sukses dari AWAITING_DP: statusBooking->CONFIRMED, holdUntil->null, increment totalBooking atomik', async () => {
-    const { prisma, mockTx, rawPrisma } = createPrismaMock();
-    const slots = createSlotsServiceMock();
-    rawPrisma.booking.findFirst
-      .mockResolvedValueOnce({
-        id: BOOKING_ID,
-        clientId: CLIENT_ID,
-        statusBooking: BookingStatus.AWAITING_DP,
-      })
-      .mockResolvedValueOnce(DETAIL_ROW);
-    mockTx.booking.updateMany.mockResolvedValue({ count: 1 });
-    const service = new OrdersService(prisma, slots);
-
-    await service.confirm(TENANT_ID, BOOKING_ID);
-
-    expect(mockTx.booking.updateMany).toHaveBeenCalledWith({
-      where: {
-        id: BOOKING_ID,
-        tenantId: TENANT_ID,
-        statusBooking: BookingStatus.AWAITING_DP,
-      },
-      data: { statusBooking: BookingStatus.CONFIRMED, holdUntil: null },
-    });
-    // Increment ATOMIK — bukan baca-lalu-tulis.
-    expect(mockTx.client.update).toHaveBeenCalledWith({
-      where: { id: CLIENT_ID },
-      data: { totalBooking: { increment: 1 } },
-    });
-  });
-
-  it.each([
-    BookingStatus.CONFIRMED,
-    BookingStatus.PAID,
-    BookingStatus.COMPLETED,
-    BookingStatus.CANCELED,
-    BookingStatus.EXPIRED,
-  ])(
-    '409 bila status saat ini %s (confirm hanya valid dari AWAITING_DP)',
-    async (status) => {
-      const { prisma, mockTx, rawPrisma } = createPrismaMock();
-      const slots = createSlotsServiceMock();
-      rawPrisma.booking.findFirst.mockResolvedValueOnce({
-        id: BOOKING_ID,
-        clientId: CLIENT_ID,
-        statusBooking: status,
-      });
-      const service = new OrdersService(prisma, slots);
-
-      await expect(
-        service.confirm(TENANT_ID, BOOKING_ID),
-      ).rejects.toBeInstanceOf(ConflictException);
-      expect(mockTx.booking.updateMany).not.toHaveBeenCalled();
-      expect(mockTx.client.update).not.toHaveBeenCalled();
-    },
-  );
-
-  it('409 bila race condition — updateMany count=0 (status berubah sebelum transaksi commit)', async () => {
-    const { prisma, mockTx, rawPrisma } = createPrismaMock();
-    const slots = createSlotsServiceMock();
-    rawPrisma.booking.findFirst.mockResolvedValueOnce({
-      id: BOOKING_ID,
-      clientId: CLIENT_ID,
-      statusBooking: BookingStatus.AWAITING_DP,
-    });
-    mockTx.booking.updateMany.mockResolvedValue({ count: 0 });
-    const service = new OrdersService(prisma, slots);
-
-    await expect(service.confirm(TENANT_ID, BOOKING_ID)).rejects.toBeInstanceOf(
-      ConflictException,
-    );
-    expect(mockTx.client.update).not.toHaveBeenCalled();
-  });
-
-  it('404 bila booking bukan milik tenant', async () => {
-    const { prisma, rawPrisma } = createPrismaMock();
-    const slots = createSlotsServiceMock();
-    rawPrisma.booking.findFirst.mockResolvedValueOnce(null);
-    const service = new OrdersService(prisma, slots);
-
-    await expect(service.confirm(TENANT_ID, BOOKING_ID)).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
-  });
-});
+// OrdersService.confirm() dihapus (F06) — jembatan manual tanpa jejak Payment
+// sudah pensiun. Transisi AWAITING_DP->CONFIRMED sekarang hanya lewat
+// PaymentsService.confirmPayment / markCash, keduanya memakai
+// BookingTransitionsService.confirmDpWithinTx yang sama — logika transisi
+// (increment atomik, race condition, isolasi tenant) tetap tercakup penuh di
+// booking-transitions.service.spec.ts dan payments.service.spec.ts.
 
 describe('OrdersService.complete (F09, FR-F09-3)', () => {
   it.each([BookingStatus.CONFIRMED, BookingStatus.PAID])(
@@ -311,7 +252,8 @@ describe('OrdersService.complete (F09, FR-F09-3)', () => {
           statusBooking: BookingStatus.COMPLETED,
         });
       rawPrisma.booking.updateMany.mockResolvedValue({ count: 1 });
-      const service = new OrdersService(prisma, slots);
+      const transitions = createBookingTransitions();
+      const service = new OrdersService(prisma, slots, transitions);
 
       const result = await service.complete(TENANT_ID, BOOKING_ID);
 
@@ -342,7 +284,8 @@ describe('OrdersService.complete (F09, FR-F09-3)', () => {
         clientId: CLIENT_ID,
         statusBooking: status,
       });
-      const service = new OrdersService(prisma, slots);
+      const transitions = createBookingTransitions();
+      const service = new OrdersService(prisma, slots, transitions);
 
       await expect(
         service.complete(TENANT_ID, BOOKING_ID),
@@ -375,7 +318,8 @@ describe('OrdersService.cancel (F09, FR-F09-3)', () => {
           statusBooking: BookingStatus.CANCELED,
         });
       rawPrisma.booking.updateMany.mockResolvedValue({ count: 1 });
-      const service = new OrdersService(prisma, slots);
+      const transitions = createBookingTransitions();
+      const service = new OrdersService(prisma, slots, transitions);
 
       await service.cancel(TENANT_ID, BOOKING_ID, CANCEL_DTO);
 
@@ -411,7 +355,8 @@ describe('OrdersService.cancel (F09, FR-F09-3)', () => {
       clientId: CLIENT_ID,
       statusBooking: status,
     });
-    const service = new OrdersService(prisma, slots);
+    const transitions = createBookingTransitions();
+    const service = new OrdersService(prisma, slots, transitions);
 
     await expect(
       service.cancel(TENANT_ID, BOOKING_ID, CANCEL_DTO),
@@ -438,7 +383,8 @@ describe('OrdersService.reschedule (F09, AC-F09-2)', () => {
       })
       .mockResolvedValueOnce(DETAIL_ROW);
     mockTx.booking.updateMany.mockResolvedValue({ count: 1 });
-    const service = new OrdersService(prisma, slots);
+    const transitions = createBookingTransitions();
+    const service = new OrdersService(prisma, slots, transitions);
 
     await service.reschedule(TENANT_ID, BOOKING_ID, RESCHEDULE_DTO);
 
@@ -469,7 +415,8 @@ describe('OrdersService.reschedule (F09, AC-F09-2)', () => {
       statusBooking: BookingStatus.CONFIRMED,
       items: [{ durasi: 60 }],
     });
-    const service = new OrdersService(prisma, slots);
+    const transitions = createBookingTransitions();
+    const service = new OrdersService(prisma, slots, transitions);
 
     await expect(
       service.reschedule(TENANT_ID, BOOKING_ID, RESCHEDULE_DTO),
@@ -492,7 +439,8 @@ describe('OrdersService.reschedule (F09, AC-F09-2)', () => {
         statusBooking: status,
         items: [{ durasi: 60 }],
       });
-      const service = new OrdersService(prisma, slots);
+      const transitions = createBookingTransitions();
+      const service = new OrdersService(prisma, slots, transitions);
 
       await expect(
         service.reschedule(TENANT_ID, BOOKING_ID, RESCHEDULE_DTO),

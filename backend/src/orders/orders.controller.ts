@@ -57,15 +57,6 @@ export class OrdersController {
     return this.ordersService.detail(tenantId, id);
   }
 
-  /** POST /orders/:id/confirm — konfirmasi booking (jembatan manual sampai F06). */
-  @Post(':id/confirm')
-  confirm(
-    @CurrentTenant() tenantId: string,
-    @Param('id') id: string,
-  ): Promise<OrderDetailResponseDto> {
-    return this.ordersService.confirm(tenantId, id);
-  }
-
   /** POST /orders/:id/complete — tandai selesai. */
   @Post(':id/complete')
   complete(
